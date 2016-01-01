@@ -1,0 +1,28 @@
+<persistence xmlns="http://java.sun.com/xml/ns/persistence"
+	version="1.0">
+
+	<persistence-unit name="MySQL-Runtimeinfo-Persistence" transaction-type="RESOURCE_LOCAL">
+		<class>io.bigdime.runtimeinfo.DTO.RuntimeInfoDTO</class>
+		<class>io.bigdime.runtimeinfo.DTO.RuntimePropertyDTO</class>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<properties>
+
+			<property name="hibernate.dialect" value="${runtimestore.hibernate.mysql.dialect}" />
+			<property name="hibernate.hbm2ddl.auto" value="update" />
+			<property name="hibernate.show_sql" value="${runtimestore.hibernate.show_sql}" />
+			<property name="hibernate.connection.autocommit"
+				value="${runtimestore.hibernate.connection.autocommit}" />
+		</properties>
+	</persistence-unit>
+
+	<persistence-unit name="embedded-RuntimeInfo-persistence" transaction-type="RESOURCE_LOCAL">
+		<class>io.bigdime.runtimeinfo.DTO.RuntimeInfoDTO</class>
+		<class>io.bigdime.runtimeinfo.DTO.RuntimePropertyDTO</class>
+		<provider>org.hibernate.ejb.HibernatePersistence</provider>
+		<properties>
+			<property name="hibernate.dialect" value="${runtimestore.hibernate.H2.dialect}" />
+			<property name="hibernate.hbm2ddl.auto" value="create-drop" />
+			<property name="hibernate.show_sql" value="${runtimestore.hibernate.show_sql}" />
+		</properties>
+	</persistence-unit>
+</persistence>
