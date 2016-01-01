@@ -1,5 +1,3 @@
-##Bigdime
-
 ### What is BigDime  : 
 BigDime is code name for Data Ingestion Eco System Project. it stands for Big Data Ingestion Made Easy. it consists of following things.
 
@@ -16,3 +14,4 @@ Monitoring - Framework for monitoring  system failures and alerts on them.
 Management Console - console to providing visibility to available data and running jobs/ applications status.
 
 Job Scheduling - A framework/tools for job monitoring and scheduling
+=======
