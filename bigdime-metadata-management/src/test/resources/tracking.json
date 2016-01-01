@@ -1,0 +1,84 @@
+{
+    "name": "MetaInformation",
+    "version": "1.1.0",
+    "type": "map",
+    "entityProperties": [
+        {
+            "entityName" : "unit_1_users",
+            "hiveDatabase": {
+                "name": "db_unit",
+                "location": "/data/unitlocation"
+            },
+            "hiveTable": {
+                "name": "unit_1_users",
+                "type": "external",
+                "location": "/data/unitlocation/raw"
+            },
+            "hivePartitions": [
+                {
+                    "name": "feed",
+                    "type": "string",
+                    "comments": "The account or feed for a data stream."
+                },
+                {
+                    "name": "dt",
+                    "type": "string",
+                    "comments": "The date partition for a data stream."
+                }
+            ],
+            "columns": [
+                {
+                    "name": "daid1",
+                    "type": "STRING"
+                },
+                {
+                    "name": "prty_src_id",
+                    "type": "INT"
+                },
+                {
+                    "name": "indiv_id",
+                    "type": "STRING"
+                }
+            ]
+        },
+        {
+            "entityName" : "unit_2_users",
+            "hiveDatabase": {
+                "name": "db_unit",
+                "location": "/data/unitlocation"
+            },
+            "hiveTable": {
+                "name": "unit_2_users",
+                "type": "external",
+                "location": "/data/unitlocation/raw"
+            },
+            "hivePartitions": [
+                {
+                    "name": "feed",
+                    "type": "string",
+                    "comments": "The account or feed for a data stream."
+                },
+                {
+                    "name": "dt",
+                    "type": "string",
+                    "comments": "The date partition for a data stream."
+                }
+            ],
+            "columns": [
+                {
+                    "name": "daid1",
+                    "type": "STRING"
+                },
+                {
+                    "name": "prty_src_id",
+                    "type": "INT"
+                },
+                {
+                    "name": "indiv_id",
+                    "type": "STRING"
+                }
+            ]
+        }
+        
+    ]
+}

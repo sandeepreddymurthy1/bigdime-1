@@ -1,0 +1,24 @@
+<!--
+
+    Copyright (C) 2015 Stubhub.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>bigdime-libraries</artifactId>
+	<packaging>pom</packaging>
+	<parent>
+		<groupId>io.bigdime</groupId>
+		<artifactId>bigdime</artifactId>
+		<version>0.0.8-SNAPSHOT</version>
+	</parent>
+
+        <modules>
+                <module>bigdime-hdfs-lib</module>
+                <module>bigdime-kafka-lib</module>
+                <module>bigdime-avro-lib</module>
+                <module>bigdime-hbase-lib</module>
+				<module>bigdime-hive-lib</module>
+        </modules>
+</project>

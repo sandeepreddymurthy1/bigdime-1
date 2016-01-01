@@ -1,0 +1,166 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "http://io.bigdime.adaptor",
+  "type": "object",
+  "properties": {
+    "name": {
+      "id": "http://io.bigdime.adaptor/name",
+      "type": "string"
+    },
+    "namespace": {
+      "id": "http://io.bigdime.adaptor/namespace",
+      "type": "string"
+    },
+    "description": {
+      "id": "http://io.bigdime.adaptor/description",
+      "type": "string"
+    },
+    "source": {
+      "id": "http://io.bigdime.adaptor/source",
+      "type": "object",
+      "properties": {
+        "name": {
+          "id": "http://io.bigdime.adaptor/source/name",
+          "type": "string"
+        },
+        "description": {
+          "id": "http://io.bigdime.adaptor/source/description",
+          "type": "string"
+        },
+        "src-desc": {
+          "id": "http://io.bigdime.adaptor/source/src-desc",
+          "type": "object",
+          "properties": {
+            "input1": {
+              "id": "http://io.bigdime.adaptor/source/src-desc/input1",
+              "type": "string"
+            },
+            "input2": {
+              "id": "http://io.bigdime.adaptor/source/src-desc/input2",
+              "type": "string"
+            },
+            "input3": {
+              "id": "http://io.bigdime.adaptor/source/src-desc/input3",
+              "type": "string"
+            }
+          }
+        },
+        "data-handlers": {
+          "id": "http://io.bigdime.adaptor/source/data-handlers",
+          "type": "array",
+          "items": {
+            "id": "http://io.bigdime.adaptor/source/data-handlers/2",
+            "type": "object",
+            "properties": {
+              "name": {
+                "id": "http://io.bigdime.adaptor/source/data-handlers/2/name",
+                "type": "string"
+              },
+              "description": {
+                "id": "http://io.bigdime.adaptor/source/data-handlers/2/description",
+                "type": "string"
+              },
+              "handler-class": {
+                "id": "http://io.bigdime.adaptor/source/data-handlers/2/handler-class",
+                "type": "string"
+              },
+              "properties": {
+                "id": "http://io.bigdime.adaptor/source/data-handlers/2/properties",
+                "type": "object",
+                "properties": {
+                  "channel-map": {
+                    "id": "http://io.bigdime.adaptor/source/data-handlers/2/properties/channel-map",
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "channel": {
+      "id": "http://io.bigdime.adaptor/channel",
+      "type": "array",
+      "items": {
+        "id": "http://io.bigdime.adaptor/channel/1",
+        "type": "object",
+        "properties": {
+          "name": {
+            "id": "http://io.bigdime.adaptor/channel/1/name",
+            "type": "string"
+          },
+          "description": {
+            "id": "http://io.bigdime.adaptor/channel/1/description",
+            "type": "string"
+          },
+          "channel-class": {
+            "id": "http://io.bigdime.adaptor/channel/1/channel-class",
+            "type": "string"
+          },
+          "properties": {
+            "id": "http://io.bigdime.adaptor/channel/1/properties",
+            "type": "object",
+            "properties": {
+              "broker-hosts": {
+                "id": "http://io.bigdime.adaptor/channel/1/properties/broker-hosts",
+                "type": "string"
+              },
+              "offset-data-dir": {
+                "id": "http://io.bigdime.adaptor/channel/1/properties/offset-data-dir",
+                "type": "string"
+              },
+              "topic": {
+                "id": "http://io.bigdime.adaptor/channel/1/properties/topic",
+                "type": "string"
+              },
+              "concurrency": {
+                "id": "http://io.bigdime.adaptor/channel/1/properties/concurrency",
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "sink": {
+      "id": "http://io.bigdime.adaptor/sink",
+      "type": "array",
+      "items": {
+        "id": "http://io.bigdime.adaptor/sink/1",
+        "type": "object",
+        "properties": {
+          "name": {
+            "id": "http://io.bigdime.adaptor/sink/1/name",
+            "type": "string"
+          },
+          "data-handlers": {
+            "id": "http://io.bigdime.adaptor/sink/1/data-handlers",
+            "type": "array",
+            "items": {
+              "id": "http://io.bigdime.adaptor/sink/1/data-handlers/2",
+              "type": "object",
+              "properties": {
+                "name": {
+                  "id": "http://io.bigdime.adaptor/sink/1/data-handlers/2/name",
+                  "type": "string"
+                },
+                "handler-class": {
+                  "id": "http://io.bigdime.adaptor/sink/1/data-handlers/2/handler-class",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name",
+    "namespace",
+    "source",
+    "channel",
+    "sink"
+  ]
+}
