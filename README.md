@@ -13,7 +13,7 @@ Monitoring - Framework for monitoring  system failures and alerts on them.
 
 Management Console - console to providing visibility to available data and running jobs/ applications status.
 
-Job Scheduling - A framework/tools for job monitoring and scheduling
+Getting Started
 =======
 
 1. Clone the BigDime repository to, say /opt/bigdime/repo.
