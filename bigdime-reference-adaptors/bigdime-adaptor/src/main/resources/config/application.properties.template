@@ -42,7 +42,7 @@ hdfs_port=50070
 #override hdfs_path property
 hdfs_path=/webhdfs/v1/data/bigdime/adaptor
 #override hdfs_user property
-hdfs_user=hdfs 
+hdfs_user=hdfs
 #override validation_type property. available values are raw_checksum, record_count, column_count
 validation_type=raw_checksum
 
@@ -50,7 +50,7 @@ zkEnabled=true
 client-port=8080
 hbase.connection.timeout=60000
 #override hbase.zookeeper.quorum property
-hbase.zookeeper.quorum=sandbox.hortonworks.com 
+hbase.zookeeper.quorum=sandbox.hortonworks.com
 hbase.zookeeper.property.clientPort=2181
 zookeeper.znode.parent=/hbase-unsecure
 htable.pool.size=100
