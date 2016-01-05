@@ -3,7 +3,7 @@
     "type": "batch",
     "cron-expression" : "0/30 * * * * ? *",
     "auto-start" : "true",
-    "namespace": "com.stubhub.bigdata",
+    "namespace": "com.example",
     "description": "adaptor to ingest the data from bigdime-file into hdfs.",
     "source": {
         "name": "bigdime-file-source",
