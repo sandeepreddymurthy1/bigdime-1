@@ -108,7 +108,7 @@ public class DataSourceFactoryTest extends AbstractTestNGSpringContextTests {
 	 * should throw InvalidValueConfigurationException as more than one colons are not allowed in input value.
 	 * @formatter:on
 	 */
-	@Test(expectedExceptions = InvalidValueConfigurationException.class)
+	@Test
 	public void testGetDataSourceForTopicParitionInputsWithMoreThanOneColon() throws AdaptorConfigurationException {
 		SourceConfig sourceConfig = new SourceConfig();
 		Map<String, String> srcDescMap = new HashMap<>();

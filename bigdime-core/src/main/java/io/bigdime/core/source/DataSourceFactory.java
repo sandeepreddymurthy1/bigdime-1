@@ -156,8 +156,8 @@ public final class DataSourceFactory {
 					}
 				} else {
 					logger.warn("parsing src_desc->input", "input=\"{}\"", input);
-					throw new InvalidValueConfigurationException("invalid value specified for " + input.getKey());
-
+					descInputEntry.put(descriptors, input.getKey());
+					logger.info("putting srcDesc", "desc=\"{}\" input=\"{}\"", descriptors, input);
 				}
 			}
 			return descInputEntry;
