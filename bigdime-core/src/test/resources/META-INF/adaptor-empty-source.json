@@ -1,0 +1,39 @@
+{
+    "name": "adaptor-empty-source",
+    "type": "streaming",
+    "cron-expression" : "0/5 * * * * ?",
+    "auto-start" : "false",
+    "namespace": "com.example",
+    "description": "adaptor to ingest the data from tracking api into hdfs.",
+    "source": {
+    },
+    "channel": [
+        {
+            "name": "channel1",
+            "description" : "channel for us tracking data",
+            "channel-class": "io.bigdime.core.channel.MemoryChannel",
+            "properties": {
+            	"initialCapacity" : "16",
+            	"maxCapacity" : "1000000",
+	            "concurrency": "3"
+            }
+        }
+    ],
+    "sink": [  
+        {
+            "name": "hdfs sink for tracking data adaptor",
+            "description": "hdfs sink for tracking data adaptor",
+            "channel-desc": ["channel1"],
+            "data-handlers": [
+                {
+                    "name": "memory-channel-reader",
+                    "description": "read data from channels",
+                    "handler-class": "io.bigdime.core.handler.MemoryChannelInputHandler",
+                    "properties": {
+                        
+                    }
+                }
+            ]
+        }
+    ]
+}

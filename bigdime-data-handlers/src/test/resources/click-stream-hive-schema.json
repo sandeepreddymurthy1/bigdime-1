@@ -1,0 +1,28 @@
+{
+    "name": "MetaInformation",
+    "version": "1.1.0",
+    "type": "map",
+    "entityProperties": {
+        "hiveDatabase": {
+            "name": "clickstream",
+            "location": "/data/clickstream"
+        },
+        "hiveTable": {
+            "name": "trackingevents",
+            "type": "external",
+            "location": "/data/clickstream/raw"
+        },
+        "hivePartitions": {
+            "feed": {
+                "name": "feed",
+                "type": "string",
+                "comments": "The account or feed for a data stream."
+            },
+            "dt": {
+                "name": "dt",
+                "type": "string",
+                "comments": "The date partition for a data stream."
+            }
+        }
+    }
+}
