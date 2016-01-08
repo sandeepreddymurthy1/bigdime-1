@@ -33,7 +33,7 @@ import io.bigdime.runtimeinfo.DTO.RuntimeInfoDTO;
 public class AdaptorRuntimeInfoStoreImpl implements
 		RuntimeInfoStore<RuntimeInfo> {
 
-	private Logger logger = LoggerFactory
+	private static Logger logger = LoggerFactory
 			.getLogger(AdaptorRuntimeInfoStoreImpl.class);
 
 	private static final String SOURCENAME = "RUNTIME_INFO-API";

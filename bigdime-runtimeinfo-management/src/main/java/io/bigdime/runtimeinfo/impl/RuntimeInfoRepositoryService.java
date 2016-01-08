@@ -18,7 +18,7 @@ import io.bigdime.alert.Logger;
 @Component
 public class RuntimeInfoRepositoryService {
 
-	private Logger logger = LoggerFactory.getLogger(RuntimeInfoRepositoryService.class);
+	private static Logger logger = LoggerFactory.getLogger(RuntimeInfoRepositoryService.class);
 
 	private static final String SOURCENAME = "RUNTIME_INFO-API";
 
