@@ -109,11 +109,9 @@ public class MemoryChannel extends AbstractChannel {
 		synchronized (this) {
 			while ((channelSizeInBytes + arg0.getBody().length) > channelCapacity) {
 				try {
-					logger.debug("waiting before putting event on memory channel",
-							"channel_name=\"{}\" channelCapacity=\"{}\"", getName(), channelCapacity);
-					synchronized (this) {
-						wait(1000);
-					}
+					logger.debug("waitingto put event on memory channel", "channel_name=\"{}\" channelCapacity=\"{}\"",
+							getName(), channelCapacity);
+					wait(1000);
 				} catch (InterruptedException e) {
 					// nothing to do here
 				}
