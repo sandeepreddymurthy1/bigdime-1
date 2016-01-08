@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.core.commons;
 
 import java.io.IOException;
