@@ -1,0 +1,45 @@
+{
+    "name": "unit-test-adaptor",
+    "type": "streaming",
+    "cron-expression" : "0/5 * * * * ?",
+    "auto-start" : "false",
+    "streaming-pause-time" : "3000",
+    "namespace": "com.example",
+    "description": "adaptor to ingest the data from tracking api into hdfs.",
+    "source": {
+        "name": "tracking-api-source",
+        "description": "source description",
+        "source-type": "file or oracle or mysql or kafka etc",
+        "src-desc": {
+            "input1" : "topic:tab3"
+        },
+        "data-handlers": [
+            {
+                "name": "kafka-data-reader",
+                "description": "read data from partitions specified with src-desc field",
+                "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                "properties": {
+                    "broker-hosts": "kafka.provider.one:9092,kafka.provider.two:9096",
+                    "offset-data-dir": "/tmp",
+                    "message-size" : "20000"
+                }
+            }
+        ]
+    },
+    "channel": [
+        {
+            "name": "channel1",
+            "description" : "channel for us tracking data",
+            "channel-class": "io.bigdime.core.channel.MemoryChannel",
+            "properties": {
+            	"initialCapacity" : "16",
+            	"maxCapacity" : "1000000"
+            }
+        }
+    ],
+    "sink": [
+        {
+            
+        }
+   ]
+}

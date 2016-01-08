@@ -1,0 +1,67 @@
+{
+    "name": "adaptor-kafka-hdfs",
+    "type": "streaming",
+    "cron-expression" : "0/15 * * * * ? *",
+    "auto-start" : "false",
+    "namespace": "com.example",
+    "description": "Adaptor to ingest the data from tracking api into hdfs.",
+    "source": {
+        "name": "tracking-api-source",
+        "description": "source description",
+        "src-desc": {
+            "input1" : "topic1:0"
+        },
+        "data-handlers": [
+            {
+                "name": "kafka-data-reader",
+                "description": "read data from partitions specified with src-desc field",
+                "handler-class": "io.bigdime.handler.kafka.KafkaReaderHandler",
+                "properties": {
+                    "brokers": "kafka.provider.one:9098,kafka.provider.two:9099",
+                    "offset-data-dir": "/tmp/offset-dir",
+                    "messageSize": "20000",
+                     "channel-map" : "input1:channel1"
+                }
+            }
+        ]
+    },
+    "channel": [
+        {
+            "name": "channel1",
+            "description" : "channel for us tracking data",
+            "channel-class": "io.bigdime.core.channel.MemoryChannel",
+            "properties": {
+            }
+        }
+    ],
+    "sink": [
+        {
+            "name": "sink for tracking data adaptor",
+            "description": "hdfs sink for tracking data adaptor",
+            "channel-desc": ["channel1"],
+            "data-handlers": [
+                {
+                    "name": "memory-channel-reader",
+                    "description": "read data from channels",
+                    "handler-class": "io.bigdime.core.handler.MemoryChannelInputHandler",
+                    "properties": {
+                    }
+                },
+                {
+                    "name": "hfds sink for tracking data adaptor",
+                    "description": "hfds sink for tracking data adaptor",
+                    "handler-class": "io.bigdime.handler.webhdfs.WebHDFSWriterHandler",
+                    "properties": {
+                        "hostNames"           : "sandbox.hortonworks.com",
+                        "port"                : "50070",
+                        "hdfsFileName"        : "unit-file.txt",
+                        "hdfsPath"            : "/webhdfs/v1/data/unit/${account}/${timestamp}",
+                        "hdfsUser"            : "hdfs",
+                        "hdfsOverwrite"       : "true",
+                        "hdfsPermissions"     : "755"
+                    }
+                }
+            ]
+        }
+    ]
+}

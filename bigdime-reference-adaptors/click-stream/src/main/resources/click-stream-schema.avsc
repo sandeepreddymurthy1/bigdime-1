@@ -1,0 +1,41 @@
+{
+	  "type" : "record",
+	  "name" : "TrackingEvents",
+	  "namespace" : "com.example",
+	  "fields" : [ {
+	      "name" : "account",
+	       "type" : "string"
+	  }, {
+	    "name" : "events",
+	    "type" : {
+	      "type" : "array",
+	      "items" : {
+	           "type" : "record",
+	           "name" : "TrackingEvent",
+	           "fields" : [ {
+	            "name" : "name",
+	            "type" : "string"
+	        }, {
+	            "name" : "properties",
+	            "type" : [ "null", {
+	                 "type" : "map",
+	                 "values" : "string"
+	          } ],
+	              "default" : null
+	        }, {
+	             "name" : "timestamp",
+	             "type" : [ "null", "string" ],
+	             "default" : null
+	        } ]
+	      },
+	      "java-class" : "java.util.List"
+	    }
+	  }, {
+	      "name" : "context",
+	      "type" : [ "null", {
+	           "type" : "map",
+	           "values" : "string"
+	    } ],
+	       "default" : null
+	  } ]
+}

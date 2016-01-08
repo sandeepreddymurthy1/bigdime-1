@@ -1,0 +1,144 @@
+{
+    "name": "adaptor-partial",
+    "type": "streaming",
+    "cron-expression" : "0/5 * * * * ?",
+    "auto-start" : "false",
+    "namespace": "com.example",
+    "description": "adaptor to ingest the data from tracking api into hdfs.",
+    "source": {
+        "name": "tracking-api-source",
+        "description": "source description",
+        "source-type": "file or oracle or mysql or kafka etc",
+        "src-desc": {
+            "input1" : {}
+        },
+        "data-handlers": [
+            {
+                "name": "kafka-data-reader",
+                "description": "read data from partitions specified with src-desc field",
+                "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                "properties": {
+                    "broker-hosts": "kafka.provider.one:9092,kafka.provider.two:9096",
+                    "offset-data-dir": "/tmp"
+                }
+            },
+            {
+                "name": "avro-record-handler",
+                "description": "Parse avro record and creates a JsonNode",
+                "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                "properties": {}
+            },
+            {
+                "name": "input-processor",
+                "description": "processes the data",
+                "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                "properties": {
+                    "channel-map" : "input1:c1, input2:c2, input3:c3",
+                    "arrayKey" : [
+                    	"array1", "array2"
+                    ],
+                    "arrayNodeKey" : [
+                    	{"name" : "nameValueArrayNode1", "id" : "idValueArrayNode1"},
+                    	{"name" : "nameValueArrayNode2", "id" : "idValueArrayNode2"}
+                    ],
+                    "nodeKey" : {
+                    	"name" : "nameValueNode",
+                    	"address" : "addressValueNode"
+                    }
+                }
+            }
+        ]
+    },
+    "channel": [
+        {
+            "name": "channel1",
+            "description" : "channel for us tracking data",
+            "channel-class": "io.bigdime.core.channel.KafkaChannel"
+        },
+        {
+            "name": "channel2",
+            "description" : "channel for uk tracking data",
+            "channel-class": "io.bigdime.core.channel.KafkaChannel",
+            "properties": {
+                "broker-hosts": "kafka.provider.one:9092,kafka.provider.two:9096",
+                "offset-data-dir": "/tmp",
+	            "topic": "tracking_channel_2",
+	            "concurrency": 3
+            }
+        }
+    ],
+    "sink": [
+        {
+            "name": "sink for tracking data adaptor",
+            "description": "hdfs sink for tracking data adaptor",
+            "data-handlers": [
+                {
+                    "name": "kafka-data-reader",
+                    "description": "read data from channels",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                    "properties": {
+                        "channels": ["channel1", "channel2"]
+                    }
+                },
+                {
+                    "name": "json-hive-mapper",
+                    "description": "map the json document to a hive schema",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                    "properties": {
+                        "hiveDatabaseName": "stbtrackingdb",
+                        "hiveDatabaseLocation": "/data/tracking",
+                        "hiveTableName": "trackingevents",
+                        "hiveTableType": "external",
+                        "hiveTableLocation": "/data/tracking/raw"
+                    }
+                },
+                {
+                    "name": "hfds sink for tracking data adaptor",
+                    "description": "hfds sink for tracking data adaptor",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                    "properties": {
+                        "hostNames": "sandbox.hortonworks.com,sandbox1.hortonworks.com",
+                        "port": "50070",
+                        "hdfsFileName": "hit_data.txt",
+                        "hdfsPath": "/webhdfs/v1/data/tracking/raw/${account}/${date}",
+                        "hdfsUser": "hdfs",
+                        "hdfsOverwrite": "true",
+                        "hdfsPermissions": "777"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "sink for tracking data adaptor",
+            "description": "hbase sink for tracking data adaptor",
+            "data-handlers": [
+                {
+                    "name": "kafka-data-reader",
+                    "description": "read data from channels",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                    "properties": {
+                        "channels": ["channel2"]
+                    }
+                },
+                {
+                    "name": "json-hive-mapper",
+                    "description": "map the json document to a hive schema",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                    "properties": {
+                        "hiveDatabaseName": "stbtrackingdb",
+                        "hiveDatabaseLocation": "/data/tracking",
+                        "hiveTableName": "trackingevents",
+                        "hiveTableType": "external",
+                        "hiveTableLocation": "/data/tracking/raw"
+                    }
+                },
+                {
+                    "name": "hfds sink for tracking data adaptor",
+                    "description": "hfds sink for tracking data adaptor",
+                    "handler-class": "io.bigdime.core.handler.DummyConcreteHandler",
+                     "properties": {}
+                }
+            ]
+        }
+    ]
+}
