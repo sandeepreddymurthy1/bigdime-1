@@ -106,31 +106,26 @@ public class MemoryChannel extends AbstractChannel {
 
 		logger.debug("putting event on memory channel", "channel_name=\"{}\" channelSizeInBytes=\"{}\"", getName(),
 				channelSizeInBytes);
-		// boolean added =
-		// while (eventList.size() > channelCapacity) {
-		while ((channelSizeInBytes + arg0.getBody().length) > channelCapacity) {
-			// need to move this to sync block to guarantee that this condition
-			// is honored
-			try {
-				logger.debug("sleeping before putting event on memory channel",
-						"channel_name=\"{}\" channelCapacity=\"{}\"", getName(), channelCapacity);
-				Thread.sleep(1000);// dont sleep, use wait/notify
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				// e.printStackTrace();
-			}
-		}
 		synchronized (this) {
+			while ((channelSizeInBytes + arg0.getBody().length) > channelCapacity) {
+				try {
+					logger.debug("waiting before putting event on memory channel",
+							"channel_name=\"{}\" channelCapacity=\"{}\"", getName(), channelCapacity);
+					synchronized (this) {
+						wait(1000);
+					}
+				} catch (InterruptedException e) {
+					// nothing to do here
+				}
+			}
 			channelSizeInBytes = channelSizeInBytes + arg0.getBody().length;
 			if (channelSizeInBytes >= maxSizeInBytes) {
 				maxSizeInBytes = channelSizeInBytes;
 			}
 			eventList.add(arg0);
+			notifyAll();
 		}
 		putCount++;
-		// eventList.notifyAll();
-		// TODO Auto-generated method stub
-
 	}
 
 	/**
@@ -295,6 +290,7 @@ public class MemoryChannel extends AbstractChannel {
 
 		}
 		takeCount++;
+		notifyAll();
 		return takenEvent;
 	}
 
