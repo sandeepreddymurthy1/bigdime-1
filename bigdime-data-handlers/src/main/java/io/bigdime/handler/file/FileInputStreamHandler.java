@@ -4,7 +4,6 @@
 package io.bigdime.handler.file;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -311,7 +310,7 @@ public class FileInputStreamHandler extends AbstractHandler {
 		}
 	}
 
-	protected void setNextFileToProcess() throws FileNotFoundException, RuntimeInfoStoreException, HandlerException {
+	protected void setNextFileToProcess() throws IOException, RuntimeInfoStoreException, HandlerException {
 
 		if (dirtyRecords != null && !dirtyRecords.isEmpty()) {
 			RuntimeInfo dirtyRecord = dirtyRecords.remove(0);
@@ -350,7 +349,10 @@ public class FileInputStreamHandler extends AbstractHandler {
 		return true;
 	}
 
-	private void initFile(String nextDescriptorToProcess) throws FileNotFoundException {
+	private void initFile(String nextDescriptorToProcess) throws IOException {
+		if (file != null) {
+			file.close();
+		}
 		file = new RandomAccessFile(nextDescriptorToProcess, "r");
 		currentFile = new File(nextDescriptorToProcess);
 		logger.debug(handlerPhase, "absolute_path={} file_name_for_descriptor={}", currentFile.getAbsolutePath(),
