@@ -16,8 +16,10 @@ import org.apache.hive.hcatalog.api.HCatClient;
 import org.apache.hive.hcatalog.api.HCatCreateTableDesc;
 import org.apache.hive.hcatalog.api.HCatTable;
 import org.apache.hive.hcatalog.api.HCatTable.Type;
+import org.apache.hive.hcatalog.api.ObjectNotFoundException;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema;
+import org.springframework.util.Assert;
 
 import com.google.common.base.Preconditions;
 /**
@@ -89,6 +91,32 @@ public class HiveTableManger extends HiveConfigManager {
 			HiveClientProvider.closeClient(client);
 		}
 	}
+	
+	/**
+	 * This method check table is created in hive metastroe
+	 * @param databaseName
+	 * @param tableName
+	 * @return true if table is created, otherwise return false
+	 * @throws HCatException
+	 */
+	public boolean isTableCreated(String databaseName, String tableName) throws HCatException{
+		HCatClient client = null;
+		boolean tableCreated = false;
+		try {
+			client = HiveClientProvider.getHcatClient(hiveConf);
+			HCatTable hcatTable = client.getTable(databaseName, tableName);
+			Assert.hasText(hcatTable.getTableName(), "table is null");
+			tableCreated = true;
+		} catch (HCatException e) {
+			if (ObjectNotFoundException.class == e.getClass()) {
+				tableCreated = false;
+			}
+		}finally{
+			HiveClientProvider.closeClient(client);
+		}		
+		return tableCreated;
+	}
+	
 	/**
 	 * this method ensure the table is deleted from hive metastore, by default the isExist flag is true.
 	 * @param tableSpecfication

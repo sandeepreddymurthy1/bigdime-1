@@ -18,7 +18,7 @@ import org.apache.http.client.ClientProtocolException;
  * record count mismatches --- validation fail
  * otherwise, validation success
  * 
- * @author ritliu
+ * @author Rita Liu
  */
 
 import io.bigdime.alert.Logger;
@@ -133,7 +133,7 @@ public class RecordCountValidator implements Validator {
 			validationPassed.setValidationResult(ValidationResult.PASSED);
 		} else {
 			String checksumErrorFilePath = "RCError/" + AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName()
-					+ "/" + partitionPath + "/";
+					+ "/" + partitionPath;
 			// Take out /webhdfs/v1 from hdfsBasePath
 			String hdfsDir = hdfsBasePath.substring(11);
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),

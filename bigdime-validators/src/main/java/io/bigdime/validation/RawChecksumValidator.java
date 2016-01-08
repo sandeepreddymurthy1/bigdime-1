@@ -32,7 +32,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import io.bigdime.alert.Logger;
 import io.bigdime.alert.LoggerFactory;
 import io.bigdime.core.ActionEvent;
-import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
@@ -49,7 +48,7 @@ import io.bigdime.libs.hdfs.WebHdfs;
  * Performs validation by comparing expected(from event header) and actual
  * checksum(from actual document on disk).
  * 
- * @author Neeraj Jain, ritliu
+ * @author Neeraj Jain, Rita Liu
  *
  */
 public class RawChecksumValidator implements Validator {
@@ -193,7 +192,7 @@ public class RawChecksumValidator implements Validator {
 							sourceFileChecksum, hdfsFileChecksum);
 
 					String checksumErrorFilePath = "ChecksumError/"
-							+ AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName() + "/";
+							+ AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName() + "/" + partitionPath;
 					// take out /webhdfs/v1 from hdfsBasePath for building
 					// checksumErrorFilePath
 					String hdfsDir = hdfsBasePath.substring(11);

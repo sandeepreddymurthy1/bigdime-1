@@ -65,4 +65,10 @@ public final class ActionEventHeaderConstants {
 	public static final String HIVE_PARTITION_LOCATION = "hivePartitionLocation";
 	public static final String CLEANUP_REQUIRED = "cleanupRequired";
 	public static final String READ_COMPLETE = "readComplete";	
+	
+	public static final String SCHEMA_TYPE_HIVE = "HIVE";
+	public static final String HIVE_HOST_NAME = "hiveHostName";
+	public static final String HIVE_PORT = "hivePort";
+	public static final String HIVE_DB_NAME = "hiveDBName";
+	public static final String HIVE_TABLE_NAME = "hiveTableName";
 }
