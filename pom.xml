@@ -374,4 +374,29 @@
 		</dependencies>
 	</dependencyManagement>
 
+       <profiles>
+                <profile>
+                        <id>snapshots</id>
+                        <distributionManagement>
+                                <snapshotRepository>
+                                        <id>oss-snapshots</id>
+                                        <name>OSS Snapshot Repository</name>
+                                        <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                                </snapshotRepository>
+                        </distributionManagement>
+                </profile>
+
+                <profile>
+                        <id>releases</id>
+                        <distributionManagement>
+                                <repository>
+                                        <id>oss-releases</id>
+                                        <name>OSS Release Repository</name>
+                                        <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+                                </repository>
+                        </distributionManagement>
+                </profile>
+        </profiles>
+
+
 </project>
