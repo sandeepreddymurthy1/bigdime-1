@@ -29,28 +29,12 @@ public class StringDescriptorParser implements DescriptorParser {
 	public Map<Object, String> parseDescriptor(String inputKey, Object descriptorObj) {
 		Map<Object, String> descInputEntry = new HashMap<>();
 		String descriptors = descriptorObj.toString();
-		String[] inputArray = descriptors.split(":");
+		String[] inputArray = descriptors.split(DataConstants.COLON);
 
 		if (inputArray.length == 2) {
 			descInputEntry = parseOneToTwo( inputKey, inputArray);
-//			final String part1 = inputArray[0].trim();
-//			final String part2Str = inputArray[1];
-//			final String[] part2Array = part2Str.split(",");
-//			for (String part2 : part2Array) {
-//				part2 = part2.trim();
-//				desc = part1 + ":" + part2;
-//				descInputEntry.put(desc, inputKey);
-//			}
 		} else if (inputArray.length == 1) {
 			descInputEntry = parseOneToOne( inputKey, inputArray);
-//			final String part2Str = inputArray[0];
-//			final String[] part2Array = part2Str.split(",");
-//			for (final String part2 : part2Array) {
-//				desc = part2.trim();
-//				if (StringUtils.isBlank(desc))
-//					throw new IllegalArgumentException("invalid value(blank) specified for " + inputKey);
-//				descInputEntry.put(desc, inputKey.trim());
-//			}
 		} else {//dont parse, send it as it is
 			descInputEntry.put(descriptors, inputKey);
 		}
@@ -61,10 +45,10 @@ public class StringDescriptorParser implements DescriptorParser {
 		Map<Object, String> descInputEntry = new HashMap<>();
 		final String part1 = inputArray[0].trim();
 		final String part2Str = inputArray[1];
-		final String[] part2Array = part2Str.split(",");
+		final String[] part2Array = part2Str.split(DataConstants.COMMA);
 		for (String part2 : part2Array) {
 			part2 = part2.trim();
-			String desc = part1 + ":" + part2;
+			String desc = part1 + DataConstants.COLON + part2;
 			descInputEntry.put(desc, inputKey);
 		}
 		return descInputEntry;
@@ -72,7 +56,7 @@ public class StringDescriptorParser implements DescriptorParser {
 	private Map<Object, String> parseOneToOne(String inputKey, String[] inputArray) {
 		Map<Object, String> descInputEntry = new HashMap<>();
 		final String part2Str = inputArray[0];
-		final String[] part2Array = part2Str.split(",");
+		final String[] part2Array = part2Str.split(DataConstants.COMMA);
 		for (final String part2 : part2Array) {
 			String desc = part2.trim();
 			if (StringUtils.isBlank(desc))
