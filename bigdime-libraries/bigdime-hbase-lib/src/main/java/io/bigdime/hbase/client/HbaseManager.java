@@ -118,10 +118,10 @@ public class HbaseManager {
 		Preconditions.checkArgument(!puts.isEmpty());
 		HConnection hConnection = getConnection(configuration);
 		HTableInterface hTable = hConnection.getTable(tableName);
-		for (Put put : puts) {
-			logger.debug(appName, "Inserting the record", "tableName={} records={}",
-					tableName, put.toJSON());
-		}
+//		for (Put put : puts) {
+//			logger.debug(appName, "Inserting the record", "tableName={} records={}",
+//					tableName, put.toJSON());
+//		}
 		hTable.put(puts);
 		hTable.close();
 		releaseHConnection(hConnection);

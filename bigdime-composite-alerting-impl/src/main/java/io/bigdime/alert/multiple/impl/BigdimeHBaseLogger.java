@@ -233,20 +233,22 @@ public class BigdimeHBaseLogger implements Logger {
 		puts.add(put);
 		System.out.println("puts.size()=" + puts.size());
 		if (puts.size() >= hbaseDebugInfoBatchSize) {
-			logToHBase(puts);
+			List<Put> tempPuts = puts;
+			puts = new ArrayList<>();
+			logToHBase(tempPuts);
 		}
 	}
 
-	private void logToHBase(final List<Put> puts) {
+	private void logToHBase(final List<Put> tempPuts) {
 		new Thread() { // TODO use task
 			public void run() {
 
 				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
 				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
-						.withTableName(hbaseTableName).withtPuts(puts).build();
+						.withTableName(hbaseTableName).withtPuts(tempPuts).build();
 				try {
 					hbaseManager.insertData(dataInsertionSpecification);
-					puts.clear();
+					tempPuts.clear();
 				} catch (IOException | HBaseClientException e) {
 					e.printStackTrace();
 				}
