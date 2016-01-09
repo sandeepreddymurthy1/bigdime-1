@@ -15,18 +15,21 @@ Management Console - console to providing visibility to available data and runni
 
 Getting Started
 =======
-To get started, you need to obtain a bigdime distribution and execute the install steps: There are two ways to obtain a bigdime distribution:
+To get started, you need to obtain a bigdime distribution and execute the install steps: There are two ways to obtain a bigdime distribution: [Download It!](#download) or [Build It!](#build).
 1. Obtain a distribtion
 -
-Download
---
+<a name="download">
+## Download
+</a>
+
 1. The release can be downloaded from [here](https://oss.sonatype.org/content/groups/public/io/bigdime/bigdime-dist/).
 2. Download the bigdime-dist-${version}-bin.tar.gz file.
 
 -OR-
+<a name="build">
+## Build
+</a>
 
-Build
--
 1. Clone the BigDime repository to, say /opt/bigdime/repo.
 2. From the /opt/bigdime/repo path, run "mvn clean package". This may take a couple of minutes to complete.
 3. Verify that bigdime-dist-${version}-bin.tar.gz exists in /opt/bigdime/repo/dist/target/.
