@@ -61,7 +61,9 @@ public class HbaseManager {
 
 	private ResultScanner resultScanner = null;
 	private Result result = null;
+	private static final String appName = "BIGDIME-HBASE-LIB";
 
+	
 	public ResultScanner getResultScanner() {
 		return resultScanner;
 	}
@@ -86,13 +88,13 @@ public class HbaseManager {
 	public void retreiveData(
 			DataRetrievalSpecification dataRetrievalSpecification)
 			throws HBaseClientException, IOException {
-		logger.info("BIGDIME-HBASE-LIB", "Validations",
+		logger.info(appName, "Validations",
 				"Checking that dataRetrievalSpecification is not null");
 		Preconditions.checkNotNull(dataRetrievalSpecification);
 		String tableName = dataRetrievalSpecification.getTableName();
 		Get get = dataRetrievalSpecification.getGet();
 		Scan scan = dataRetrievalSpecification.getScan();
-		logger.info("BIGDIME-HBASE-LIB", "Validations",
+		logger.info(appName, "Validations",
 				"Checking that tableName value is not null");
 		Preconditions.checkNotNull(tableName);
 		HConnection hConnection = getConnection(configuration);
@@ -117,7 +119,7 @@ public class HbaseManager {
 		HConnection hConnection = getConnection(configuration);
 		HTableInterface hTable = hConnection.getTable(tableName);
 		for (Put put : puts) {
-			logger.debug("Inserting the record", "tableName={} records={}",
+			logger.debug(appName, "Inserting the record", "tableName={} records={}",
 					tableName, put.toJSON());
 		}
 		hTable.put(puts);
@@ -135,7 +137,7 @@ public class HbaseManager {
 		HConnection hConnection = getConnection(configuration);
 		HTableInterface hTable = hConnection.getTable(tableName);
 		for (Delete delete : deletes) {
-			logger.debug("Deleting the record", "tableName={} records={}",
+			logger.debug(appName, "Deleting the record", "tableName={} records={}",
 					dataDeletionSpecification.getTableName(), delete.toJSON());
 		}
 		hTable.delete(deletes);
