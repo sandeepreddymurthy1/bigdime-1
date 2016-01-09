@@ -62,3 +62,10 @@ To get started, you need to obtain a bigdime distribution and execute the instal
 Run the following command from /path/bigdime/bigdime-dist-${version}:
 java -jar -Dloader.path=./config/ -Denv.properties=application.properties bigdime-adaptor-${version}.jar
 
+Logs
+=====
+The logs are written to bigdime.log* files in /path/bigdime/logs path.
+
+
+
+
