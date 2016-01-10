@@ -102,7 +102,7 @@ public class BigdimeHBaseLogger implements Logger {
 					logger.warnEnabled = true;
 				}
 			}
-			logger.executorService = Executors.newSingleThreadExecutor();
+			logger.executorService = Executors.newFixedThreadPool(1);
 			System.out.println("hbaseTableName=" + logger.hbaseTableName + ", hbaseAlertLevel=" + logger.hbaseAlertLevel
 					+ ", hbaseDebugInfoBatchSize=" + logger.hbaseDebugInfoBatchSize);
 			context.close();
@@ -240,20 +240,23 @@ public class BigdimeHBaseLogger implements Logger {
 	}
 
 	private void logToHBase(final List<Put> tempPuts) {
-		new Thread() { // TODO use task
-			public void run() {
-
+		FutureTask<Object> futureTask = new FutureTask<>(new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
 				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
 				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
-						.withTableName(hbaseTableName).withtPuts(tempPuts).build();
+						.withTableName(hbaseTableName).withtPuts(puts).build();
 				try {
 					hbaseManager.insertData(dataInsertionSpecification);
 					tempPuts.clear();
 				} catch (IOException | HBaseClientException e) {
-					e.printStackTrace();
+					e.printStackTrace();// what else to do
 				}
+				return null;
 			}
-		}.start();
+
+		});
+		executorService.execute(futureTask);
 	}
 
 	private Put buildPut(String source, final String shortMessage, final String message, final String level,
