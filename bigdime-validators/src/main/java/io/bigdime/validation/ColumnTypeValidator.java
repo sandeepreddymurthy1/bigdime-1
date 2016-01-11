@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation;
 
 import java.util.ArrayList;
@@ -6,7 +9,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import io.bigdime.alert.Logger.ALERT_CAUSE;
 import io.bigdime.alert.Logger.ALERT_SEVERITY;
 import io.bigdime.alert.Logger.ALERT_TYPE;
 import io.bigdime.core.ActionEvent;
+import io.bigdime.core.commons.DataConstants;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
@@ -34,30 +37,31 @@ import io.bigdime.libs.hive.common.Column;
 import io.bigdime.libs.hive.common.SqlTypes2HiveTypes;
 import io.bigdime.libs.hive.metadata.TableMetaData;
 import io.bigdime.libs.hive.table.HiveTableManger;
+import io.bigdime.validation.common.AbstractValidator;
 
 @Component
 @Factory(id = "column_type", type = ColumnTypeValidator.class)
-public class ColumnTypeValidator implements Validator{
-	
+public class ColumnTypeValidator implements Validator {
+
 	private HiveTableManger hiveTableManager;
-	
-	private Properties props = new Properties();
-	
-	private Metasegment metasegment;
-	
+
 	@Autowired
 	private MetadataStore metadataStore;
-	
-	private Entitee entitee;
+
 	private String name;
-	private static final Logger logger = LoggerFactory.getLogger(ColumnTypeValidator.class);
 	
+	private static final Logger logger = LoggerFactory
+			.getLogger(ColumnTypeValidator.class);
+
 	/**
-	 * This method is to compare hive column data type to source column data type
+	 * This method is to compare hive column data type to source column data
+	 * type
 	 * 
 	 * @param actionEvent
-	 * @return PASSED if hive column data type is same as source column data type
-	 * 		   otherwise return COLUMN_TYPE_MISMATCH and list wrong column data type, return INCOMPLETE_SETUP if hive table is not found or no table metadata in metastore
+	 * @return PASSED if hive column data type is same as source column data
+	 *         type otherwise return COLUMN_TYPE_MISMATCH and list wrong column
+	 *         data type, return INCOMPLETE_SETUP if hive table is not found or
+	 *         no table metadata in metastore
 	 * 
 	 * @author Rita Liu
 	 * 
@@ -68,152 +72,208 @@ public class ColumnTypeValidator implements Validator{
 			throws DataValidationException {
 		TableMetaData table = null;
 		int port = 0;
+		AbstractValidator commonCheckValidator = new AbstractValidator();
 		ValidationResponse validationPassed = new ValidationResponse();
 		validationPassed.setValidationResult(ValidationResult.FAILED);
-		String hiveHost = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_HOST_NAME);
-		String hivePort = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PORT);
-		String hiveDBName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_DB_NAME);
-		String hiveTableName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_TABLE_NAME);
-		
-		checkNullStrings(ActionEventHeaderConstants.HIVE_HOST_NAME, hiveHost);
-		checkNullStrings(ActionEventHeaderConstants.PORT, hivePort);
+		String hiveHost = actionEvent.getHeaders().get(
+				ActionEventHeaderConstants.HIVE_HOST_NAME);
+		String hivePort = actionEvent.getHeaders().get(
+				ActionEventHeaderConstants.HIVE_PORT);
+		String hiveDBName = actionEvent.getHeaders().get(
+				ActionEventHeaderConstants.HIVE_DB_NAME);
+		String hiveTableName = actionEvent.getHeaders().get(
+				ActionEventHeaderConstants.HIVE_TABLE_NAME);
+
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_HOST_NAME, hiveHost);
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.PORT, hivePort);
 		try {
 			port = Integer.parseInt(hivePort);
-			
+
 		} catch (NumberFormatException e) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "NumberFormatException",
-					"Illegal port number input({}) while parsing string to integer", hivePort);
+			logger.warn(
+					AdaptorConfig.getInstance().getAdaptorContext()
+							.getAdaptorName(),
+					"NumberFormatException",
+					"Illegal port number input({}) while parsing string to integer",
+					hivePort);
 			throw new NumberFormatException();
 		}
-		
-		checkNullStrings(ActionEventHeaderConstants.HIVE_DB_NAME, hiveDBName);
-		checkNullStrings(ActionEventHeaderConstants.HIVE_TABLE_NAME, hiveTableName);
-		
-		//connect to hive		 
-		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost + ":" + port);
-//		props.put(HiveConf.ConfVars.PREEXECHOOKS.varname, "");
-//		props.put(HiveConf.ConfVars.POSTEXECHOOKS.varname, "");
-//		props.put(HiveConf.ConfVars.HIVE_SUPPORT_CONCURRENCY.varname, Boolean.FALSE.toString());
-//		props.putAll(actionEvent.getHeaders());
-						
+
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_DB_NAME, hiveDBName);
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_TABLE_NAME,
+				hiveTableName);
+
+		// connect to hive
+		Properties props = new Properties();
+		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost
+				+ DataConstants.COLON + port);
+
 		hiveTableManager = HiveTableManger.getInstance(props);
-		
-		try{
-			if(hiveTableManager.isTableCreated(hiveDBName, hiveTableName)){
-				table = hiveTableManager.getTableMetaData(hiveDBName, hiveTableName);
+
+		try {
+			if (hiveTableManager.isTableCreated(hiveDBName, hiveTableName)) {
+				table = hiveTableManager.getTableMetaData(hiveDBName,
+						hiveTableName);
 				List<Column> partitionColumnList = table.getPartitionColumns();
 				List<Column> hiveColumnList = table.getColumns();
 				hiveColumnList.addAll(partitionColumnList);
 				Set<Attribute> metadataColumns = null;
-				metasegment = metadataStore.getAdaptorMetasegment(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), ActionEventHeaderConstants.SCHEMA_TYPE_HIVE, hiveTableName);
-				if(metasegment == null || metasegment.getEntitees() == null || metasegment.getEntitees().size() == 0) {
-					logger.alert(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.VALIDATION_ERROR, ALERT_SEVERITY.MAJOR, "No such metasegment for table {} found in metastore", hiveTableName);
-					validationPassed.setValidationResult(ValidationResult.INCOMPLETE_SETUP);
-				}else{
-					entitee = metasegment.getEntity(hiveTableName);
+				Metasegment metasegment = metadataStore.getAdaptorMetasegment(AdaptorConfig
+						.getInstance().getAdaptorContext().getAdaptorName(),
+						ActionEventHeaderConstants.SCHEMA_TYPE_HIVE,
+						hiveTableName);
+				if (metasegment == null || metasegment.getEntitees() == null
+						|| metasegment.getEntitees().size() == 0) {
+					logger.alert(
+							AdaptorConfig.getInstance().getAdaptorContext()
+									.getAdaptorName(),
+							ALERT_TYPE.OTHER_ERROR,
+							ALERT_CAUSE.VALIDATION_ERROR,
+							ALERT_SEVERITY.MAJOR,
+							"No such metasegment for table {} found in {} database in metastore",
+							hiveTableName, hiveDBName);
+					validationPassed
+							.setValidationResult(ValidationResult.INCOMPLETE_SETUP);
+				} else {
+					Entitee entitee = metasegment.getEntity(hiveTableName);
 					metadataColumns = entitee.getAttributes();
-					List<Attribute> sourceColumnList =new ArrayList<Attribute>(metadataColumns);
+					List<Attribute> sourceColumnList = new ArrayList<Attribute>(
+							metadataColumns);
 					StringBuilder sb = new StringBuilder();
 					boolean columnTypeMatch = false;
-					List<Attribute> sourceList = new ArrayList<Attribute>(sourceColumnList);
+					List<Attribute> sourceList = new ArrayList<Attribute>(
+							sourceColumnList);
 					StringBuilder st = new StringBuilder();
-					for(int i = 0; i < metadataColumns.size(); i++){
-						st.append(sourceColumnList.get(i).getAttributeName().toLowerCase() + ":" + sourceColumnList.get(i).getAttributeType().toLowerCase() + " ");
+					for (int i = 0; i < metadataColumns.size(); i++) {
+						st.append(sourceColumnList.get(i).getAttributeName()
+								.toLowerCase()
+								+ DataConstants.COLON
+								+ sourceColumnList.get(i).getAttributeType()
+										.toLowerCase() + " ");
 					}
-					//hive has less (or equal) column than source ---- hive column count < source column count
-					if(hiveColumnList.size() <= metadataColumns.size()){
+					// hive has less (or equal) column than source ---- hive column count < source column count
+					if (hiveColumnList.size() <= metadataColumns.size()) {
 						Iterator<Attribute> iterator = sourceList.iterator();
 						while (iterator.hasNext()) {
 							Attribute attribute = iterator.next();
-							for (Column column : hiveColumnList) {				
-								if (attribute.getAttributeName().compareToIgnoreCase(column.getName())==0 &&
-									column.getType().compareToIgnoreCase(
-										SqlTypes2HiveTypes.sqlType2HiveType(
-												attribute.getAttributeType()).getTypeName()) == 0) {				
+							for (Column column : hiveColumnList) {
+								if (attribute.getAttributeName()
+										.compareToIgnoreCase(column.getName()) == 0
+										&& column
+												.getType()
+												.compareToIgnoreCase(
+														SqlTypes2HiveTypes
+																.sqlType2HiveType(
+																		attribute
+																				.getAttributeType())
+																.getTypeName()) == 0) {
 									iterator.remove();
-									columnTypeMatch=true;
+									columnTypeMatch = true;
 								}
 							}
 						}
-					
-						//list of column type mismatch and additional columns added (if possible)
-						if(!sourceList.isEmpty()){
+
+						// list of column type mismatch and additional columns added (if possible)
+						if (!sourceList.isEmpty()) {
 							for (Attribute attr : sourceList) {
-								sb.append(attr.getAttributeName().toLowerCase() + ":"+ attr.getAttributeType().toLowerCase() + " ");
+								sb.append(attr.getAttributeName().toLowerCase()
+										+ DataConstants.COLON
+										+ attr.getAttributeType().toLowerCase()
+										+ " ");
 							}
 							sourceList.clear();
-							columnTypeMatch=false;
+							columnTypeMatch = false;
 						}
 					}
-					//hive has more column than source ---- hive column count > source column count
-					if(hiveColumnList.size() > metadataColumns.size()){
-						List<Column> hiveList = new ArrayList<Column>(hiveColumnList);
+					// hive has more column than source ---- hive column count > source column count
+					if (hiveColumnList.size() > metadataColumns.size()) {
+						List<Column> hiveList = new ArrayList<Column>(
+								hiveColumnList);
 						Iterator<Column> iterator = hiveList.iterator();
-						while(iterator.hasNext()){
+						while (iterator.hasNext()) {
 							Column column = iterator.next();
-							for(Attribute attribute : sourceList){
-								if(attribute.getAttributeName().compareToIgnoreCase(column.getName())==0 &&
-									column.getType().compareToIgnoreCase(
-											SqlTypes2HiveTypes.sqlType2HiveType(
-													attribute.getAttributeType()).getTypeName()) == 0){
+							for (Attribute attribute : sourceList) {
+								if (attribute.getAttributeName()
+										.compareToIgnoreCase(column.getName()) == 0
+										&& column
+												.getType()
+												.compareToIgnoreCase(
+														SqlTypes2HiveTypes
+																.sqlType2HiveType(
+																		attribute
+																				.getAttributeType())
+																.getTypeName()) == 0) {
 									iterator.remove();
-									columnTypeMatch=true;
+									columnTypeMatch = true;
 								}
 							}
 						}
-					
-						//additional columns list
-						if(!hiveList.isEmpty()){
+
+						// additional columns list
+						if (!hiveList.isEmpty()) {
 							for (Column col : hiveList) {
 								sb.append(col.toString() + " ");
 							}
 							hiveList.clear();
-							columnTypeMatch=false;
+							columnTypeMatch = false;
 						}
 					}
-					if(columnTypeMatch){
-						logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "Column Type Match", "Hive table {} in {} database has the same column type as source, columns: {}", hiveTableName, hiveDBName, hiveColumnList.toString());
-						validationPassed.setValidationResult(ValidationResult.PASSED);
-					}else{
-						logger.debug(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "Columnlist with mismatch type", "Hive Column list: {} and Source Column list: {}", hiveColumnList.toString(), st.toString());
-						logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "Column Type Mismatch", "Hive table {} in {} database has different column type as source, column(s): {}", hiveTableName, hiveDBName, sb.toString());
-						validationPassed.setValidationResult(ValidationResult.COLUMN_TYPE_MISMATCH);
+					if (columnTypeMatch) {
+						logger.info(
+								AdaptorConfig.getInstance().getAdaptorContext()
+										.getAdaptorName(),
+								"Column Type Match",
+								"Hive table {} in {} database has the same column type as source, columns: {}",
+								hiveTableName, hiveDBName,
+								hiveColumnList.toString());
+						validationPassed
+								.setValidationResult(ValidationResult.PASSED);
+					} else {
+						logger.debug(
+								AdaptorConfig.getInstance().getAdaptorContext()
+										.getAdaptorName(),
+								"Column list with type",
+								"Hive Column list: {} and Source Column list: {}",
+								hiveColumnList.toString(), st.toString());
+						logger.warn(
+								AdaptorConfig.getInstance().getAdaptorContext()
+										.getAdaptorName(),
+								"Column Type Mismatch",
+								"Hive table {} in {} database has different column type as source, column(s): {}",
+								hiveTableName, hiveDBName, sb.toString());
+						validationPassed
+								.setValidationResult(ValidationResult.COLUMN_TYPE_MISMATCH);
 						sb.setLength(0);
 					}
 				}
-			}else{
-				logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "Hive table not exist", "Hive table {} is not found in hive database {}", hiveTableName, hiveDBName);
-				validationPassed.setValidationResult(ValidationResult.INCOMPLETE_SETUP);
+			} else {
+				logger.warn(AdaptorConfig.getInstance().getAdaptorContext()
+						.getAdaptorName(), "Hive table not exist",
+						"Hive table {} is not found in hive database {}",
+						hiveTableName, hiveDBName);
+				validationPassed
+						.setValidationResult(ValidationResult.INCOMPLETE_SETUP);
 			}
 		} catch (HCatException e) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "HCatException", "Exception occurred while getting column type from hive", e);
-			throw new DataValidationException("Exception during getting column type from hive");
-		} catch (MetadataAccessException ex){
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "MetadataAccessException", "Exception occurred while getting column type from metastore", ex);
-			throw new DataValidationException("Exception during getting column type from metastore");
+			logger.warn(AdaptorConfig.getInstance().getAdaptorContext()
+					.getAdaptorName(), "HCatException",
+					"Exception occurred while getting column type from hive, cause: " +
+					e.getCause());
+			throw new DataValidationException(
+					"Exception during getting column type from hive");
+		} catch (MetadataAccessException ex) {
+			logger.warn(
+					AdaptorConfig.getInstance().getAdaptorContext()
+							.getAdaptorName(),
+					"MetadataAccessException",
+					"Exception occurred while getting column type from metastore",
+					ex);
+			throw new DataValidationException(
+					"Exception during getting column type from metastore");
 		}
-	
-	return validationPassed;
-		
-	}
 
-	/**
-	 * This method to check provided argument from ActionEvent if null/empty or
-	 * not, if null/empty, give warning and throw IllegalArgumentException.
-	 * 
-	 * @param key
-	 * @param value
-	 * @throws IllegalArgumentException
-	 * 
-	 * @author Rita Liu
-	 * 
-	 */
-	private void checkNullStrings(String key, String value) {
-		if (StringUtils.isBlank(value)) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
-					"Checking Null/Empty for provided arugument: " + key, " {} is null/empty", key);
-			throw new IllegalArgumentException();
-		}
+		return validationPassed;
+
 	}
 
 	@Override

@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation;
 
 import static org.mockito.Matchers.anyString;
@@ -98,19 +101,12 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	public void validateHiveTableNotCreated() throws DataValidationException, HCatException{
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Properties props = Mockito.mock(Properties.class);
-		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
+		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
+		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
+		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		PowerMockito.when(HiveTableManger.getInstance(props)).thenReturn(hiveTableManager);
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
-		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
-		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
-		when(mockActionEvent.getHeaders()).thenReturn(headers);
-		ReflectionTestUtils.setField(columnTypeValidator, "props", props);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", hiveTableManager);
-		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
+		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
+		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
 		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);
 	}
 	
@@ -118,22 +114,14 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	public void validateEntityNotFound() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Properties props = Mockito.mock(Properties.class);
-		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
+		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
+		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
+		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		PowerMockito.when(HiveTableManger.getInstance(props)).thenReturn(hiveTableManager);
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
-		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
-		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
-		when(mockActionEvent.getHeaders()).thenReturn(headers);
-		
-		ReflectionTestUtils.setField(columnTypeValidator, "props", props);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", hiveTableManager);
-		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
+		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);	
+		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
 		TableMetaData mockTable = Mockito.mock(TableMetaData.class);
-		Mockito.when(hiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
+		Mockito.when(mockHiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
 		MetadataStore mockMetadataStore = Mockito.mock(MetadataStore.class);
 		ReflectionTestUtils.setField(columnTypeValidator, "metadataStore", mockMetadataStore);
 		List<Column> hiveColumns = new ArrayList<Column>();
@@ -147,51 +135,25 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	public void validateColumnTypeMatchWithSameColumnCount() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Properties props = Mockito.mock(Properties.class);
-		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
+		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
+		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
+		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		PowerMockito.when(HiveTableManger.getInstance(props)).thenReturn(hiveTableManager);
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
-		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
-		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
-		when(mockActionEvent.getHeaders()).thenReturn(headers);
-		
-		ReflectionTestUtils.setField(columnTypeValidator, "props", props);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", hiveTableManager);
-		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
+		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
+		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
 		TableMetaData mockTable = Mockito.mock(TableMetaData.class);
-		Mockito.when(hiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
-		List<Column> hiveColumns = new ArrayList<Column>();
-		Column column = new Column("id", "int", "comment");
-		hiveColumns.add(column);
-		List<Column> partitionColumns = new ArrayList<Column>();
-		Column parColumn = new Column("dt", "string", "partition column");
-		partitionColumns.add(parColumn);
-		hiveColumns.addAll(partitionColumns);
-		Mockito.when(mockTable.getColumns()).thenReturn(hiveColumns);
+		Mockito.when(mockHiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
+		Mockito.when(mockTable.getColumns()).thenReturn(createHiveTableWithTwoColumns());
 		MetadataStore mockMetadataStore = Mockito.mock(MetadataStore.class);
 		ReflectionTestUtils.setField(columnTypeValidator, "metadataStore", mockMetadataStore);
 		Metasegment mockMetasegment = Mockito.mock(Metasegment.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "metasegment", mockMetasegment);
 		Mockito.when(mockMetadataStore.getAdaptorMetasegment(anyString(), anyString(), anyString())).thenReturn(mockMetasegment);
 		Set<Entitee> mockEntitySet = Mockito.mock(Set.class);
 		Mockito.when(mockMetasegment.getEntitees()).thenReturn(mockEntitySet);
 		Mockito.when(mockEntitySet.size()).thenReturn(Integer.valueOf(1));
 		Entitee mockEntitee = Mockito.mock(Entitee.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "entitee", mockEntitee);
 		Mockito.when(mockMetasegment.getEntity(anyString())).thenReturn(mockEntitee);
-		Set<Attribute> metaColumns = new LinkedHashSet<Attribute>();
-		Attribute attr1 = new Attribute();
-		attr1.setAttributeName("id");
-		attr1.setAttributeType("int");
-		metaColumns.add(attr1);
-		Attribute attr2 = new Attribute();
-		attr2.setAttributeName("dt");
-		attr2.setAttributeType("string");
-		metaColumns.add(attr2);
-		Mockito.when(mockEntitee.getAttributes()).thenReturn(metaColumns);
+		Mockito.when(mockEntitee.getAttributes()).thenReturn(createEntityWithTwoAttributes());
 		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.PASSED);
 	}
 	
@@ -200,55 +162,25 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	public void validateColumnTypeMismatchSourceColumnMore() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Properties props = Mockito.mock(Properties.class);
-		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
+		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
+		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
+		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		PowerMockito.when(HiveTableManger.getInstance(props)).thenReturn(hiveTableManager);
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
-		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
-		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
-		when(mockActionEvent.getHeaders()).thenReturn(headers);
-		
-		ReflectionTestUtils.setField(columnTypeValidator, "props", props);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", hiveTableManager);
-		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
+		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
+		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
 		TableMetaData mockTable = Mockito.mock(TableMetaData.class);
-		Mockito.when(hiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
-		List<Column> hiveColumns = new ArrayList<Column>();
-		Column column = new Column("id", "int", "comment");
-		hiveColumns.add(column);
-		List<Column> partitionColumns = new ArrayList<Column>();
-		Column parColumn = new Column("dt", "string", "partition column");
-		partitionColumns.add(parColumn);
-		hiveColumns.addAll(partitionColumns);
-		Mockito.when(mockTable.getColumns()).thenReturn(hiveColumns);
+		Mockito.when(mockHiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
+		Mockito.when(mockTable.getColumns()).thenReturn(createHiveTableWithTwoColumns());
 		MetadataStore mockMetadataStore = Mockito.mock(MetadataStore.class);
 		ReflectionTestUtils.setField(columnTypeValidator, "metadataStore", mockMetadataStore);
 		Metasegment mockMetasegment = Mockito.mock(Metasegment.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "metasegment", mockMetasegment);
 		Mockito.when(mockMetadataStore.getAdaptorMetasegment(anyString(), anyString(), anyString())).thenReturn(mockMetasegment);
 		Set<Entitee> mockEntitySet = Mockito.mock(Set.class);
 		Mockito.when(mockMetasegment.getEntitees()).thenReturn(mockEntitySet);
 		Mockito.when(mockEntitySet.size()).thenReturn(Integer.valueOf(1));
 		Entitee mockEntitee = Mockito.mock(Entitee.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "entitee", mockEntitee);
 		Mockito.when(mockMetasegment.getEntity(anyString())).thenReturn(mockEntitee);
-		Set<Attribute> metaColumns = new LinkedHashSet<Attribute>();
-		Attribute attr1 = new Attribute();
-		attr1.setAttributeName("id");
-		attr1.setAttributeType("int");
-		metaColumns.add(attr1);
-		Attribute attr2 = new Attribute();
-		attr2.setAttributeName("dt");
-		attr2.setAttributeType("string");
-		metaColumns.add(attr2);
-		Attribute attr3 = new Attribute();
-		attr3.setAttributeName("name");
-		attr3.setAttributeType("string");
-		metaColumns.add(attr3);
-		Mockito.when(mockEntitee.getAttributes()).thenReturn(metaColumns);
+		Mockito.when(mockEntitee.getAttributes()).thenReturn(createEntityWithThreeAttributes());
 		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.COLUMN_TYPE_MISMATCH);
 	}
 	
@@ -257,45 +189,69 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	public void validateColumnTypeMismatchHiveColumnMore() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Properties props = Mockito.mock(Properties.class);
-		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
+		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
+		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
+		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		PowerMockito.when(HiveTableManger.getInstance(props)).thenReturn(hiveTableManager);
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
-		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
-		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
-		when(mockActionEvent.getHeaders()).thenReturn(headers);
-		
-		ReflectionTestUtils.setField(columnTypeValidator, "props", props);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", hiveTableManager);
-		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
+		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
+		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
 		TableMetaData mockTable = Mockito.mock(TableMetaData.class);
-		Mockito.when(hiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
-		List<Column> hiveColumns = new ArrayList<Column>();
-		Column column = new Column("id", "int", "comment");
-		hiveColumns.add(column);
-		column = new Column("first_name", "varchar", "comment");
-		hiveColumns.add(column);
-		column = new Column("last_name", "varchar", "comment");
-		hiveColumns.add(column);
-		List<Column> partitionColumns = new ArrayList<Column>();
-		Column parColumn = new Column("dt", "string", "partition column");
-		partitionColumns.add(parColumn);
-		hiveColumns.addAll(partitionColumns);
-		Mockito.when(mockTable.getColumns()).thenReturn(hiveColumns);
+		Mockito.when(mockHiveTableManager.getTableMetaData(anyString(), anyString())).thenReturn(mockTable);
+		Mockito.when(mockTable.getColumns()).thenReturn(createHiveTableWithThreeColumns());
 		MetadataStore mockMetadataStore = Mockito.mock(MetadataStore.class);
 		ReflectionTestUtils.setField(columnTypeValidator, "metadataStore", mockMetadataStore);
 		Metasegment mockMetasegment = Mockito.mock(Metasegment.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "metasegment", mockMetasegment);
 		Mockito.when(mockMetadataStore.getAdaptorMetasegment(anyString(), anyString(), anyString())).thenReturn(mockMetasegment);
 		Set<Entitee> mockEntitySet = Mockito.mock(Set.class);
 		Mockito.when(mockMetasegment.getEntitees()).thenReturn(mockEntitySet);
 		Mockito.when(mockEntitySet.size()).thenReturn(Integer.valueOf(1));
 		Entitee mockEntitee = Mockito.mock(Entitee.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "entitee", mockEntitee);
 		Mockito.when(mockMetasegment.getEntity(anyString())).thenReturn(mockEntitee);
+		Mockito.when(mockEntitee.getAttributes()).thenReturn(createEntityWithTwoAttributes());
+		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.COLUMN_TYPE_MISMATCH);
+	}
+	
+	@Test(priority = 10)
+	public void gettersAndSettersTest() {
+		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
+		columnTypeValidator.setName("testName");
+		Assert.assertEquals(columnTypeValidator.getName(), "testName");
+	}
+	
+	private Map<String, String> setCommonParameters(ActionEvent actionEvent){
+		Map<String, String> headers = new HashMap<>();
+		headers.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
+		headers.put(ActionEventHeaderConstants.HIVE_PORT, "1234");
+		headers.put(ActionEventHeaderConstants.HIVE_DB_NAME, "mockDB");
+		headers.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "mockTable");
+		return headers;
+	}
+	
+	private List<Column> createHiveTableWithTwoColumns() {
+		List<Column> hiveColumns = new ArrayList<Column>();
+		Column column = new Column("id", "int", "comment");
+		hiveColumns.add(column);
+		List<Column> partitionColumns = new ArrayList<Column>();
+		Column parColumn = new Column("dt", "String", "partition column");
+		partitionColumns.add(parColumn);
+		hiveColumns.addAll(partitionColumns);
+		return hiveColumns;
+	}
+	
+	private List<Column> createHiveTableWithThreeColumns() {
+		List<Column> hiveColumns = new ArrayList<Column>();
+		Column column = new Column("id", "int", "comment");
+		hiveColumns.add(column);
+		column = new Column("name", "varchar", "comment");
+		hiveColumns.add(column);
+		List<Column> partitionColumns = new ArrayList<Column>();
+		Column parColumn = new Column("dt", "String", "partition column");
+		partitionColumns.add(parColumn);
+		hiveColumns.addAll(partitionColumns);
+		return hiveColumns;
+	}
+	
+	private Set<Attribute> createEntityWithTwoAttributes() {
 		Set<Attribute> metaColumns = new LinkedHashSet<Attribute>();
 		Attribute attr1 = new Attribute();
 		attr1.setAttributeName("id");
@@ -305,14 +261,23 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		attr2.setAttributeName("dt");
 		attr2.setAttributeType("string");
 		metaColumns.add(attr2);
-		Mockito.when(mockEntitee.getAttributes()).thenReturn(metaColumns);
-		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.COLUMN_TYPE_MISMATCH);
+		return metaColumns;
 	}
 	
-	@Test(priority = 10)
-	public void gettersAndSettersTest() {
-		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
-		columnTypeValidator.setName("testName");
-		Assert.assertEquals(columnTypeValidator.getName(), "testName");
+	private Set<Attribute> createEntityWithThreeAttributes() {
+		Set<Attribute> metaColumns = new LinkedHashSet<Attribute>();
+		Attribute attr1 = new Attribute();
+		attr1.setAttributeName("id");
+		attr1.setAttributeType("int");
+		metaColumns.add(attr1);
+		Attribute attr2 = new Attribute();
+		attr2.setAttributeName("name");
+		attr2.setAttributeType("string");
+		metaColumns.add(attr2);
+		Attribute attr3 = new Attribute();
+		attr3.setAttributeName("dt");
+		attr3.setAttributeType("string");
+		metaColumns.add(attr3);
+		return metaColumns;
 	}
 }

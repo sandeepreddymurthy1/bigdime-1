@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation.integration;
 
 import io.bigdime.core.ActionEvent;
@@ -69,7 +72,7 @@ public class ColumnTypeValidatorIntegrationTest extends AbstractTestNGSpringCont
 	   	columnTypeValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 33)
+	@Test(priority = 33, expectedExceptions = DataValidationException.class)
 	public void testHiveTableNotCreated() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");

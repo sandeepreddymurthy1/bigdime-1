@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation.integration;
 
 
@@ -8,6 +11,7 @@ import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.validation.ColumnCountValidator;
 
+//import org.apache.hive.hcatalog.common.HCatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,12 +74,12 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	columnCountValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 12)
+	@Test(priority = 12, expectedExceptions = DataValidationException.class)
 	public void testHiveTableNotCreated() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "test");
-	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "test");
+	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "testTable");
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);		
 	}
 	
