@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation.integration;
 
 import java.util.ArrayList;
