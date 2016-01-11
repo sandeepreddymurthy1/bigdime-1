@@ -79,7 +79,7 @@ public class KafkaInputDescriptor implements InputDescriptor<String> {
 	public void parseDescriptor(Map<String, Object> properties ) {
 			topic = PropertyHelper.getStringProperty(properties, KafkaReaderHandlerConstants.TOPIC);
 			partition = PropertyHelper.getIntProperty(properties, KafkaReaderHandlerConstants.PARTITION, -1);
-			Preconditions.checkNotNull(topic);
+			Preconditions.checkNotNull(topic,"Valid topic is required and cannot be null");
 			if(partition < 0){
 				throw new IllegalArgumentException("valid partition is required partition="+partition);
 			}

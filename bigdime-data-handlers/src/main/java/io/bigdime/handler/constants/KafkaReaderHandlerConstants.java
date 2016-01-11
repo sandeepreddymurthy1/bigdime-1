@@ -4,7 +4,7 @@
 package io.bigdime.handler.constants;
 /**
  * 
- * @author mnamburi
+ * @author Murali Namburi
  *
  */
 public final class KafkaReaderHandlerConstants {
