@@ -1,8 +1,10 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.adaptor.metadata.impl;
 
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -84,7 +86,7 @@ public class MetadataRepositoryService {
 
 		if (metaDBDetails != null) {
 			if (metasegment.getEntitees() != null) {
-				// Set<EntiteeDTO> entitees = metaDBDetails.getEntitees();
+				Set<EntiteeDTO> entitees = metaDBDetails.getEntitees();
 				logger.debug("SOURCENAME", "Metasegment size", metasegment
 						.getEntitees().size() + "");
 				for (EntiteeDTO entity : metasegment.getEntitees()) {
@@ -97,26 +99,23 @@ public class MetadataRepositoryService {
 						entity.setVersion(repoVersion + VERSIONINCREMENT);
 
 					}
-					Set<EntiteeDTO> tempEntityDTOSet = new LinkedHashSet<EntiteeDTO>();
 					if (dynamicDataTypesConfiguration)
 						configureDyanamicDataType(entity);
-					boolean removedEntityFlag = false;
-					if (metaDBDetails.getEntitees().size() > 0)
-						for (EntiteeDTO repoEntity : metaDBDetails
-								.getEntitees())
-							if (entity.getEntityName().equalsIgnoreCase(
-									repoEntity.getEntityName())) {
-								entity.setId(repoEntity.getId());
-								metaDBDetails.getEntitees().remove(repoEntity);
-								removedEntityFlag = true;
-								break;
-							} else {
-								tempEntityDTOSet.add(entity);
-								// addEntityFlag = true;
-							}
-					if (removedEntityFlag || tempEntityDTOSet.size() > 0
-							|| metaDBDetails.getEntitees().size() == 0)
-						metaDBDetails.getEntitees().add(entity);
+					
+					if(metaDBDetails.getEntitees().size() > 0)
+					for (EntiteeDTO repoEntity : metaDBDetails.getEntitees())
+						if (entity.getEntityName().equalsIgnoreCase(
+								repoEntity.getEntityName())) {
+							repoEntity.setEntityName(entity.getEntityName());
+							repoEntity.setEntityLocation(entity
+									.getEntityLocation());
+							repoEntity.setVersion(repoVersion
+									+ VERSIONINCREMENT);
+							repoEntity.setAttributes(entity.getAttributes());
+						} else
+							entitees.add(entity);
+					else
+						entitees.add(entity);
 				}
 			}
 			metaDBDetails.setUpdatedAt(new Date());
