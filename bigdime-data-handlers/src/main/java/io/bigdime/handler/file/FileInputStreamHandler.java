@@ -304,9 +304,7 @@ public class FileInputStreamHandler extends AbstractHandler {
 			}
 		} else {
 			logger.debug(handlerPhase, "returning READY, no data read from the file");
-			return Status.READY; // If -1 was returned, that means we have
-									// either read all the data or the file is
-									// empty.
+			return Status.READY;
 		}
 	}
 
@@ -352,6 +350,9 @@ public class FileInputStreamHandler extends AbstractHandler {
 	private void initFile(String nextDescriptorToProcess) throws IOException {
 		if (file != null) {
 			file.close();
+		}
+		if (fileChannel != null) { // closing the channel explicitly
+			fileChannel.close();
 		}
 		file = new RandomAccessFile(nextDescriptorToProcess, "r");
 		currentFile = new File(nextDescriptorToProcess);
