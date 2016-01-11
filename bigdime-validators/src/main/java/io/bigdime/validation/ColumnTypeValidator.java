@@ -41,6 +41,13 @@ import io.bigdime.validation.common.AbstractValidator;
 
 @Component
 @Factory(id = "column_type", type = ColumnTypeValidator.class)
+
+/**
+ * Performs validation by comparing hive column type and source column type
+ * 
+ * @author Rita Liu
+ * 
+ */
 public class ColumnTypeValidator implements Validator {
 
 	private HiveTableManger hiveTableManager;
@@ -63,7 +70,6 @@ public class ColumnTypeValidator implements Validator {
 	 *         data type, return INCOMPLETE_SETUP if hive table is not found or
 	 *         no table metadata in metastore
 	 * 
-	 * @author Rita Liu
 	 * 
 	 */
 

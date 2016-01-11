@@ -39,6 +39,13 @@ import io.bigdime.validation.common.AbstractValidator;
 
 @Component
 @Factory(id = "column_count", type = ColumnCountValidator.class)
+
+/**
+ * Performs validation by comparing hive column count and source column count
+ * 
+ * @author Rita Liu
+ * 
+ */
 public class ColumnCountValidator implements Validator {
 
 	private static final Logger logger = LoggerFactory
@@ -63,7 +70,6 @@ public class ColumnCountValidator implements Validator {
 	 *         INCOMPLETE_SETUP if hive table is not found or no such metadata
 	 *         found in metastore
 	 * 
-	 * @author Rita Liu
 	 */
 
 	@Override

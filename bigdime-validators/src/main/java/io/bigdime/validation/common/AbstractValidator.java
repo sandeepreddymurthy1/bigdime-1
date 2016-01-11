@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation.common;
 
 
@@ -7,6 +10,12 @@ import io.bigdime.core.config.AdaptorConfig;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * This class contains common methods using by validation
+ * 
+ * @author Rita Liu
+ * 
+ */
 public class AbstractValidator {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AbstractValidator.class);

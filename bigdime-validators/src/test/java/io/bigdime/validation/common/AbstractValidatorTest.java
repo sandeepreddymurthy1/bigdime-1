@@ -1,3 +1,6 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
 package io.bigdime.validation.common;
 
 import org.testng.annotations.Test;

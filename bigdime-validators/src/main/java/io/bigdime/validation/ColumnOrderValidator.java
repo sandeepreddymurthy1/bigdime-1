@@ -39,6 +39,13 @@ import io.bigdime.validation.common.AbstractValidator;
 
 @Component
 @Factory(id = "column_order", type = ColumnOrderValidator.class)
+
+/**
+ * Performs validation by comparing hive column order and source column order
+ * 
+ * @author Rita Liu
+ * 
+ */
 public class ColumnOrderValidator implements Validator {
 
 	private HiveTableManger hiveTableManager;
@@ -60,7 +67,6 @@ public class ColumnOrderValidator implements Validator {
 	 *         return FAILED when met first mismatch order, return
 	 *         INCOMPLETE_SETUP if hive table is not found
 	 * 
-	 * @author Rita Liu
 	 * 
 	 */
 

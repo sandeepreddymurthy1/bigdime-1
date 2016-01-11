@@ -44,6 +44,13 @@ import io.bigdime.validation.common.AbstractValidator;
 
 @Factory(id = "record_count", type = RecordCountValidator.class)
 
+/**
+ * Performs validation by comparing comparing expected(from event header) and actual
+ * record count(from hdfs).
+ * 
+ * @author Rita Liu
+ * 
+ */
 public class RecordCountValidator implements Validator {
 
 	private WebHdfs webHdfs;
