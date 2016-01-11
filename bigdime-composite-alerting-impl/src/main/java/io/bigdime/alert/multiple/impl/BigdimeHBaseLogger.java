@@ -225,16 +225,21 @@ public class BigdimeHBaseLogger implements Logger {
 		}
 	}
 
-	List<Put> puts = new ArrayList<>();
+	private static List<Put> puts = new ArrayList<>();
 
 	private void LogDebugInfoToHBase(final String source, final String shortMessage, final String message,
 			final String level) {
 		Put put = buildPut(source, shortMessage, message, level, null, null);
-		puts.add(put);
-		System.out.println("puts.size()=" + puts.size());
-		if (puts.size() >= hbaseDebugInfoBatchSize) {
-			List<Put> tempPuts = puts;
-			puts = new ArrayList<>();
+
+		List<Put> tempPuts = null;
+		synchronized (puts) {
+			puts.add(put);
+			if (puts.size() >= hbaseDebugInfoBatchSize) {
+				tempPuts = puts;
+				puts = new ArrayList<>();
+			}
+		}
+		if (tempPuts != null) {
 			logToHBase(tempPuts);
 		}
 	}
@@ -245,7 +250,7 @@ public class BigdimeHBaseLogger implements Logger {
 			public Object call() throws Exception {
 				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
 				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
-						.withTableName(hbaseTableName).withtPuts(puts).build();
+						.withTableName(hbaseTableName).withtPuts(tempPuts).build();
 				try {
 					hbaseManager.insertData(dataInsertionSpecification);
 					tempPuts.clear();
