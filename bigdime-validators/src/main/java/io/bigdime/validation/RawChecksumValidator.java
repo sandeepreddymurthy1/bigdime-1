@@ -32,7 +32,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import io.bigdime.alert.Logger;
 import io.bigdime.alert.LoggerFactory;
 import io.bigdime.core.ActionEvent;
-import io.bigdime.core.ActionEvent.Status;
+import io.bigdime.core.commons.DataConstants;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
@@ -42,6 +42,7 @@ import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.core.validation.Validator;
 import io.bigdime.libs.hdfs.WebHDFSConstants;
 import io.bigdime.libs.hdfs.WebHdfs;
+import io.bigdime.validation.common.AbstractValidator;
 
 @Factory(id = "raw_checksum", type = RawChecksumValidator.class)
 
@@ -49,7 +50,7 @@ import io.bigdime.libs.hdfs.WebHdfs;
  * Performs validation by comparing expected(from event header) and actual
  * checksum(from actual document on disk).
  * 
- * @author Neeraj Jain, ritliu
+ * @author Neeraj Jain, Rita Liu
  *
  */
 public class RawChecksumValidator implements Validator {
@@ -85,26 +86,13 @@ public class RawChecksumValidator implements Validator {
 					totalSize, totalRead, hdfsBasePath, hdfsFileName, fileReadComplete);
 			return false;
 		}
-		
-//		checkNullStrings(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_SIZE, totalSize);
-//		checkNullStrings(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_READ, totalRead);
-//		logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "processing RawChecksumValidator",
-//				"Raw Checksum validation, totalSize={} totalRead={} hdfsBasePath={} hdfsFileName={}", totalSize,
-//				totalRead, hdfsBasePath, hdfsFileName);
-
-//		if (!totalRead.equals(totalSize)) {
-//			logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
-//					"processing RawChecksumValidator",
-//					"Raw Checksum validation being skipped, totalSize={} totalRead={} hdfsBasePath={} hdfsFileName={}",
-//					totalSize, totalRead, hdfsBasePath, hdfsFileName);
-//			return false;
-//		}
 		return true;
 	}
 
 	@Override
 	public ValidationResponse validate(ActionEvent actionEvent) throws DataValidationException {
 		ValidationResponse validationPassed = new ValidationResponse();
+		AbstractValidator commonValidator = new AbstractValidator();
 		validationPassed.setValidationResult(ValidationResult.FAILED);
 		String host = actionEvent.getHeaders().get(ActionEventHeaderConstants.HOST_NAMES);
 		String portString = actionEvent.getHeaders().get(ActionEventHeaderConstants.PORT);
@@ -116,13 +104,12 @@ public class RawChecksumValidator implements Validator {
 		String hdfsCompletedPath = "";
 		String sourceFileChecksum = "";
 
-		checkNullStrings(ActionEventHeaderConstants.HOST_NAMES, host);
-		checkNullStrings(ActionEventHeaderConstants.PORT, portString);
+		commonValidator.checkNullStrings(ActionEventHeaderConstants.HOST_NAMES, host);
+		commonValidator.checkNullStrings(ActionEventHeaderConstants.PORT, portString);
 
 		if (!isReadyToValidate(actionEvent)) {
 			validationPassed.setValidationResult(ValidationResult.NOT_READY);
 			return validationPassed;
-			// TODO define a response code for skipping.
 		}
 		try {
 			int port = Integer.parseInt(portString);
@@ -136,9 +123,9 @@ public class RawChecksumValidator implements Validator {
 			throw new NumberFormatException();
 		}
 
-		checkNullStrings(ActionEventHeaderConstants.HDFS_PATH, hdfsBasePath);
-		checkNullStrings(ActionEventHeaderConstants.HDFS_FILE_NAME, hdfsFileName);
-		checkNullStrings(ActionEventHeaderConstants.SOURCE_FILE_PATH, sourceFilePath);
+		commonValidator.checkNullStrings(ActionEventHeaderConstants.HDFS_PATH, hdfsBasePath);
+		commonValidator.checkNullStrings(ActionEventHeaderConstants.HDFS_FILE_NAME, hdfsFileName);
+		commonValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_FILE_PATH, sourceFilePath);
 
 		try {
 			if (!new File(sourceFilePath).exists()) {
@@ -158,10 +145,10 @@ public class RawChecksumValidator implements Validator {
 		if (sourceFileChecksum.length() > 0) {
 
 			if (StringUtils.isNotBlank(hivePartitionValues)) {
-				String[] partitionList = hivePartitionValues.split(",");
+				String[] partitionList = hivePartitionValues.split(DataConstants.COMMA);
 				StringBuilder stringBuilder = new StringBuilder();
 				for (int i = 0; i < partitionList.length; i++) {
-					stringBuilder.append(partitionList[i].trim() + "/");
+					stringBuilder.append(partitionList[i].trim() + DataConstants.SLASH);
 				}
 				partitionPath = stringBuilder.toString();
 				hdfsCompletedPath = hdfsBasePath + partitionPath + hdfsFileName;
@@ -174,10 +161,10 @@ public class RawChecksumValidator implements Validator {
 				hdfsFileChecksum = getHdfsFileChecksum(hdfsCompletedPath);
 			} catch (ClientProtocolException e) {
 				logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "ClientProtocolException",
-						"Exception occurred while getting hdfs raw checksum", e);
+						"Exception occurred while getting hdfs raw checksum, cause: " + e.getCause());
 			} catch (IOException ex) {
 				logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "IOException",
-						"Exception occurred while getting hdfs raw checksum", ex);
+						"Exception occurred while getting hdfs raw checksum, cause: " + ex.getMessage());
 			}
 
 			if (hdfsFileChecksum.length() > 0) {
@@ -187,13 +174,9 @@ public class RawChecksumValidator implements Validator {
 							"Raw Checksum matches", "Hdfs file raw checksum is same as source file raw checksum.");
 					validationPassed.setValidationResult(ValidationResult.PASSED);
 				} else {
-					logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
-							"Raw Checksum mismatches HDFS file moved",
-							"Hdfs file raw checksum is different as source file raw checksum. sourceFileChecksum={} hdfsFileChecksum={}",
-							sourceFileChecksum, hdfsFileChecksum);
-
-					String checksumErrorFilePath = "ChecksumError/"
-							+ AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName() + "/";
+					
+					String checksumErrorFilePath = "ChecksumError" + DataConstants.SLASH
+							+ AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName() + DataConstants.SLASH + partitionPath;
 					// take out /webhdfs/v1 from hdfsBasePath for building
 					// checksumErrorFilePath
 					String hdfsDir = hdfsBasePath.substring(11);
@@ -213,6 +196,12 @@ public class RawChecksumValidator implements Validator {
 								"Exception occurs",
 								"Failed to move to provided location: " + hdfsDir + checksumErrorFilePath);
 					}
+					
+					logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
+							"Raw Checksum mismatches HDFS file moved",
+							"Hdfs file raw checksum is different as source file raw checksum, hdfs file moved to {}. sourceFileChecksum={} hdfsFileChecksum={}", 
+							hdfsBasePath + checksumErrorFilePath, sourceFileChecksum, hdfsFileChecksum);
+
 					validationPassed.setValidationResult(ValidationResult.FAILED);
 				}
 			} else {
@@ -226,22 +215,6 @@ public class RawChecksumValidator implements Validator {
 			validationPassed.setValidationResult(ValidationResult.FAILED);
 		}
 		return validationPassed;
-	}
-
-	/**
-	 * This method will check provided parameters if null or empty or not
-	 * 
-	 * @param key
-	 * @param value
-	 * 
-	 */
-
-	private void checkNullStrings(String key, String value) {
-		if (StringUtils.isBlank(value)) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
-					"Checking Null/Empty for provided arugument: " + key, " {} is null/empty", key);
-			throw new IllegalArgumentException();
-		}
 	}
 
 	/**
@@ -332,7 +305,7 @@ public class RawChecksumValidator implements Validator {
 
 		inputStream.close();
 		srcFs.close();
-		String localFileChecksum = md5Checksum.toString().split(":")[1];
+		String localFileChecksum = md5Checksum.toString().split(DataConstants.COLON)[1];
 
 		return localFileChecksum;
 	}
