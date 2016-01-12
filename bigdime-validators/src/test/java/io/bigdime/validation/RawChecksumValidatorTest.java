@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 
 public class RawChecksumValidatorTest {
 
-	@Test(priority = 1, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHostTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -46,7 +46,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullPortNumberTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -57,7 +57,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 3)
+	@Test
 	public void notReadyToValidateTest() throws DataValidationException{
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -70,7 +70,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.NOT_READY);
 	}
 	
-	@Test(priority = 4, expectedExceptions = NumberFormatException.class)
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -82,7 +82,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsPathTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -103,7 +103,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 6, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsFileNameTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -119,7 +119,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 7, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullSourceFilePathTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -136,7 +136,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 8)
+	@Test
 	public void validateSourceFileNotFoundTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -158,7 +158,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 9)
+	@Test
 	public void validateFailedToGetHdfsChecksumTest() throws DataValidationException, IOException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -191,7 +191,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 10)
+	@Test
 	public void validateChecksumWithoutPartitionTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
@@ -226,7 +226,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.PASSED);
 	}
 
-	@Test(priority = 11)
+	@Test
 	public void validateChecksumFailedWithPartitionTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 
@@ -275,7 +275,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 12)
+	@Test
 	public void validateChecksumFailedWithErrorChecksumDirExistsTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 
@@ -319,7 +319,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 13)
+	@Test
 	public void testGettersAndSetters() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		rawChecksumValidator.setName("unit-name");

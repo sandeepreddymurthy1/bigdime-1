@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
 @PrepareForTest(HiveTableManger.class)
 public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	
-	@Test(priority = 1, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveHostTest() throws DataValidationException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -50,7 +50,7 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		columnTypeValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHivePortNumberTest() throws DataValidationException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -61,7 +61,7 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		columnTypeValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 3, expectedExceptions = NumberFormatException.class)
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -72,7 +72,7 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		columnTypeValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 4, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullDBNameTest() throws DataValidationException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -84,7 +84,7 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		columnTypeValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullEntityNameTest() throws DataValidationException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -97,26 +97,24 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		columnTypeValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 6)
+	@Test
 	public void validateHiveTableNotCreated() throws DataValidationException, HCatException{
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
 		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);
 	}
 	
-	@Test(priority = 7)
+	@Test
 	public void validateEntityNotFound() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);	
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -131,13 +129,12 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(priority = 8)
+	@Test
 	public void validateColumnTypeMatchWithSameColumnCount() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -158,13 +155,12 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(priority = 9)
+	@Test
 	public void validateColumnTypeMismatchSourceColumnMore() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -185,13 +181,12 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(priority = 9)
+	@Test
 	public void validateColumnTypeMismatchHiveColumnMore() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnTypeValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -211,7 +206,7 @@ public class ColumnTypeValidatorTest extends PowerMockTestCase {
 		Assert.assertEquals(columnTypeValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.COLUMN_TYPE_MISMATCH);
 	}
 	
-	@Test(priority = 10)
+	@Test
 	public void gettersAndSettersTest() {
 		ColumnTypeValidator columnTypeValidator = new ColumnTypeValidator();
 		columnTypeValidator.setName("testName");

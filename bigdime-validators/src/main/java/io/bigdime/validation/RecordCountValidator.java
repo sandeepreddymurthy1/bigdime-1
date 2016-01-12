@@ -76,11 +76,12 @@ public class RecordCountValidator implements Validator {
 		validationPassed.setValidationResult(ValidationResult.FAILED);
 		String host = actionEvent.getHeaders().get(ActionEventHeaderConstants.HOST_NAMES);
 		String portString = actionEvent.getHeaders().get(ActionEventHeaderConstants.PORT);
+		String userName = actionEvent.getHeaders().get(ActionEventHeaderConstants.USER_NAME);
 		String srcRCString = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
 		String hdfsBasePath = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_PATH);
 		String hdfsFileName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_FILE_NAME);
 		String hivePartitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
-		String userName = actionEvent.getHeaders().get(ActionEventHeaderConstants.USER_NAME);
+		
 		
 		String partitionPath = "";
 		String hdfsCompletedPath = "";

@@ -43,7 +43,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(true, writeFile("checksum-no-partition.txt", remoteFile2));
 	}
 	
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
@@ -51,7 +51,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 3, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullPortName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -60,7 +60,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 4)
+	@Test
 	public void testNotReadyToValidate() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -70,7 +70,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.NOT_READY);
 	}
 	
-	@Test(priority = 5, expectedExceptions = NumberFormatException.class)
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void testConvertPortStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -80,7 +80,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 6, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHdfsPath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -91,7 +91,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 7, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHdfsFileName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -103,7 +103,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 8, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullSourcePath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -116,7 +116,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 9)
+	@Test
 	public void testLocalFileNotFound() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -129,7 +129,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
-	@Test(priority = 10)
+	@Test
 	public void testHdfsFileNotFound() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -142,7 +142,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
-	@Test(priority = 11)
+	@Test(priority = 2)
 	public void testChecksumWithPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -156,7 +156,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
 	}
 	
-	@Test(priority = 12)
+	@Test(priority = 3)
 	public void testChecksumWithoutPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -170,7 +170,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
 	}
 	
-	@Test(priority = 13)
+	@Test(priority = 4)
 	public void testChecksumFailedWithoutPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -184,7 +184,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
 	}
 	
-	@Test(priority = 14)
+	@Test(priority = 5)
 	public void testChecksumFailedWithErrorChecksumDirExists() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -198,7 +198,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
 	}
 	
-	@Test(priority = 15)
+	@Test
 	public void testGettersAndSetters() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		rawChecksumValidator.setName("unit-name");

@@ -12,7 +12,6 @@ import java.util.Set;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import io.bigdime.alert.Logger;
 import io.bigdime.alert.Logger.ALERT_CAUSE;
@@ -37,7 +36,6 @@ import io.bigdime.libs.hive.metadata.TableMetaData;
 import io.bigdime.libs.hive.table.HiveTableManger;
 import io.bigdime.validation.common.AbstractValidator;
 
-@Component
 @Factory(id = "column_count", type = ColumnCountValidator.class)
 
 /**
@@ -50,8 +48,6 @@ public class ColumnCountValidator implements Validator {
 
 	private static final Logger logger = LoggerFactory
 			.getLogger(ColumnCountValidator.class);
-
-	private HiveTableManger hiveTableManager;
 
 	@Autowired
 	private MetadataStore metadataStore;
@@ -113,7 +109,7 @@ public class ColumnCountValidator implements Validator {
 		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost
 				+ DataConstants.COLON + port);
 
-		hiveTableManager = HiveTableManger.getInstance(props);
+		HiveTableManger hiveTableManager = HiveTableManger.getInstance(props);
 		try {
 			if (hiveTableManager.isTableCreated(hiveDBName, hiveTableName)) {
 				table = hiveTableManager.getTableMetaData(hiveDBName,

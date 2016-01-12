@@ -37,27 +37,27 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 		AdaptorConfig.getInstance().getAdaptorContext().setAdaptorName("UnitAdaptor");
 	}
 	
-	@Test(priority = 7, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHiveHostName() throws DataValidationException{
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "");
 	   	columnCountValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 8, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHivePortName() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "");
 	   	columnCountValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 9, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testHivePortParseToInt() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "port");
 	   	columnCountValidator.validate(actionEvent);
 	}
 		
-	@Test(priority = 10, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHiveDBName() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -65,7 +65,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	columnCountValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 11, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHiveTableName() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -74,7 +74,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	columnCountValidator.validate(actionEvent);
 	}
 	
-	@Test(priority = 12, expectedExceptions = DataValidationException.class)
+	@Test(expectedExceptions = DataValidationException.class)
 	public void testHiveTableNotCreated() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -83,7 +83,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);		
 	}
 	
-	@Test(priority = 13)
+	@Test
 	public void testNullMetadataEntitee() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -92,7 +92,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);		
 	}
 	
-	@Test(priority = 14)
+	@Test
 	public void testColumnCountMatch() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -101,7 +101,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
 	}	
 	
-	@Test(priority = 15)
+	@Test
 	public void testHiveColumnCountMoreThanSource() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -110,7 +110,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
 	}
 	
-	@Test(priority = 16)
+	@Test
 	public void testSourceColumnCountMoreThanHive() throws DataValidationException{
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 	   	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
@@ -119,7 +119,7 @@ public class ColumnCountValidatorIntegrationTest extends AbstractTestNGSpringCon
 	   	Assert.assertEquals(columnCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.COLUMN_COUNT_MISMATCH);
 	}
 	
-	@Test(priority = 17)
+	@Test
 	public void testSettersAndGetters(){
 		columnCountValidator.setName("testName");
 		Assert.assertEquals(columnCountValidator.getName(), "testName");

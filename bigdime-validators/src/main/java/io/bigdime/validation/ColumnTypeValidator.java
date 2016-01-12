@@ -12,7 +12,6 @@ import java.util.Set;
 import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import io.bigdime.adaptor.metadata.MetadataAccessException;
 import io.bigdime.adaptor.metadata.MetadataStore;
@@ -39,7 +38,6 @@ import io.bigdime.libs.hive.metadata.TableMetaData;
 import io.bigdime.libs.hive.table.HiveTableManger;
 import io.bigdime.validation.common.AbstractValidator;
 
-@Component
 @Factory(id = "column_type", type = ColumnTypeValidator.class)
 
 /**
@@ -49,8 +47,6 @@ import io.bigdime.validation.common.AbstractValidator;
  * 
  */
 public class ColumnTypeValidator implements Validator {
-
-	private HiveTableManger hiveTableManager;
 
 	@Autowired
 	private MetadataStore metadataStore;
@@ -114,7 +110,7 @@ public class ColumnTypeValidator implements Validator {
 		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost
 				+ DataConstants.COLON + port);
 
-		hiveTableManager = HiveTableManger.getInstance(props);
+		HiveTableManger hiveTableManager = HiveTableManger.getInstance(props);
 
 		try {
 			if (hiveTableManager.isTableCreated(hiveDBName, hiveTableName)) {

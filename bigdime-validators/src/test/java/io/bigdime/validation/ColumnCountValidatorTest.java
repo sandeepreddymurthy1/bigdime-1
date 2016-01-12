@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 @PrepareForTest(HiveTableManger.class)
 public class ColumnCountValidatorTest extends PowerMockTestCase {
 	
-	@Test(priority = 1, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveHostTest() throws DataValidationException {
 		ColumnCountValidator columnCountValidator = new ColumnCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -49,7 +49,7 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		columnCountValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHivePortNumberTest() throws DataValidationException {
 		ColumnCountValidator columnCountValidator = new ColumnCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -60,7 +60,7 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		columnCountValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 3, expectedExceptions = NumberFormatException.class)
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
 		ColumnCountValidator columnCountValidator = new ColumnCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -71,7 +71,7 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		columnCountValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 4, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullDBNameTest() throws DataValidationException {
 		ColumnCountValidator columnCountValidator = new ColumnCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -82,7 +82,7 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		columnCountValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullEntityNameTest() throws DataValidationException {
 		ColumnCountValidator columnCountValidator = new ColumnCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -101,7 +101,6 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);	
-		ReflectionTestUtils.setField(columnCountValidator, "hiveTableManager", mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
 		Assert.assertEquals(columnCountValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);
 	}
@@ -112,7 +111,6 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnCountValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -133,7 +131,6 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnCountValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -162,7 +159,6 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnCountValidator, "hiveTableManager", hiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(hiveTableManager);
 		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -189,7 +185,6 @@ public class ColumnCountValidatorTest extends PowerMockTestCase {
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger hiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnCountValidator, "hiveTableManager", hiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(hiveTableManager);
 		Mockito.when(hiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);

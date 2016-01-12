@@ -9,13 +9,14 @@
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
 	<context:annotation-config />
-	<context:component-scan base-package="io.bigdime.adaptor.metadata, io.bigdime.validation" />
+	<context:component-scan base-package="io.bigdime.adaptor.metadata" />
 	<context:property-placeholder
 		location="classpath*:application-localhost.properties"
 		ignore-resource-not-found="false" ignore-unresolvable="true" />
-
-
-
+	
+	<bean name ="columnCountValidator" class ="io.bigdime.validation.ColumnCountValidator" />
+	<bean name ="columnOrderValidator" class ="io.bigdime.validation.ColumnOrderValidator" />
+	<bean name ="columnTypeValidator" class ="io.bigdime.validation.ColumnTypeValidator" />
 	<!-- <bean id="datasource"
 		class="org.springframework.jdbc.datasource.DriverManagerDataSource">
 		<property name="driverClassName" value="${metastore.database.driverClassName}" />

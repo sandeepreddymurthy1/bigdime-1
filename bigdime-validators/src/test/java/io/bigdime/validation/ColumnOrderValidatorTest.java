@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 @PrepareForTest(HiveTableManger.class)
 public class ColumnOrderValidatorTest extends PowerMockTestCase {
 	
-	@Test(priority = 1, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveHostTest() throws DataValidationException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -49,7 +49,7 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 		columnOrderValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHivePortNumberTest() throws DataValidationException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -60,7 +60,7 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 		columnOrderValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 3, expectedExceptions = NumberFormatException.class)
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -71,7 +71,7 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 		columnOrderValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 4, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullDBNameTest() throws DataValidationException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -83,7 +83,7 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 		columnOrderValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullEntityNameTest() throws DataValidationException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -96,27 +96,25 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 		columnOrderValidator.validate(mockActionEvent);
 	}
 	
-	@Test(priority = 6)
+	@Test
 	public void validateHiveTableNotCreated() throws DataValidationException, HCatException{
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnOrderValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
 		Assert.assertEquals(columnOrderValidator.validate(mockActionEvent).getValidationResult(), ValidationResult.INCOMPLETE_SETUP);
 	}
 	
-	@Test(priority = 7)
+	@Test
 	public void validateEntityNotFound() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
 		PowerMockito.mockStatic(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnOrderValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
 		TableMetaData mockTable = Mockito.mock(TableMetaData.class);
@@ -130,13 +128,12 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(priority= 8)
+	@Test
 	public void validateColumnOrderMatch() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnOrderValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);
@@ -157,13 +154,12 @@ public class ColumnOrderValidatorTest extends PowerMockTestCase {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(priority = 9)
+	@Test
 	public void validateColumnOrderMismatch() throws DataValidationException, HCatException, MetadataAccessException {
 		ColumnOrderValidator columnOrderValidator = new ColumnOrderValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		when(mockActionEvent.getHeaders()).thenReturn(setCommonParameters(mockActionEvent));
 		HiveTableManger mockHiveTableManager = Mockito.mock(HiveTableManger.class);
-		ReflectionTestUtils.setField(columnOrderValidator, "hiveTableManager", mockHiveTableManager);
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(true);

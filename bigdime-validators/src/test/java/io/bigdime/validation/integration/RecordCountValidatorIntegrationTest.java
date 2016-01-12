@@ -39,7 +39,7 @@ public class RecordCountValidatorIntegrationTest{
     	Assert.assertEquals(true, writeFile("test-no-partition.txt", remoteFile2));
     }
     
-    @Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -47,7 +47,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 3, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullPort() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -56,7 +56,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 4, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullUserName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -66,7 +66,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 5, expectedExceptions = NumberFormatException.class)
+    @Test(expectedExceptions = NumberFormatException.class)
     public void testParsePortStringToIntException() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -78,7 +78,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 6, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullSrcRecordCount() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -89,7 +89,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 7, expectedExceptions = NumberFormatException.class)
+    @Test(expectedExceptions = NumberFormatException.class)
     public void testParseSrcRecordCountStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -100,7 +100,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 8, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsPath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -112,7 +112,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 9, expectedExceptions = IllegalArgumentException.class)
+    @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsFileName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -125,7 +125,7 @@ public class RecordCountValidatorIntegrationTest{
     	recordCountValidator.validate(actionEvent);
     }
     
-    @Test(priority = 10)
+    @Test(priority = 2)
     public void testValidateRecordCountWithPartitionsDiff() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -139,7 +139,7 @@ public class RecordCountValidatorIntegrationTest{
     	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
     
-    @Test(priority = 11)
+    @Test(priority = 3)
     public void testValidateRecordCountWithoutPartitions() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -153,7 +153,7 @@ public class RecordCountValidatorIntegrationTest{
     	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
     }
 
-    @Test(priority = 12)
+    @Test(priority = 4)
     public void testValidateRecordCountWithRCErrorDirExists() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RecordCountValidator recordCountValidator= new RecordCountValidator();
@@ -167,7 +167,7 @@ public class RecordCountValidatorIntegrationTest{
     	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
-	@Test(priority = 13)
+	@Test
 	public void testSettersAndGetters(){
 		RecordCountValidator recordCountValidator= new RecordCountValidator();
 		recordCountValidator.setName("testName");
