@@ -1,22 +1,11 @@
-### What is BigDime  : 
-BigDime is code name for Data Ingestion Eco System Project. it stands for Big Data Ingestion Made Easy. it consists of following things.
-
-Core Data Ingestion Framework - that leverages apache flume 
-
-Handler Orchestration framework  - that allows to building different handlers to ingest different data sources and formats.
-
-Data Adaptors - Configuration  driven group of handlers for ingesting any particular data source. ( an example :  click stream,preferences..etc)
-
-Metastore  - Core framework for metadata management, for immediate querablity of ingested data with appropriate partitions.
-
-Monitoring - Framework for monitoring  system failures and alerts on them.
-
-Management Console - console to providing visibility to available data and running jobs/ applications status.
+What is BigDime
+=====
+BigDime is code name for Data Ingestion Eco System Project. It stands for Big Data Ingestion Made Easy. More information about BigDime can be found [here](https://github.com/stubhub/bigdime/wiki).
 
 Getting Started
-=======
-To get started, you need to obtain a bigdime distribution and execute the install steps: There are two ways to obtain a bigdime distribution: [Download It!](#download) or [Build It!](#build).
-1. Obtain a distribtion
+=====
+To get started, you need to obtain a BigDime distribution and execute the install steps: There are two ways to obtain a BigDime distribution: [Download It!](#download) or [Build It!](#build).
+1. Obtain a distribution
 -
 <a name="download">
 ## Download
@@ -36,7 +25,7 @@ To get started, you need to obtain a bigdime distribution and execute the instal
 
 2. Install
 -
-4. Copy the bigdime artifact to, say /path/bigdime.
+4. Copy the BigDime artifact to, say /path/bigdime.
 5. Navigate to /path/bigdime and untar the file using following command:
 	4. tar xvf /path/bigdime/bigdime-dist-${version}-bin.tar.gz
 	5. Above command will extract following files inside bigdime-dist-${version} directory:
@@ -76,6 +65,5 @@ Logs/Troubleshooting
 =====
 1. The logs are written to bigdime.log* files in /path/bigdime/logs path.
 2. The alert messages are written to HBase, in bigdime_alerts table.
-
-
+3. The alerts can be viewed on Bigdime Management Console.
 
