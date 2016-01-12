@@ -15,11 +15,7 @@
 		<artifactId>bigdime</artifactId>
 		<version>0.0.9-SNAPSHOT</version>
 	</parent>
-	
-	<properties>
-		<powermock.version>1.6.2</powermock.version>
-	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -35,17 +31,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.bigdime</groupId>
-			<artifactId>bigdime-hive-lib</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.bigdime</groupId>
-			<artifactId>bigdime-common-test-utils</artifactId>
-			<scope>test</scope>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.bigdime</groupId>
@@ -105,24 +90,6 @@
 					<groupId>com.sun.jersey</groupId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-testng</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-testng-agent</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<artifactId>jackson-mapper-asl</artifactId>

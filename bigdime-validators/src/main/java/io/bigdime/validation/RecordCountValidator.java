@@ -18,19 +18,12 @@ import org.apache.http.client.ClientProtocolException;
  * record count mismatches --- validation fail
  * otherwise, validation success
  * 
- * @author Rita Liu
+ * @author ritliu
  */
-
-
-
-
-
-
 
 import io.bigdime.alert.Logger;
 import io.bigdime.alert.LoggerFactory;
 import io.bigdime.core.ActionEvent;
-import io.bigdime.core.commons.DataConstants;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
@@ -40,23 +33,18 @@ import io.bigdime.core.validation.Validator;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.libs.hdfs.WebHdfs;
 import io.bigdime.libs.hdfs.WebHDFSConstants;
-import io.bigdime.validation.common.AbstractValidator;
+
+//import org.springframework.beans.factory.annotation.Autowired;
 
 @Factory(id = "record_count", type = RecordCountValidator.class)
 
-/**
- * Performs validation by comparing comparing expected(from event header) and actual
- * record count(from hdfs).
- * 
- * @author Rita Liu
- * 
- */
 public class RecordCountValidator implements Validator {
 
+	// @Autowired
+	// TODO will do autowired in the future
 	private WebHdfs webHdfs;
 
 	private static final Logger logger = LoggerFactory.getLogger(RecordCountValidator.class);
-	
 	private String name;
 
 	/**
@@ -72,24 +60,22 @@ public class RecordCountValidator implements Validator {
 	@Override
 	public ValidationResponse validate(ActionEvent actionEvent) throws DataValidationException {
 		ValidationResponse validationPassed = new ValidationResponse();
-		AbstractValidator commonCheckValidator = new AbstractValidator();
 		validationPassed.setValidationResult(ValidationResult.FAILED);
 		String host = actionEvent.getHeaders().get(ActionEventHeaderConstants.HOST_NAMES);
 		String portString = actionEvent.getHeaders().get(ActionEventHeaderConstants.PORT);
-		String userName = actionEvent.getHeaders().get(ActionEventHeaderConstants.USER_NAME);
 		String srcRCString = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
 		String hdfsBasePath = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_PATH);
 		String hdfsFileName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_FILE_NAME);
 		String hivePartitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
-		
+		String userName = actionEvent.getHeaders().get(ActionEventHeaderConstants.USER_NAME);
 		
 		String partitionPath = "";
 		String hdfsCompletedPath = "";
 		int sourceRecordCount = 0;
 
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HOST_NAMES, host);
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.PORT, portString);
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.USER_NAME, userName);
+		checkNullStrings(ActionEventHeaderConstants.HOST_NAMES, host);
+		checkNullStrings(ActionEventHeaderConstants.PORT, portString);
+		checkNullStrings(ActionEventHeaderConstants.USER_NAME, userName);
 		
 		try {
 			int port = Integer.parseInt(portString);
@@ -105,7 +91,7 @@ public class RecordCountValidator implements Validator {
 			throw new NumberFormatException();
 		}
 
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
+		checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);
 		} catch (NumberFormatException e) {
@@ -113,13 +99,13 @@ public class RecordCountValidator implements Validator {
 					"Illegal source record count input while parsing string to integer");
 			throw new NumberFormatException();
 		}
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HDFS_PATH, hdfsBasePath);
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HDFS_FILE_NAME, hdfsFileName);
+		checkNullStrings(ActionEventHeaderConstants.HDFS_PATH, hdfsBasePath);
+		checkNullStrings(ActionEventHeaderConstants.HDFS_FILE_NAME, hdfsFileName);
 		if (StringUtils.isNotBlank(hivePartitionValues)) {
-			String[] partitionList = hivePartitionValues.split(DataConstants.COMMA);
+			String[] partitionList = hivePartitionValues.split(",");
 			StringBuilder stringBuilder = new StringBuilder();
 			for (int i = 0; i < partitionList.length; i++) {
-				stringBuilder.append(partitionList[i].trim() + DataConstants.SLASH);
+				stringBuilder.append(partitionList[i].trim() + "/");
 			}
 			partitionPath = stringBuilder.toString();
 			hdfsCompletedPath = hdfsBasePath + partitionPath + hdfsFileName;
@@ -132,10 +118,10 @@ public class RecordCountValidator implements Validator {
 			hdfsRecordCount = getHdfsRecordCount(hdfsCompletedPath);
 		} catch (ClientProtocolException e) {
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "ClientProtocolException",
-					"Exception occurred while getting hdfs record count, cause: " + e.getMessage());
+					"Exception occurred while getting hdfs record count", e);
 		} catch (IOException ex) {
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "IOException",
-					"Exception occurred while getting hdfs record count, cause: " + ex.getMessage());
+					"Exception occurred while getting hdfs record count", ex);
 		}
 		logger.debug(AdaptorConfig.getInstance().getName(), "performing validation",
 				"hdfsCompletedPath={} sourceRecordCount={} hdfsRecordCount={}", hdfsCompletedPath, sourceRecordCount,
@@ -146,8 +132,8 @@ public class RecordCountValidator implements Validator {
 					"Hdfs record count({}) is same as source record count({}).", hdfsRecordCount, sourceRecordCount);
 			validationPassed.setValidationResult(ValidationResult.PASSED);
 		} else {
-			String checksumErrorFilePath = "RCError" +DataConstants.SLASH + AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName()
-					+ DataConstants.SLASH + partitionPath;
+			String checksumErrorFilePath = "RCError/" + AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName()
+					+ "/" + partitionPath + "/";
 			// Take out /webhdfs/v1 from hdfsBasePath
 			String hdfsDir = hdfsBasePath.substring(11);
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
@@ -158,9 +144,11 @@ public class RecordCountValidator implements Validator {
 			try {
 				if (!checkErrorRecordCountDirExists(hdfsBasePath + checksumErrorFilePath)) {
 					if (makeErrorRecordCountDir(hdfsBasePath + checksumErrorFilePath)) {
+
 						moveErrorRecordCountFile(hdfsCompletedPath, hdfsDir + checksumErrorFilePath);
 					}
 				} else {
+
 					moveErrorRecordCountFile(hdfsCompletedPath, hdfsDir + checksumErrorFilePath);
 				}
 
@@ -172,6 +160,26 @@ public class RecordCountValidator implements Validator {
 		}
 
 		return validationPassed;
+	}
+
+	/**
+	 * This method to check provided argument from ActionEvent if null/empty or
+	 * not, if null/empty, give warning and throw IllegalArgumentException.
+	 * 
+	 * @param key
+	 * @param value
+	 * @throws IllegalArgumentException
+	 * 
+	 * @author ritliu
+	 * 
+	 */
+
+	private void checkNullStrings(String key, String value) {
+		if (StringUtils.isBlank(value)) {
+			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
+					"Checking Null/Empty for provided arugument: " + key, " {} is null/empty", key);
+			throw new IllegalArgumentException();
+		}
 	}
 
 	/**
