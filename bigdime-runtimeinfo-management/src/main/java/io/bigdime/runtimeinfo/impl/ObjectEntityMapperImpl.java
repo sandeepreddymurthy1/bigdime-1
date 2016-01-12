@@ -21,32 +21,34 @@ import io.bigdime.runtimeinfo.DTO.RuntimePropertyDTO;
 @Component("RuntimeInfoObjectEntityMapper")
 public class ObjectEntityMapperImpl implements ObjectEntityMapper {
 
-	private Map<String, String> properties = new HashMap<String, String>();
-
-	Set<RuntimePropertyDTO> runtimePropertyDTOSet;
-
 	@Override
-	public List<RuntimeInfo> mapObjectList(List<RuntimeInfoDTO> runtimeInfoDTOList) {
+	public List<RuntimeInfo> mapObjectList(
+			List<RuntimeInfoDTO> runtimeInfoDTOList) {
 		// TODO Auto-generated method stub
 		if (runtimeInfoDTOList.size() > 0) {
+			Map<String, String> properties = new HashMap<String, String>();
 			List<RuntimeInfo> runtimeInfoList = new ArrayList<RuntimeInfo>();
 			for (RuntimeInfoDTO runtimeInfoDTO : runtimeInfoDTOList) {
 				RuntimeInfo runtimeInfo = new RuntimeInfo();
-				runtimeInfo.setRuntimeId(Integer.toString(runtimeInfoDTO.getRuntimeId()));
+				runtimeInfo.setRuntimeId(Integer.toString(runtimeInfoDTO
+						.getRuntimeId()));
 				runtimeInfo.setAdaptorName(runtimeInfoDTO.getAdaptorName());
 				runtimeInfo.setEntityName(runtimeInfoDTO.getEntityName());
-				runtimeInfo.setInputDescriptor(runtimeInfoDTO.getInputDescriptor());
+				runtimeInfo.setInputDescriptor(runtimeInfoDTO
+						.getInputDescriptor());
 				runtimeInfo.setStatus(runtimeInfoDTO.getStatus());
 				if (runtimeInfoDTO.getRuntimeProperties().size() > 0) {
-				for (RuntimePropertyDTO runtimePropertyDTO : runtimeInfoDTO.getRuntimeProperties())
-					properties.put(runtimePropertyDTO.getKey(), runtimePropertyDTO.getValue());
-				runtimeInfo.setProperties(properties);
+					for (RuntimePropertyDTO runtimePropertyDTO : runtimeInfoDTO
+							.getRuntimeProperties())
+						properties.put(runtimePropertyDTO.getKey(),
+								runtimePropertyDTO.getValue());
+					runtimeInfo.setProperties(properties);
 				}
 				runtimeInfoList.add(runtimeInfo);
 			}
 			return runtimeInfoList;
-		} 
-       return null;
+		}
+		return null;
 
 	}
 
@@ -54,19 +56,23 @@ public class ObjectEntityMapperImpl implements ObjectEntityMapper {
 	public RuntimeInfo mapObject(RuntimeInfoDTO runtimeInfoDTO) {
 		if (runtimeInfoDTO != null) {
 			RuntimeInfo runtimeInfo = new RuntimeInfo();
-			runtimeInfo.setRuntimeId(Integer.toString(runtimeInfoDTO.getRuntimeId()));
+			runtimeInfo.setRuntimeId(Integer.toString(runtimeInfoDTO
+					.getRuntimeId()));
 			runtimeInfo.setAdaptorName(runtimeInfoDTO.getAdaptorName());
 			runtimeInfo.setEntityName(runtimeInfoDTO.getEntityName());
 			runtimeInfo.setInputDescriptor(runtimeInfoDTO.getInputDescriptor());
+			Map<String, String> properties = new HashMap<String, String>();
 			runtimeInfo.setStatus(runtimeInfoDTO.getStatus());
 			if (runtimeInfoDTO.getRuntimeProperties().size() > 0) {
-				for (RuntimePropertyDTO runtimePropertyDTO : runtimeInfoDTO.getRuntimeProperties())
-					properties.put(runtimePropertyDTO.getKey(), runtimePropertyDTO.getValue());
+				for (RuntimePropertyDTO runtimePropertyDTO : runtimeInfoDTO
+						.getRuntimeProperties())
+					properties.put(runtimePropertyDTO.getKey(),
+							runtimePropertyDTO.getValue());
 				runtimeInfo.setProperties(properties);
 			}
 			return runtimeInfo;
-		} 
-      return null;
+		}
+		return null;
 	}
 
 	@Override
@@ -77,9 +83,11 @@ public class ObjectEntityMapperImpl implements ObjectEntityMapper {
 			runtimeInfoDTO.setEntityName(runtimeInfo.getEntityName());
 			runtimeInfoDTO.setInputDescriptor(runtimeInfo.getInputDescriptor());
 			runtimeInfoDTO.setStatus(runtimeInfo.getStatus());
-			runtimePropertyDTOSet = new HashSet<RuntimePropertyDTO>();
-			if (runtimeInfo.getProperties() != null && runtimeInfo.getProperties().entrySet() != null) {
-				for (Entry<String, String> entry : runtimeInfo.getProperties().entrySet()) {
+			Set<RuntimePropertyDTO> runtimePropertyDTOSet = new HashSet<RuntimePropertyDTO>();
+			if (runtimeInfo.getProperties() != null
+					&& runtimeInfo.getProperties().entrySet() != null) {
+				for (Entry<String, String> entry : runtimeInfo.getProperties()
+						.entrySet()) {
 					RuntimePropertyDTO runtimePropertyDTO = new RuntimePropertyDTO();
 					runtimePropertyDTO.setKey(entry.getKey());
 					runtimePropertyDTO.setValue(entry.getValue());

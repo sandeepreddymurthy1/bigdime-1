@@ -106,6 +106,7 @@ public class MetadataRepositoryService {
 					for (EntiteeDTO repoEntity : metaDBDetails.getEntitees())
 						if (entity.getEntityName().equalsIgnoreCase(
 								repoEntity.getEntityName())) {
+							
 							repoEntity.setEntityName(entity.getEntityName());
 							repoEntity.setEntityLocation(entity
 									.getEntityLocation());

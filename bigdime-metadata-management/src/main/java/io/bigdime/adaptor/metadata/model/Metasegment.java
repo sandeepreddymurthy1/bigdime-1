@@ -398,6 +398,7 @@ public class Metasegment {
 	public Entitee getEntity(String entityName) {
 
 		if (StringUtils.hasText(entityName)) {
+			if ( this.getEntitees() != null)
 			for (final Entitee entity : this.getEntitees()) {
 				if (entity.getEntityName().equalsIgnoreCase(entityName))
 					return entity;
