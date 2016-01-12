@@ -9,8 +9,8 @@ import java.util.Map;
 import org.apache.flume.Event;
 
 /**
- * Extends {@link org.apache.flume.Channel} interface, reserving for future use
- * and to use in bigdime method signatures.
+ * Extends {@link org.apache.flume.Channel} interface, and declares more methods
+ * to be used for BigDime implementation.
  * 
  * @author Neeraj Jain
  * 

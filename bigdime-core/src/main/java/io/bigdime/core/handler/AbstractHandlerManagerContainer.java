@@ -58,12 +58,15 @@ public abstract class AbstractHandlerManagerContainer implements NamedComponent,
 			public void run() {
 				try {
 					Thread.currentThread().setName("healthcheck for " + AbstractHandlerManagerContainer.this.getName());
-					logger.info("heathcheck thread for handlerManagerContainer", "{}_name=\"{}\" handlerManager=\"{}\"",
-							getContainerType(), AbstractHandlerManagerContainer.this.getName(), getHandlerManager());
+					logger.info("heathcheck thread for handlerManagerContainer",
+							"{}_name=\"{}\" handlerManager=\"{}\" thread_id={}", getContainerType(),
+							AbstractHandlerManagerContainer.this.getName(), getHandlerManager(),
+							Thread.currentThread().getId());
 					futureTask.get();
 					logger.info("heathcheck thread for handlerManagerContainer, future task completed",
-							"{}_name=\"{}\" handlerManager=\"{}\" futureTask.isDone=\"{}\"", getContainerType(),
-							AbstractHandlerManagerContainer.this.getName(), getHandlerManager(), futureTask.isDone());
+							"{}_name=\"{}\" handlerManager=\"{}\" futureTask.isDone=\"{}\" thread_id={}",
+							getContainerType(), AbstractHandlerManagerContainer.this.getName(), getHandlerManager(),
+							futureTask.isDone(), Thread.currentThread().getId());
 					lifecycleState = LifecycleState.STOP;
 				} catch (CancellationException e) {
 					lifecycleState = LifecycleState.STOP;
@@ -71,11 +74,18 @@ public abstract class AbstractHandlerManagerContainer implements NamedComponent,
 					logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
 							ALERT_SEVERITY.BLOCKER, "_message=\"task completed with an error\"", e);
 					lifecycleState = LifecycleState.ERROR;
+				} finally {
+					logger.info("heathcheck thread for handlerManagerContainer, shutting down executorService",
+							"{}_name=\"{}\" handlerManager=\"{}\" futureTask.isDone=\"{}\" thread_id={}",
+							getContainerType(), AbstractHandlerManagerContainer.this.getName(), getHandlerManager(),
+							futureTask.isDone(), Thread.currentThread().getId());
+					executorService.shutdown();
 				}
 			}
 		}.start();
-		logger.info("started heathcheck thread for handlerManagerContainer", "{}_name=\"{}\" handlerManager=\"{}\"",
-				getContainerType(), getName(), getHandlerManager());
+		logger.info("started heathcheck thread for handlerManagerContainer",
+				"{}_name=\"{}\" handlerManager=\"{}\" thread_id={}", getContainerType(), getName(), getHandlerManager(),
+				Thread.currentThread().getId());
 	}
 
 	/**
@@ -139,7 +149,12 @@ public abstract class AbstractHandlerManagerContainer implements NamedComponent,
 				Status status = executeHandlerChain();
 				logger.debug("handler manager completed for runForever", "{}_name=\"{}\" status=\"{}\"",
 						getContainerType(), getName(), status);
-				postHandlerChain(status);
+				try {
+					if (status == Status.BACKOFF)
+						Thread.sleep(sleepForMillis);
+				} catch (InterruptedException e) {
+					logger.warn("handler chain returned", "thread interrupted while sleeping");
+				}
 			} catch (HandlerException e) {
 				errorCount++;
 				logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
@@ -153,15 +168,6 @@ public abstract class AbstractHandlerManagerContainer implements NamedComponent,
 
 	private Status executeHandlerChain() throws HandlerException {
 		return getHandlerManager().execute();
-	}
-
-	private void postHandlerChain(Status status) {
-		try {
-			if (status == Status.BACKOFF)
-				Thread.sleep(sleepForMillis);
-		} catch (InterruptedException e) {
-			logger.warn("handler chain returned", "thread interrupted while sleeping");
-		}
 	}
 
 	/**
