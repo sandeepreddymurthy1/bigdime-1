@@ -43,7 +43,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(true, writeFile("checksum-no-partition.txt", remoteFile2));
 	}
 	
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
@@ -51,7 +51,7 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 3, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullPortName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
@@ -60,78 +60,95 @@ public class RawChecksumValidatorIntegrationTest {
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 4, expectedExceptions = NumberFormatException.class)
+	@Test
+	public void testNotReadyToValidate() throws DataValidationException{
+		ActionEvent actionEvent = new ActionEvent();
+    	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "false");
+    	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.NOT_READY);
+	}
+	
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void testConvertPortStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "hello");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHdfsPath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "2345");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, null);
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 6, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullHdfsFileName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "2345");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "");
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 7, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullSourcePath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
-    	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "2345");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "");
     	rawChecksumValidator.validate(actionEvent);
     }
 	
-	@Test(priority = 8)
+	@Test
 	public void testLocalFileNotFound() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "test_host");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "2345");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "Testing");
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
-	@Test(priority = 9)
+	@Test
 	public void testHdfsFileNotFound() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "testString");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, source_no_partition);
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
-	@Test(priority = 10)
+	@Test(priority = 2)
 	public void testChecksumWithPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "checksum-20120218-0900.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, source_partition);
@@ -139,12 +156,13 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
 	}
 	
-	@Test(priority = 11)
+	@Test(priority = 3)
 	public void testChecksumWithoutPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "checksum-no-partition.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, source_no_partition);
@@ -152,12 +170,13 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
 	}
 	
-	@Test(priority = 12)
+	@Test(priority = 4)
 	public void testChecksumFailedWithoutPartition() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "checksum-no-partition.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, source_error_checksum);
@@ -165,12 +184,13 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
 	}
 	
-	@Test(priority = 13)
+	@Test(priority = 5)
 	public void testChecksumFailedWithErrorChecksumDirExists() throws DataValidationException{
 		ActionEvent actionEvent = new ActionEvent();
     	RawChecksumValidator rawChecksumValidator= new RawChecksumValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.READ_COMPLETE, "true");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "checksum-20120218-0900.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_PATH, source_error_checksum);
@@ -178,7 +198,7 @@ public class RawChecksumValidatorIntegrationTest {
     	Assert.assertEquals(rawChecksumValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
 	}
 	
-	@Test(priority = 14)
+	@Test
 	public void testGettersAndSetters() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		rawChecksumValidator.setName("unit-name");
@@ -189,7 +209,8 @@ public class RawChecksumValidatorIntegrationTest {
 	private boolean writeFile(String sourceFileName, String remoteFilePath)
 			throws ClientProtocolException, IOException {
 		boolean successful = false;
-		WebHdfs webHdfs = WebHdfs.getInstance("sandbox.hortonworks.com", 50070);
+		WebHdfs webHdfs = WebHdfs.getInstance("sandbox.hortonworks.com", 50070)
+							.addParameter(ActionEventHeaderConstants.USER_NAME, "hdfs");
 		HttpResponse response = webHdfs.fileStatus(remoteFilePath);
 		InputStream inputStream = getClass().getClassLoader()
 				.getResourceAsStream(sourceFileName);

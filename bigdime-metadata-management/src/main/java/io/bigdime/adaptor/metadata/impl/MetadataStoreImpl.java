@@ -414,6 +414,7 @@ public class MetadataStoreImpl implements MetadataStore {
 						adaptorName);
 
 			} else {
+				if(metasegment.getEntitees() != null)
 				for (final Entitee entity : metasegment.getEntitees())
 					return entity;
 			}

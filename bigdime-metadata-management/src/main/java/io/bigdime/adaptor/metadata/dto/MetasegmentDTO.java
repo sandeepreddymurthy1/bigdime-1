@@ -428,6 +428,7 @@ public class MetasegmentDTO {
 	public EntiteeDTO getEntity(String entityName) {
 
 		if (StringUtils.hasText(entityName)) {
+			if(this.getEntitees() != null)
 			for (final EntiteeDTO entity : this.getEntitees()) {
 				if (entity.getEntityName().equalsIgnoreCase(entityName))
 					return entity;
