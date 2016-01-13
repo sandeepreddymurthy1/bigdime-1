@@ -3,8 +3,6 @@
  */
 package io.bigdime.runtimeinfo.impl;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,11 +18,10 @@ import io.bigdime.core.runtimeinfo.RuntimeInfoStoreException;
 import io.bigdime.runtime.ObjectEntityMapper;
 import io.bigdime.runtimeinfo.DTO.RuntimeInfoDTO;
 
-
 /**
  * Bigdime's implementation of RuntimeStore interface.
  * 
- * @author Neeraj Jain
+ * @author Neeraj Jain, Pavan Sabinikari
  * 
  * @param <T>
  */
@@ -33,23 +30,23 @@ import io.bigdime.runtimeinfo.DTO.RuntimeInfoDTO;
 public class AdaptorRuntimeInfoStoreImpl implements
 		RuntimeInfoStore<RuntimeInfo> {
 
-	private Logger logger = LoggerFactory
+	private static Logger logger = LoggerFactory
 			.getLogger(AdaptorRuntimeInfoStoreImpl.class);
 
 	private static final String SOURCENAME = "RUNTIME_INFO-API";
 
-
 	@Autowired
 	private RuntimeInfoRepositoryService runtimeInfoRepositoryService;
-	
+
 	@Autowired
 	@Qualifier("RuntimeInfoObjectEntityMapper")
 	ObjectEntityMapper objectEntityMapper;
 
-//	private List<RuntimeInfo> runtimeInfoList;
+	// private List<RuntimeInfo> runtimeInfoList;
 
 	@Override
-	public List<RuntimeInfo> getAll(String adaptorName, String entityName) throws RuntimeInfoStoreException {
+	public List<RuntimeInfo> getAll(String adaptorName, String entityName)
+			throws RuntimeInfoStoreException {
 		if (adaptorName == null || entityName == null) {
 			logger.warn(
 					SOURCENAME,
@@ -58,28 +55,29 @@ public class AdaptorRuntimeInfoStoreImpl implements
 					adaptorName, entityName);
 			throw new IllegalArgumentException("Provided argument is not valid");
 		} else {
-			List<RuntimeInfoDTO> runtimeInfoDTOList= runtimeInfoRepositoryService.get(adaptorName, entityName);
-			if(runtimeInfoDTOList.size() > 0){
+			List<RuntimeInfoDTO> runtimeInfoDTOList = runtimeInfoRepositoryService
+					.get(adaptorName, entityName);
+			if (runtimeInfoDTOList.size() > 0) {
 				return objectEntityMapper.mapObjectList(runtimeInfoDTOList);
 			}
 
 		}
-      return null;
+		return null;
 	}
 
 	@Override
-	public boolean put(RuntimeInfo adaptorRuntimeInfo) throws RuntimeInfoStoreException {
+	public synchronized boolean put(RuntimeInfo adaptorRuntimeInfo)
+			throws RuntimeInfoStoreException {
 		if (adaptorRuntimeInfo == null) {
 			logger.warn(SOURCENAME, "put entry",
 					"Unable to create entry due to invalid arguments");
 			throw new IllegalArgumentException("Provided argument is not valid");
 		} else {
-			RuntimeInfoDTO runtimeInfoDTO = objectEntityMapper.mapEntityObject(adaptorRuntimeInfo);
-		return runtimeInfoRepositoryService.create(runtimeInfoDTO);
+			RuntimeInfoDTO runtimeInfoDTO = objectEntityMapper
+					.mapEntityObject(adaptorRuntimeInfo);
+			return runtimeInfoRepositoryService.create(runtimeInfoDTO);
 		}
 
-		
-		
 	}
 
 	@Override
@@ -98,7 +96,8 @@ public class AdaptorRuntimeInfoStoreImpl implements
 			for (RuntimeInfoDTO adaptorRuntimeInformationDTO : runtimeInfoRepositoryService
 					.get(adaptorName, entityName))
 				if (adaptorRuntimeInformationDTO.getStatus().equals(status))
-					runtimeInfoList.add(objectEntityMapper.mapObject(adaptorRuntimeInformationDTO));
+					runtimeInfoList.add(objectEntityMapper
+							.mapObject(adaptorRuntimeInformationDTO));
 		}
 		return runtimeInfoList;
 	}
@@ -113,8 +112,8 @@ public class AdaptorRuntimeInfoStoreImpl implements
 					"Provided argument are not valid");
 
 		} else {
-			return objectEntityMapper.mapObject(runtimeInfoRepositoryService.get(adaptorName, entityName,
-					descriptor));
+			return objectEntityMapper.mapObject(runtimeInfoRepositoryService
+					.get(adaptorName, entityName, descriptor));
 
 		}
 
@@ -130,9 +129,9 @@ public class AdaptorRuntimeInfoStoreImpl implements
 					"Unable to get entries for adaptorName: {}, entityName: {} due to invalid arguments",
 					adaptorName, entityName);
 			throw new IllegalArgumentException("Provided argument is not valid");
-		} else 
-		return objectEntityMapper.mapObject(runtimeInfoRepositoryService.getLatestRecord(adaptorName, entityName));
+		} else
+			return objectEntityMapper.mapObject(runtimeInfoRepositoryService
+					.getLatestRecord(adaptorName, entityName));
 	}
 
 }
-

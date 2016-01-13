@@ -12,9 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpEntity;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 
 public class RawChecksumValidatorTest {
 
-	@Test(priority = 1, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHostTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -46,7 +46,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 2, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullPortNumberTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -56,8 +56,21 @@ public class RawChecksumValidatorTest {
 		when(mockMap.get(anyString())).thenReturn("host").thenReturn(null);
 		rawChecksumValidator.validate(mockActionEvent);
 	}
-
-	@Test(priority = 3, expectedExceptions = NumberFormatException.class)
+	
+	@Test
+	public void notReadyToValidateTest() throws DataValidationException{
+		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
+		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
+		Map<String, String> headers = new HashMap<>();
+		headers.put(ActionEventHeaderConstants.HOST_NAMES, "host");
+		headers.put(ActionEventHeaderConstants.PORT, "123");
+		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "false");
+		when(mockActionEvent.getHeaders()).thenReturn(headers);
+		Assert.assertEquals(rawChecksumValidator.validate(mockActionEvent).getValidationResult(),
+				ValidationResult.NOT_READY);
+	}
+	
+	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -69,7 +82,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 4, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsPathTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -81,7 +94,7 @@ public class RawChecksumValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "fileName");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "part");
 		mockMap.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "filePath");
-		String totalSize = String.valueOf(new Random().nextInt());
+		String totalSize = String.valueOf(new SecureRandom().nextInt());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_SIZE, totalSize);
 		mockMap.put(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_READ, totalSize);
 		mockMap.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
@@ -90,7 +103,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 5, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsFileNameTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -106,7 +119,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 6, expectedExceptions = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullSourceFilePathTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -123,7 +136,7 @@ public class RawChecksumValidatorTest {
 		rawChecksumValidator.validate(mockActionEvent);
 	}
 
-	@Test(priority = 7)
+	@Test
 	public void validateSourceFileNotFoundTest() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -133,7 +146,7 @@ public class RawChecksumValidatorTest {
 		headers.put(ActionEventHeaderConstants.PORT, "123");
 		headers.put(ActionEventHeaderConstants.HDFS_PATH, "path");
 		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "hdfsFile");
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "");
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
 		headers.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "testLocation");
 
 		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
@@ -145,7 +158,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 8)
+	@Test
 	public void validateFailedToGetHdfsChecksumTest() throws DataValidationException, IOException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
@@ -155,7 +168,7 @@ public class RawChecksumValidatorTest {
 		headers.put(ActionEventHeaderConstants.PORT, "123");
 		headers.put(ActionEventHeaderConstants.HDFS_PATH, "path");
 		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "hdfsFile");
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "");
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
 		headers.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "sourceFileName");
 
 		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
@@ -178,7 +191,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 9)
+	@Test
 	public void validateChecksumWithoutPartitionTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
@@ -189,7 +202,7 @@ public class RawChecksumValidatorTest {
 		headers.put(ActionEventHeaderConstants.PORT, "123");
 		headers.put(ActionEventHeaderConstants.HDFS_PATH, "path");
 		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "hdfsFile");
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "");
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
 		headers.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "sourceFileName");
 
 		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
@@ -213,24 +226,22 @@ public class RawChecksumValidatorTest {
 				ValidationResult.PASSED);
 	}
 
-	@Test(priority = 10)
+	@Test
 	public void validateChecksumFailedWithPartitionTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ActionEventHeaderConstants.HOST_NAMES, "host");
 		headers.put(ActionEventHeaderConstants.PORT, "123");
 		headers.put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/path/");
 		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "hdfsFile");
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "dt, hr");
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "dt, hr");
 		headers.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "sourceFileName");
-
 		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
 		when(mockActionEvent.getHeaders()).thenReturn(headers);
-
+		
 		File mockFile = Mockito.mock(File.class);
 		when(mockFile.exists()).thenReturn(true);
 		InputStream sourceInputStream = new ByteArrayInputStream("line 1 \nline 2".getBytes(Charset.forName("UTF-8")));
@@ -264,7 +275,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 11)
+	@Test
 	public void validateChecksumFailedWithErrorChecksumDirExistsTest()
 			throws DataValidationException, ClientProtocolException, IOException, URISyntaxException {
 
@@ -276,7 +287,7 @@ public class RawChecksumValidatorTest {
 		headers.put(ActionEventHeaderConstants.PORT, "123");
 		headers.put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/path/");
 		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, "hdfsFile");
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "");
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
 		headers.put(ActionEventHeaderConstants.SOURCE_FILE_PATH, "sourceFileName");
 
 		headers.put(ActionEventHeaderConstants.READ_COMPLETE, "true");
@@ -308,7 +319,7 @@ public class RawChecksumValidatorTest {
 				ValidationResult.FAILED);
 	}
 
-	@Test(priority = 12)
+	@Test
 	public void testGettersAndSetters() throws DataValidationException {
 		RawChecksumValidator rawChecksumValidator = new RawChecksumValidator();
 		rawChecksumValidator.setName("unit-name");

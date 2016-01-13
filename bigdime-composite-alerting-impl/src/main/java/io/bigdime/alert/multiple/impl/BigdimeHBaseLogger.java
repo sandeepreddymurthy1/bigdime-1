@@ -6,9 +6,15 @@ package io.bigdime.alert.multiple.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -37,6 +43,7 @@ public class BigdimeHBaseLogger implements Logger {
 	private HbaseManager hbaseManager;
 	private String hbaseTableName;
 	private String hbaseAlertLevel;
+	private int hbaseDebugInfoBatchSize;
 
 	public static final String FROM_DATE = "fromDate";
 	public static final String TO_DATE = "toDate";
@@ -57,10 +64,12 @@ public class BigdimeHBaseLogger implements Logger {
 	private static final String APPLICATION_CONTEXT_PATH = "META-INF/application-context-monitoring.xml";
 	public static final String HBASE_TABLE_NAME_PROPERTY = "${hbase.table.name}";
 	public static final String HBASE_ALERT_LEVEL_PROPERTY = "${hbase.alert.level}";
+	public static final String HBASE_DEBUG_INFO_BATCH_SIZE = "${hbase.debugInfo.batchSize}";
 
 	private boolean debugEnabled = false;
 	private boolean infoEnabled = false;
 	private boolean warnEnabled = false;
+	private ExecutorService executorService;
 
 	private BigdimeHBaseLogger() {
 	}
@@ -75,6 +84,12 @@ public class BigdimeHBaseLogger implements Logger {
 			logger.hbaseManager = context.getBean(HbaseManager.class);
 			logger.hbaseTableName = context.getBeanFactory().resolveEmbeddedValue(HBASE_TABLE_NAME_PROPERTY);
 			logger.hbaseAlertLevel = context.getBeanFactory().resolveEmbeddedValue(HBASE_ALERT_LEVEL_PROPERTY);
+			try {
+				logger.hbaseDebugInfoBatchSize = Integer
+						.parseInt(context.getBeanFactory().resolveEmbeddedValue(HBASE_DEBUG_INFO_BATCH_SIZE));
+			} catch (Exception ex) {
+				System.err.println("unable to parse hbase.debugInfo.batchSize, setting to default");
+			}
 			if (logger.hbaseAlertLevel != null) {
 				if (logger.hbaseAlertLevel.equalsIgnoreCase("debug")) {
 					logger.debugEnabled = true;
@@ -87,8 +102,9 @@ public class BigdimeHBaseLogger implements Logger {
 					logger.warnEnabled = true;
 				}
 			}
-			System.out
-					.println("hbaseTableName=" + logger.hbaseTableName + ", hbaseAlertLevel=" + logger.hbaseAlertLevel);
+			logger.executorService = Executors.newFixedThreadPool(1);
+			System.out.println("hbaseTableName=" + logger.hbaseTableName + ", hbaseAlertLevel=" + logger.hbaseAlertLevel
+					+ ", hbaseDebugInfoBatchSize=" + logger.hbaseDebugInfoBatchSize);
 			context.close();
 		}
 		return logger;
@@ -109,7 +125,7 @@ public class BigdimeHBaseLogger implements Logger {
 	@Override
 	public void debug(String source, String shortMessage, String message) {
 		if (isDebugEnabled()) {
-			logToHBase(source, shortMessage, message, "debug");
+			LogDebugInfoToHBase(source, shortMessage, message, "debug");
 		}
 	}
 
@@ -117,28 +133,29 @@ public class BigdimeHBaseLogger implements Logger {
 	public void debug(String source, String shortMessage, String format, Object... o) {
 		if (isDebugEnabled()) {
 			FormattingTuple ft = MessageFormatter.arrayFormat(format, o);
-			logToHBase(source, shortMessage, ft.getMessage(), "debug");
+			debug(source, shortMessage, ft.getMessage());
 		}
 	}
 
 	@Override
 	public void info(String source, String shortMessage, String message) {
-		if (isInfoEnabled())
-			logToHBase(source, shortMessage, message, "info");
+		if (isInfoEnabled()) {
+			LogDebugInfoToHBase(source, shortMessage, message, "info");
+		}
 	}
 
 	@Override
 	public void info(String source, String shortMessage, String format, Object... o) {
 		if (isInfoEnabled()) {
 			FormattingTuple ft = MessageFormatter.arrayFormat(format, o);
-			logToHBase(source, shortMessage, ft.getMessage(), "info");
+			info(source, shortMessage, ft.getMessage());
 		}
 	}
 
 	@Override
 	public void warn(String source, String shortMessage, String message) {
 		if (isWarnEnabled()) {
-			logToHBase(source, shortMessage, message, "warn");
+			warn(source, shortMessage, message, (Throwable) null);
 		}
 	}
 
@@ -146,7 +163,7 @@ public class BigdimeHBaseLogger implements Logger {
 	public void warn(String source, String shortMessage, String format, Object... o) {
 		if (isWarnEnabled()) {
 			FormattingTuple ft = MessageFormatter.arrayFormat(format, o);
-			logToHBase(source, shortMessage, ft.getMessage(), "warn");
+			warn(source, shortMessage, ft.getMessage());
 		}
 	}
 
@@ -160,14 +177,7 @@ public class BigdimeHBaseLogger implements Logger {
 	@Override
 	public void alert(String source, ALERT_TYPE alertType, ALERT_CAUSE alertCause, ALERT_SEVERITY alertSeverity,
 			String message) {
-		AlertMessage alertMessage = new AlertMessage();
-		alertMessage.setAdaptorName(source);
-		alertMessage.setCause(alertCause);
-		alertMessage.setMessage(message);
-		alertMessage.setMessageContext("");
-		alertMessage.setSeverity(alertSeverity);
-		alertMessage.setType(alertType);
-		logToHBase(alertMessage, "error");
+		alert(source, alertType, alertCause, alertSeverity, message, (Throwable) null);
 	}
 
 	@Override
@@ -177,7 +187,7 @@ public class BigdimeHBaseLogger implements Logger {
 		alertMessage.setAdaptorName(source);
 		alertMessage.setCause(alertCause);
 		alertMessage.setMessage(message);
-		alertMessage.setMessageContext("");
+		alertMessage.setMessageContext(EMPTYSTRING);
 		alertMessage.setSeverity(alertSeverity);
 		alertMessage.setType(alertType);
 		logToHBase(alertMessage, "error", t);
@@ -187,15 +197,8 @@ public class BigdimeHBaseLogger implements Logger {
 	public void alert(String source, ALERT_TYPE alertType, ALERT_CAUSE alertCause, ALERT_SEVERITY alertSeverity,
 			String format, Object... o) {
 
-		AlertMessage alertMessage = new AlertMessage();
-		alertMessage.setAdaptorName(source);
-		alertMessage.setCause(alertCause);
 		FormattingTuple ft = MessageFormatter.arrayFormat(format, o);
-		alertMessage.setMessage(ft.getMessage());
-		alertMessage.setMessageContext(EMPTYSTRING);
-		alertMessage.setSeverity(alertSeverity);
-		alertMessage.setType(alertType);
-		logToHBase(alertMessage, "error");
+		alert(source, alertType, alertCause, alertSeverity, ft.getMessage(), (Throwable) null);
 	}
 
 	@Override
@@ -205,9 +208,6 @@ public class BigdimeHBaseLogger implements Logger {
 	}
 
 	private byte[] toBytes(String message) {
-		// if (message == null)
-		// return Bytes.toBytes(EMPTYSTRING);
-		// else
 		return Bytes.toBytes(message);
 	}
 
@@ -225,8 +225,69 @@ public class BigdimeHBaseLogger implements Logger {
 		}
 	}
 
-	private void logToHBase(final String source, final String shortMessage, final String message, final String level) {
-		logToHBase(source, shortMessage, message, level, null);
+	private static List<Put> puts = new ArrayList<>();
+
+	private void LogDebugInfoToHBase(final String source, final String shortMessage, final String message,
+			final String level) {
+		Put put = buildPut(source, shortMessage, message, level, null, null);
+
+		List<Put> tempPuts = null;
+		synchronized (puts) {
+			puts.add(put);
+			if (puts.size() >= hbaseDebugInfoBatchSize) {
+				tempPuts = puts;
+				puts = new ArrayList<>();
+			}
+		}
+		if (tempPuts != null) {
+			logToHBase(tempPuts);
+		}
+	}
+
+	private void logToHBase(final List<Put> tempPuts) {
+		FutureTask<Object> futureTask = new FutureTask<>(new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
+				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
+						.withTableName(hbaseTableName).withtPuts(tempPuts).build();
+				try {
+					hbaseManager.insertData(dataInsertionSpecification);
+					tempPuts.clear();
+				} catch (IOException | HBaseClientException e) {
+					e.printStackTrace();// what else to do
+				}
+				return null;
+			}
+
+		});
+		executorService.execute(futureTask);
+	}
+
+	private Put buildPut(String source, final String shortMessage, final String message, final String level,
+			final AlertMessage alertMessage, final Throwable t) {
+		Put put = new Put(createRowKey(source));
+		addToPut(put, ALERT_ADAPTOR_NAME_COLUMN, source);
+		addToPut(put, ALERT_MESSAGE_CONTEXT_COLUMN, shortMessage);
+
+		if (alertMessage != null) {
+			if (alertMessage.getType() != null) {
+				addToPut(put, ALERT_ALERT_CODE_COLUMN, alertMessage.getType().getMessageCode());
+				addToPut(put, ALERT_ALERT_NAME_COLUMN, alertMessage.getType().getDescription());
+			}
+			if (alertMessage.getCause() != null) {
+				addToPut(put, ALERT_ALERT_CAUSE_COLUMN, alertMessage.getCause().getDescription());
+			}
+			if (alertMessage.getSeverity() != null) {
+				addToPut(put, ALERT_ALERT_SEVERITY_COLUMN, alertMessage.getSeverity().toString());
+			}
+		}
+		addToPut(put, ALERT_ALERT_MESSAGE_COLUMN, message);
+		addToPut(put, ALERT_ALERT_DATE_COLUMN, new Date().toString());
+		addToPut(put, LOG_LEVEL, level);
+
+		addToPut(put, ALERT_ALERT_EXCEPTION_COLUMN, t);
+		return put;
 	}
 
 	private byte[] createRowKey(final String source) {
@@ -235,53 +296,20 @@ public class BigdimeHBaseLogger implements Logger {
 
 	private void logToHBase(final String source, final String shortMessage, final String message, final String level,
 			final Throwable t) {
-		new Thread() { // TODO use task
-			public void run() {
-				Put put = new Put(createRowKey(source));
-				addToPut(put, ALERT_ADAPTOR_NAME_COLUMN, source);
-				addToPut(put, ALERT_MESSAGE_CONTEXT_COLUMN, shortMessage);
-				addToPut(put, ALERT_ALERT_MESSAGE_COLUMN, message);
-				addToPut(put, ALERT_ALERT_DATE_COLUMN, new Date().toString());
-				addToPut(put, ALERT_ALERT_EXCEPTION_COLUMN, t);
-				addToPut(put, LOG_LEVEL, level);
-
-				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
-				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
-						.withTableName(hbaseTableName).withtPut(put).build();
-				try {
-					hbaseManager.insertData(dataInsertionSpecification);
-				} catch (IOException | HBaseClientException e) {
-					e.printStackTrace();
-				}
-			}
-		}.start();
-	}
-
-	private void logToHBase(final AlertMessage message, final String level) {
-		logToHBase(message, level, null);
+		final Put put = buildPut(source, shortMessage, message, level, null, t);
+		logIt(put);
 	}
 
 	private void logToHBase(final AlertMessage message, final String level, final Throwable t) {
-		new Thread() { // TODO use task
-			public void run() {
-				Put put = new Put(createRowKey(message.getAdaptorName()));
-				addToPut(put, ALERT_ADAPTOR_NAME_COLUMN, message.getAdaptorName());
-				addToPut(put, ALERT_MESSAGE_CONTEXT_COLUMN, message.getMessageContext());
-				if (message.getType() != null) {
-					addToPut(put, ALERT_ALERT_CODE_COLUMN, message.getType().getMessageCode());
-					addToPut(put, ALERT_ALERT_NAME_COLUMN, message.getType().getDescription());
-				}
-				if (message.getCause() != null) {
-					addToPut(put, ALERT_ALERT_CAUSE_COLUMN, message.getCause().getDescription());
-				}
-				if (message.getSeverity() != null) {
-					addToPut(put, ALERT_ALERT_SEVERITY_COLUMN, message.getSeverity().toString());
-				}
-				addToPut(put, ALERT_ALERT_MESSAGE_COLUMN, message.getMessage());
-				addToPut(put, ALERT_ALERT_DATE_COLUMN, new Date().toString());
-				addToPut(put, ALERT_ALERT_EXCEPTION_COLUMN, t);
-				addToPut(put, LOG_LEVEL, "error");
+		final Put put = buildPut(message.getAdaptorName(), message.getMessageContext(), message.getMessage(), level,
+				null, t);
+		logIt(put);
+	}
 
+	private void logIt(final Put put) {
+		FutureTask<Object> futureTask = new FutureTask<>(new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
 				DataInsertionSpecification.Builder dataInsertionSpecificationBuilder = new DataInsertionSpecification.Builder();
 				DataInsertionSpecification dataInsertionSpecification = dataInsertionSpecificationBuilder
 						.withTableName(hbaseTableName).withtPut(put).build();
@@ -290,8 +318,11 @@ public class BigdimeHBaseLogger implements Logger {
 				} catch (IOException | HBaseClientException e) {
 					e.printStackTrace();// what else to do
 				}
+				return null;
 			}
-		}.start();
 
+		});
+		executorService.execute(futureTask);
 	}
+
 }
