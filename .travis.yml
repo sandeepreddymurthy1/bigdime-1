@@ -3,5 +3,5 @@ language: java
 jdk:
   - openjdk7
 script:
-  mvn clean install
+  mvn clean install -DskipTests=true 
 # StubHUb
