@@ -4,3 +4,4 @@ jdk:
   - openjdk7
 script:
   mvn clean install
+# StubHUb
