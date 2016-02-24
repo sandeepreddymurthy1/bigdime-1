@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/stubhub/bigdime.svg?branch=develop)](https://travis-ci.org/stubhub/bigdime)
 What is BigDime
 =====
 BigDime is code name for Data Ingestion Eco System Project. It stands for Big Data Ingestion Made Easy. More information about BigDime can be found [here](https://github.com/stubhub/bigdime/wiki).
