@@ -78,7 +78,7 @@
 		<dependency>
 			<groupId>io.bigdime</groupId>
 			<artifactId>bigdime-commons</artifactId>
-			<version>${project.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<!-- Spring Dependencies -->
 		<dependency>
@@ -127,7 +127,7 @@
 		<dependency>
 			<groupId>io.bigdime</groupId>
 			<artifactId>bigdime-metadata-management</artifactId>
-			<version>${project.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 	</dependencies>
 
