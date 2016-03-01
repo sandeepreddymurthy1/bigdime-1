@@ -38,7 +38,7 @@
 		<dependency>
 			<groupId>io.bigdime.bigdime-monitoring</groupId>
 			<artifactId>splunk-monitoring-impl</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 
 	</dependencies>
