@@ -19,7 +19,7 @@
 		<dependency>
 			<groupId>io.bigdime.bigdime-monitoring</groupId>
 			<artifactId>bigdime-monitoring-impl</artifactId>
-			<version>${parent.version}</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.bigdime</groupId>
