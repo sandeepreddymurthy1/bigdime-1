@@ -9,9 +9,18 @@
 	<artifactId>bigdime</artifactId>
 	<packaging>pom</packaging>
 	<version>0.0.10-SNAPSHOT</version>
-	<name>bigdime framework parent pom</name>
+	<name>BigDime</name>
 	<url>http://www.bigdime.io</url>
-
+	<description>Data Ingestion Eco System Project </description>
+	<organization>
+		<name>StubHub</name>
+		<url>http://www.stubhub.com/</url>
+	</organization>
+	<ciManagement>
+		<system>travis-ci</system>
+		<url>https://travis-ci.org/stubhub/bigdime</url>
+	</ciManagement>
+       
 	<scm>
 		<url>https://github.com/stubhub/bigdime</url>
 		<connection>scm:git:git://github.com:stubhub/bigdime.git</connection>
@@ -136,6 +145,20 @@
 						</execution>
 					</executions>
 				</plugin>
+			    <plugin>
+			        <groupId>org.apache.maven.plugins</groupId>
+			        <artifactId>maven-gpg-plugin</artifactId>
+			        <version>1.6</version>
+			        <executions>
+			          <execution>
+			            <id>sign-artifacts</id>
+			            <phase>verify</phase>
+			            <goals>
+			              <goal>sign</goal>
+			            </goals>
+			          </execution>
+			        </executions>
+			    </plugin>
 			</plugins>
 		</pluginManagement>
 	</build>
@@ -398,5 +421,28 @@
                 </profile>
         </profiles>
 
-
+		<licenses>
+		  <license>
+		    <name>Apache License, Version 2.0</name>
+		    <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+		    <distribution>AS IS</distribution>
+		    <comments>Copyright (C) 2015 Stubhub</comments>
+		  </license>
+		</licenses>
+		
+		<developers>
+			<developer>
+				<id>a-ninja</id>
+				<name>Neeraj</name>
+				<email>a-ninja@gmail.com</email>
+				<url>https://github.com/a-ninja</url>
+				<organization>StubHUb</organization>
+				<roles>
+					<role>architect</role>
+					<role>developer</role>
+				</roles>
+				<timezone>America/Los_Angeles</timezone>
+			</developer>
+		</developers>
+		
 </project>
