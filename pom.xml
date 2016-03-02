@@ -3,13 +3,12 @@
     Copyright (C) 2015 Stubhub.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.bigdime</groupId>
 	<artifactId>bigdime</artifactId>
 	<packaging>pom</packaging>
-	<version>0.0.9-SNAPSHOT</version>
+	<version>0.0.10-SNAPSHOT</version>
 	<name>bigdime framework parent pom</name>
 	<url>http://www.bigdime.io</url>
 
@@ -17,7 +16,8 @@
 		<url>https://github.com/stubhub/bigdime</url>
 		<connection>scm:git:git://github.com:stubhub/bigdime.git</connection>
 		<developerConnection>scm:git:git@github.com:stubhub/bigdime.git</developerConnection>
-	</scm>
+	  <tag>HEAD</tag>
+  </scm>
 	<modules>
 		<module>bigdime-alerting-api</module>
 		<module>bigdime-alerting-impl</module>
