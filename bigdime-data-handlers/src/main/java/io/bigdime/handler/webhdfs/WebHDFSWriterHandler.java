@@ -32,6 +32,7 @@ import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.InvalidDataException;
+import io.bigdime.core.InvalidValueConfigurationException;
 import io.bigdime.core.SinkHandlerException;
 import io.bigdime.core.commons.AdaptorLogger;
 import io.bigdime.core.commons.PropertyHelper;
@@ -68,6 +69,17 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 	private String hdfsOverwrite;
 	private String hdfsPermission;
 	private WebHdfs webHdfs;
+
+	/**
+	 * Allow user to specify whether to convert the whole hdfs path to lower or
+	 * upper case by specifying "lower" or "upper". If this field is not
+	 * specified, the path and partitions are left unchanged.
+	 */
+
+	String hdfsPathCase = null;
+	boolean hdfsPathLowerCase = false;
+	boolean hdfsPathUpperCase = false;
+
 	@Autowired
 	private RuntimeInfoStore<RuntimeInfo> runtimeInfoStore;
 
@@ -109,6 +121,18 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 			hdfsPath = PropertyHelper.getStringProperty(getPropertyMap(), WebHDFSWriterHandlerConstants.HDFS_PATH);
 			hdfsUser = PropertyHelper.getStringProperty(getPropertyMap(), WebHDFSWriterHandlerConstants.HDFS_USER);
 			logger.info(handlerPhase, "hdfsUser={}", hdfsUser);
+			hdfsPathCase = PropertyHelper.getStringProperty(getPropertyMap(),
+					WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "");
+
+			if (StringUtils.isNotBlank(hdfsPathCase)) {
+				if (StringUtils.equalsIgnoreCase(hdfsPathCase, "lower"))
+					hdfsPathLowerCase = true;
+				else if (StringUtils.equalsIgnoreCase(hdfsPathCase, "upper"))
+					hdfsPathUpperCase = true;
+				else
+					throw new InvalidValueConfigurationException(
+							"invalid value for hdfsPathCase, only \"lower\" or \"upper\" is allowed");
+			}
 
 			hdfsPermission = PropertyHelper.getStringProperty(getPropertyMap(),
 					WebHDFSWriterHandlerConstants.HDFS_PERMISSIONS);
@@ -127,8 +151,9 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 			}
 
 			logger.info("building WebHDFSWriterHandler",
-					"hostNames={} port={} hdfsFileName={} hdfsPath={} hdfsUser={} hdfsPermission={} hdfsOverwrite={}",
-					hostNames, port, hdfsFileName, hdfsPath, hdfsUser, hdfsPermission, hdfsOverwrite);
+					"hostNames={} port={} hdfsFileName={} hdfsPath={} hdfsUser={} hdfsPermission={} hdfsOverwrite={} hdfsPathCase={} hdfsPathLowerCase={} hdfsPathUpperCase={}",
+					hostNames, port, hdfsFileName, hdfsPath, hdfsUser, hdfsPermission, hdfsOverwrite, hdfsPathCase,
+					hdfsPathLowerCase, hdfsPathUpperCase);
 		} catch (final Exception ex) {
 			throw new AdaptorConfigurationException(ex);
 		}
@@ -363,11 +388,11 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 
 		actionEvent.setHeaders(headers);
 		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, partitionNames);
-		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, partitionValues);
-		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, hdfsFileName);
+		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, formatField(partitionValues));
+		headers.put(ActionEventHeaderConstants.HDFS_FILE_NAME, formatField(hdfsFileName));
 		headers.put(ActionEventHeaderConstants.RECORD_COUNT, String.valueOf(journal.getRecordCount()));
-		headers.put(ActionEventHeaderConstants.COMPLETE_HDFS_PATH, detokenizedHdfsPath + File.separator);
-		headers.put(ActionEventHeaderConstants.HDFS_PATH, hdfsFilePathBuilder.getBaseHdfsPath());
+		headers.put(ActionEventHeaderConstants.COMPLETE_HDFS_PATH, formatField(detokenizedHdfsPath + File.separator));
+		headers.put(ActionEventHeaderConstants.HDFS_PATH, formatField(hdfsFilePathBuilder.getBaseHdfsPath()));
 		headers.put(ActionEventHeaderConstants.HOST_NAMES, hostNames);
 		headers.put(ActionEventHeaderConstants.PORT, String.valueOf(port));
 		headers.put(ActionEventHeaderConstants.USER_NAME, hdfsUser);
@@ -375,7 +400,17 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		return actionEvent;
 
 	}
-	
+
+	private String formatField(final String inputValue) {
+		if (hdfsPathLowerCase) {
+			return inputValue.toLowerCase();
+		} else if (hdfsPathUpperCase) {
+			return inputValue.toLowerCase();
+		}
+		return inputValue;
+
+	}
+
 	private void initializeRecordCountInJournal(final ActionEvent actionEvent,
 			final WebHDFSWriterHandlerJournal journal) throws RuntimeInfoStoreException {
 		if (journal.getRecordCount() < 0) {

@@ -319,6 +319,74 @@ public class WebHDFSWriterHandlerTest {
 		WebHDFSWriterHandler.build();
 	}
 
+	@Test
+	public void testBuildWithHdfsPathLowerCase() throws AdaptorConfigurationException {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(WebHDFSWriterHandlerConstants.PORT, 1);
+		properties.put(WebHDFSWriterHandlerConstants.HOST_NAMES, "host1");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH, "/webhDFs/${account}/{timestamp}");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_PREFIX, "raw-data");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "lower");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_EXTENSION, ".txt");
+		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
+		WebHDFSWriterHandler.setPropertyMap(properties);
+		WebHDFSWriterHandler.build();
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
+		Assert.assertEquals(hdfsPathLowerCase, true);
+		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
+		Assert.assertEquals(hdfsPathUpperCase, false);
+	}
+
+	@Test
+	public void testBuildWithHdfsPathUpperCase() throws AdaptorConfigurationException {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(WebHDFSWriterHandlerConstants.PORT, 1);
+		properties.put(WebHDFSWriterHandlerConstants.HOST_NAMES, "host1");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH, "/webhDFs/${account}/{timestamp}");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_PREFIX, "raw-data");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "upper");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_EXTENSION, ".txt");
+		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
+		WebHDFSWriterHandler.setPropertyMap(properties);
+		WebHDFSWriterHandler.build();
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
+		Assert.assertEquals(hdfsPathLowerCase, false);
+		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
+		Assert.assertEquals(hdfsPathUpperCase, true);
+	}
+
+	@Test(expectedExceptions = AdaptorConfigurationException.class, expectedExceptionsMessageRegExp = "io.bigdime.core.InvalidValueConfigurationException: invalid value for hdfsPathCase, only.*")
+	public void testBuildWithHdfsPathInvalidCase() throws AdaptorConfigurationException {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(WebHDFSWriterHandlerConstants.PORT, 1);
+		properties.put(WebHDFSWriterHandlerConstants.HOST_NAMES, "host1");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH, "/webhDFs/${account}/{timestamp}");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_PREFIX, "raw-data");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "invalid");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_EXTENSION, ".txt");
+		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
+		WebHDFSWriterHandler.setPropertyMap(properties);
+		WebHDFSWriterHandler.build();
+	}
+
+	@Test
+	public void testBuildWithHdfsPathEmptyCase() throws AdaptorConfigurationException {
+		Map<String, Object> properties = new HashMap<>();
+		properties.put(WebHDFSWriterHandlerConstants.PORT, 1);
+		properties.put(WebHDFSWriterHandlerConstants.HOST_NAMES, "host1");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH, "/webhDFs/${account}/{timestamp}");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_PREFIX, "raw-data");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "");
+		properties.put(WebHDFSWriterHandlerConstants.HDFS_FILE_NAME_EXTENSION, ".txt");
+		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
+		WebHDFSWriterHandler.setPropertyMap(properties);
+		WebHDFSWriterHandler.build();
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
+		Assert.assertEquals(hdfsPathLowerCase, false);
+		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
+		Assert.assertEquals(hdfsPathUpperCase, false);
+	}
+
 	/**
 	 * Assert that if there is a valid record_count available in
 	 * RuntimeInfoStore and if the HandlerContext has events to process, all the
