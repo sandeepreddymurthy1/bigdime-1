@@ -29,6 +29,7 @@ import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.SinkHandlerException;
+import io.bigdime.core.commons.StringCase;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.HandlerContext;
 import io.bigdime.core.runtimeinfo.RuntimeInfo;
@@ -232,11 +233,12 @@ public class WebHDFSWriterHandlerTest {
 		mockWebHdfs = mockWebHdfs(200, 200, 200, false);
 		Mockito.doNothing().when(mockWebHdfs).releaseConnection();
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "webHdfs", mockWebHdfs);
-		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsPath", "/webhdfs/${account}/${timestamp}");
+		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsPath", "/webHDFS/${account}/${timestamp}");
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsFileName", "unitFile");
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "tokenToHeaderNameMap", tokenToHeaderNameMap);
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "runtimeInfoStore", runtimeInfoStore);
-		ReflectionTestUtils.setField(WebHDFSWriterHandler, "channelDesc", "unit-channel");
+		ReflectionTestUtils.setField(WebHDFSWriterHandler, "channelDesc", "unit-Channel");
+		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsPathCaseEnum", StringCase.LOWER);
 
 		return WebHDFSWriterHandler;
 
@@ -331,10 +333,9 @@ public class WebHDFSWriterHandlerTest {
 		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
 		WebHDFSWriterHandler.setPropertyMap(properties);
 		WebHDFSWriterHandler.build();
-		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
-		Assert.assertEquals(hdfsPathLowerCase, true);
-		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
-		Assert.assertEquals(hdfsPathUpperCase, false);
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathCaseEnum");
+		Assert.assertEquals(hdfsPathLowerCase, StringCase.LOWER);
+
 	}
 
 	@Test
@@ -349,10 +350,8 @@ public class WebHDFSWriterHandlerTest {
 		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
 		WebHDFSWriterHandler.setPropertyMap(properties);
 		WebHDFSWriterHandler.build();
-		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
-		Assert.assertEquals(hdfsPathLowerCase, false);
-		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
-		Assert.assertEquals(hdfsPathUpperCase, true);
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathCaseEnum");
+		Assert.assertEquals(hdfsPathLowerCase, StringCase.UPPER);
 	}
 
 	@Test(expectedExceptions = AdaptorConfigurationException.class, expectedExceptionsMessageRegExp = "io.bigdime.core.InvalidValueConfigurationException: invalid value for hdfsPathCase, only.*")
@@ -381,10 +380,8 @@ public class WebHDFSWriterHandlerTest {
 		WebHDFSWriterHandler WebHDFSWriterHandler = new WebHDFSWriterHandler();
 		WebHDFSWriterHandler.setPropertyMap(properties);
 		WebHDFSWriterHandler.build();
-		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathLowerCase");
-		Assert.assertEquals(hdfsPathLowerCase, false);
-		Object hdfsPathUpperCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathUpperCase");
-		Assert.assertEquals(hdfsPathUpperCase, false);
+		Object hdfsPathLowerCase = ReflectionTestUtils.getField(WebHDFSWriterHandler, "hdfsPathCaseEnum");
+		Assert.assertEquals(hdfsPathLowerCase, StringCase.DEFAULT);
 	}
 
 	/**

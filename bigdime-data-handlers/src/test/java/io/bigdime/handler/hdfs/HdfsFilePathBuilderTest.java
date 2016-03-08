@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 import io.bigdime.core.ActionEvent;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.InvalidDataException;
+import io.bigdime.core.commons.StringCase;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.handler.webhdfs.HdfsFilePathBuilder;
 
@@ -24,10 +25,30 @@ public class HdfsFilePathBuilderTest {
 	@Test
 	public void testBuild() throws HandlerException {
 		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
-		String hdfsPath = "unithdfs";
+		String hdfsPath = "unithdFs";
 		ActionEvent actionEvent = createSampleTestEventWithHeaders();
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).build();
+		Assert.assertEquals(path, "unithdFs/unitbase/unitrelative");
+	}
+
+	@Test
+	public void testBuildWithLowerCase() throws HandlerException {
+		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
+		String hdfsPath = "unithdFS";
+		ActionEvent actionEvent = createSampleTestEventWithHeaders();
+		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).withCase(StringCase.LOWER)
+				.build();
 		Assert.assertEquals(path, "unithdfs/unitbase/unitrelative");
+	}
+
+	@Test
+	public void testBuildWithUpperCase() throws HandlerException {
+		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
+		String hdfsPath = "unithdFS";
+		ActionEvent actionEvent = createSampleTestEventWithHeaders();
+		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).withCase(StringCase.UPPER)
+				.build();
+		Assert.assertEquals(path, "UNITHDFS/UNITBASE/UNITRELATIVE");
 	}
 
 	@Test
@@ -223,6 +244,60 @@ public class HdfsFilePathBuilderTest {
 	}
 
 	/**
+	 * If the hdfsPath has partitions, the tokens should be redeemed from the
+	 * headers. The string value should be changed to lower case.
+	 * 
+	 * @throws HandlerException
+	 */
+	@Test
+	public void testBuildWithHdfsPathWithPartitionsWithLowerCase() throws HandlerException {
+		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
+		Map<String, String> tokenToHeaderNameMap = new HashMap<>();
+		tokenToHeaderNameMap.put("${partition1}", "partition1");
+		tokenToHeaderNameMap.put("${partition2}", "partition2");
+		String hdfsPath = "UNIThdfs/${partition1}/${partition2}/partition3";
+		ActionEvent actionEvent = new ActionEvent();
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("PARTITION1", "partiTIon1-value");
+		headers.put("PARTITION2", "partitiON2-value");
+		actionEvent.setHeaders(headers);
+		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
+				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.LOWER).build();
+		Assert.assertEquals(path, "unithdfs/partition1-value/partition2-value/partition3");
+
+		Map<String, String> hivePartitionNameValueMap = hdfsFilePathBuilder.getPartitionNameValueMap();
+		Assert.assertEquals(hivePartitionNameValueMap.get("partition1"), "partition1-value");
+		Assert.assertEquals(hivePartitionNameValueMap.get("partition2"), "partition2-value");
+	}
+
+	/**
+	 * If the hdfsPath has partitions, the tokens should be redeemed from the
+	 * headers. The string value should be changed to UPPER case.
+	 * 
+	 * @throws HandlerException
+	 */
+	@Test
+	public void testBuildWithHdfsPathWithPartitionsWithUpperCase() throws HandlerException {
+		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
+		Map<String, String> tokenToHeaderNameMap = new HashMap<>();
+		tokenToHeaderNameMap.put("${partition1}", "partition1");
+		tokenToHeaderNameMap.put("${partition2}", "partition2");
+		String hdfsPath = "unithdfs/${partition1}/${partition2}/partition3";
+		ActionEvent actionEvent = new ActionEvent();
+		Map<String, String> headers = new HashMap<String, String>();
+		headers.put("PARTITION1", "partiTIon1-value");
+		headers.put("PARTITION2", "partitiON2-value");
+		actionEvent.setHeaders(headers);
+		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
+				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.UPPER).build();
+		Assert.assertEquals(path, "UNITHDFS/PARTITION1-VALUE/PARTITION2-VALUE/PARTITION3");
+
+		Map<String, String> hivePartitionNameValueMap = hdfsFilePathBuilder.getPartitionNameValueMap();
+		Assert.assertEquals(hivePartitionNameValueMap.get("partition1"), "PARTITION1-VALUE");
+		Assert.assertEquals(hivePartitionNameValueMap.get("partition2"), "PARTITION2-VALUE");
+	}
+
+	/**
 	 * If the hdfsPath has no partitions, there are no tokens to be redeemed,
 	 * final path should be same as hdfsPath.
 	 * 
@@ -272,7 +347,7 @@ public class HdfsFilePathBuilderTest {
 		String basePath = hdfsFilePathBuilder.getBaseHdfsPath();
 		Assert.assertEquals(path, "/webhdfs/v1/data/path/raw/path1/act1/11032015");
 		Assert.assertEquals(basePath, "/webhdfs/v1/data/path/raw/path1/");
-//		System.out.println("path=" + path + ", basePath=" + basePath);
+		// System.out.println("path=" + path + ", basePath=" + basePath);
 
 	}
 
