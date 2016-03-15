@@ -3,8 +3,8 @@
  */
 package io.bigdime.libs.hive.table;
 
-
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import io.bigdime.libs.hive.client.HiveClientProvider;
@@ -12,12 +12,17 @@ import io.bigdime.libs.hive.common.ColumnMetaDataUtil;
 import io.bigdime.libs.hive.common.HiveConfigManager;
 import io.bigdime.libs.hive.metadata.TableMetaData;
 
+import org.apache.hadoop.hive.conf.HiveConf;
 import org.apache.hive.hcatalog.api.HCatClient;
 import org.apache.hive.hcatalog.api.HCatCreateTableDesc;
 import org.apache.hive.hcatalog.api.HCatTable;
 import org.apache.hive.hcatalog.api.HCatTable.Type;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.apache.hive.hcatalog.data.schema.HCatFieldSchema;
+import org.apache.hive.hcatalog.data.transfer.DataTransferFactory;
+import org.apache.hive.hcatalog.data.transfer.HCatReader;
+import org.apache.hive.hcatalog.data.transfer.ReadEntity;
+import org.apache.hive.hcatalog.data.transfer.ReaderContext;
 import org.springframework.util.Assert;
 
 import com.google.common.base.Preconditions;
@@ -148,5 +153,34 @@ public class HiveTableManger extends HiveConfigManager {
 			HiveClientProvider.closeClient(client);
 		}
 		return tableMetaData;
+	}
+	
+	
+	public synchronized ReaderContext readData(String databaseName,
+			String tableName, String filterCol,
+			String host, int port, Map<String, String> configuration)
+			throws HCatException {
+
+		ReadEntity.Builder builder = new ReadEntity.Builder();
+		
+		ReadEntity entity = builder.withDatabase(databaseName)
+				.withTable(tableName).withFilter(filterCol).build();
+
+		configuration.put(HiveConf.ConfVars.METASTOREURIS.toString(),
+				"thrift://" + host +  ":"+ port);
+
+		HCatReader reader = DataTransferFactory.getHCatReader(entity,
+				configuration);
+		
+		ReaderContext context = null;
+		try {
+
+			context = reader.prepareRead();
+
+		} catch (Throwable ex) {
+			throw ex;
+		}
+
+		return context;
 	}
 }

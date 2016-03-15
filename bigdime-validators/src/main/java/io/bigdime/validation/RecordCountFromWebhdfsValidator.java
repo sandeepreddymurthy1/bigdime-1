@@ -11,21 +11,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
-
-/**
- * RecordCountValidator class is to perform whether hdfs record count matches source record count or not
- * 
- * record count mismatches --- validation fail
- * otherwise, validation success
- * 
- * @author Rita Liu
- */
-
-
-
-
-
-
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import io.bigdime.alert.Logger;
 import io.bigdime.alert.LoggerFactory;
@@ -42,22 +29,26 @@ import io.bigdime.libs.hdfs.WebHdfs;
 import io.bigdime.libs.hdfs.WebHDFSConstants;
 import io.bigdime.validation.common.AbstractValidator;
 
-@Factory(id = "record_count", type = RecordCountValidator.class)
+@Factory(id = "record_count_hdfs", type = RecordCountFromWebhdfsValidator.class)
+@Component
+@Scope("prototype")
 
 /**
- * Performs validation by comparing comparing expected(from event header) and actual
- * record count(from hdfs).
+ * RecordCountValidator class is to perform whether hdfs record count from webhdfs matches source record count or not
+ * 
+ * record count mismatches --- validation fail
+ * otherwise, validation success
  * 
  * @author Rita Liu
- * 
  */
-public class RecordCountValidator implements Validator {
+public class RecordCountFromWebhdfsValidator implements Validator {
 
 	private WebHdfs webHdfs;
 
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecordCountFromWebhdfsValidator.class);
 	
 	private String name;
+	
 
 	/**
 	 * This validate method will compare Hdfs record count and source record
@@ -90,7 +81,7 @@ public class RecordCountValidator implements Validator {
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HOST_NAMES, host);
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.PORT, portString);
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.USER_NAME, userName);
-		
+
 		try {
 			int port = Integer.parseInt(portString);
 			if (webHdfs == null) {
@@ -104,7 +95,7 @@ public class RecordCountValidator implements Validator {
 					"Illegal port number input while parsing string to integer");
 			throw new NumberFormatException();
 		}
-
+		
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);

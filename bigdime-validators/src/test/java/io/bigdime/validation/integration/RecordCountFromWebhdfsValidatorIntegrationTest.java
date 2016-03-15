@@ -20,11 +20,11 @@ import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.libs.hdfs.WebHdfs;
-import io.bigdime.validation.RecordCountValidator;
+import io.bigdime.validation.RecordCountFromWebhdfsValidator;
 
-public class RecordCountValidatorIntegrationTest{
+public class RecordCountFromWebhdfsValidatorIntegrationTest{
 	
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountValidatorIntegrationTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(RecordCountFromWebhdfsValidatorIntegrationTest.class);
 	private String remoteFile1 = "/webhdfs/v1/test1/20120218/0900/test-20120218-0900.txt";
 	private String remoteFile2 = "/webhdfs/v1/test1/test-no-partition.txt";
 	
@@ -42,7 +42,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "");
     	recordCountValidator.validate(actionEvent);
     }
@@ -50,7 +50,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullPort() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "");
     	recordCountValidator.validate(actionEvent);
@@ -59,7 +59,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullUserName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, null);
@@ -69,7 +69,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParsePortStringToIntException() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "Hello");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -81,7 +81,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullSrcRecordCount() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -92,7 +92,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParseSrcRecordCountStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -103,7 +103,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsPath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -115,7 +115,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsFileName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -128,7 +128,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(priority = 2)
     public void testValidateRecordCountWithPartitionsDiff() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -142,7 +142,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(priority = 3)
     public void testValidateRecordCountWithoutPartitions() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -156,7 +156,7 @@ public class RecordCountValidatorIntegrationTest{
     @Test(priority = 4)
     public void testValidateRecordCountWithRCErrorDirExists() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -169,7 +169,7 @@ public class RecordCountValidatorIntegrationTest{
 	
 	@Test
 	public void testSettersAndGetters(){
-		RecordCountValidator recordCountValidator= new RecordCountValidator();
+		RecordCountFromWebhdfsValidator recordCountValidator= new RecordCountFromWebhdfsValidator();
 		recordCountValidator.setName("testName");
 		Assert.assertEquals(recordCountValidator.getName(), "testName");
 	}
