@@ -117,7 +117,6 @@ public class HiveRecordCountValidatorIntegrationTest{
     	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "slcd000hen202.stubcorp.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
-		actionEvent.getHeaders().put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());	
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "234");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "stbcat");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "tickets");
