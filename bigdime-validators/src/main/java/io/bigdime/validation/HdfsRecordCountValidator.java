@@ -29,7 +29,7 @@ import io.bigdime.libs.hdfs.WebHdfs;
 import io.bigdime.libs.hdfs.WebHDFSConstants;
 import io.bigdime.validation.common.AbstractValidator;
 
-@Factory(id = "record_count_hdfs", type = RecordCountFromWebhdfsValidator.class)
+@Factory(id = "record_count_hdfs", type = HdfsRecordCountValidator.class)
 @Component
 @Scope("prototype")
 
@@ -41,11 +41,11 @@ import io.bigdime.validation.common.AbstractValidator;
  * 
  * @author Rita Liu
  */
-public class RecordCountFromWebhdfsValidator implements Validator {
+public class HdfsRecordCountValidator implements Validator {
 
 	private WebHdfs webHdfs;
 
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountFromWebhdfsValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(HdfsRecordCountValidator.class);
 	
 	private String name;
 	

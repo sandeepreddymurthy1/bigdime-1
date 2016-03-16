@@ -14,7 +14,7 @@ import io.bigdime.core.ActionEvent;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
-import io.bigdime.validation.RecordCountFromWebhdfsValidator;
+import io.bigdime.validation.HdfsRecordCountValidator;
 import io.bigdime.libs.hdfs.WebHdfs;
 
 import org.apache.http.HttpEntity;
@@ -29,33 +29,33 @@ import org.testng.annotations.Test;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
-public class RecordCountFromWebhdfsValidatorTest {
+public class HdfsRecordCountValidatorTest {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHostTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> mockMap = Mockito.mock(Map.class);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		when(mockMap.get(anyString())).thenReturn("");
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullPortNumberTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> mockMap = Mockito.mock(Map.class);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		when(mockMap.get(anyString())).thenReturn("host").thenReturn(null);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullUserNameTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 
 		Map<String, String> mockMap = new HashMap<>();
@@ -66,12 +66,12 @@ public class RecordCountFromWebhdfsValidatorTest {
 
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 
 		Map<String, String> mockMap = new HashMap<>();
@@ -80,12 +80,12 @@ public class RecordCountFromWebhdfsValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.PORT, "Hello");
 		mockMap.put(ActionEventHeaderConstants.USER_NAME, "user");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullSrcRecordCountTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 
@@ -95,12 +95,12 @@ public class RecordCountFromWebhdfsValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "");
 
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = NumberFormatException.class)
 	public void validateSrcRCParseToIntTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 
@@ -109,12 +109,12 @@ public class RecordCountFromWebhdfsValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.USER_NAME, "user");
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "src");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsPathTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 
@@ -125,12 +125,12 @@ public class RecordCountFromWebhdfsValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.HDFS_PATH, "");
 
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHdfsFileNameTest() throws DataValidationException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 
@@ -141,13 +141,13 @@ public class RecordCountFromWebhdfsValidatorTest {
 		mockMap.put(ActionEventHeaderConstants.HDFS_PATH, "path");
 		mockMap.put(ActionEventHeaderConstants.HDFS_FILE_NAME, null);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromWebhdfsValidator.validate(mockActionEvent);
+		hdfsRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test
 	public void recordCountWithoutPartitionDiffTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 
@@ -161,7 +161,7 @@ public class RecordCountFromWebhdfsValidatorTest {
 
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		WebHdfs mockWebHdfs = Mockito.mock(WebHdfs.class);
-		ReflectionTestUtils.setField(recordCountFromWebhdfsValidator, "webHdfs", mockWebHdfs);
+		ReflectionTestUtils.setField(hdfsRecordCountValidator, "webHdfs", mockWebHdfs);
 		HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
 		Mockito.when(mockWebHdfs.openFile(any(String.class))).thenReturn(mockResponse);
 		HttpEntity mockHttpEntity = Mockito.mock(HttpEntity.class);
@@ -184,14 +184,14 @@ public class RecordCountFromWebhdfsValidatorTest {
 		when(mockResponse2.getStatusLine()).thenReturn(mockSL2);
 		when(mockSL2.getStatusCode()).thenReturn(200);
 		doNothing().when(mockWebHdfs).releaseConnection();
-		Assert.assertEquals(recordCountFromWebhdfsValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hdfsRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.FAILED);
 	}
 
 	@Test
 	public void recordCountWithPartitionMatchTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		String hivePartitions = "dt, hr";
@@ -207,7 +207,7 @@ public class RecordCountFromWebhdfsValidatorTest {
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 
 		WebHdfs mockWebHdfs = Mockito.mock(WebHdfs.class);
-		ReflectionTestUtils.setField(recordCountFromWebhdfsValidator, "webHdfs", mockWebHdfs);
+		ReflectionTestUtils.setField(hdfsRecordCountValidator, "webHdfs", mockWebHdfs);
 		HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
 		Mockito.when(mockWebHdfs.openFile(any(String.class))).thenReturn(mockResponse);
 		HttpEntity mockHttpEntity = Mockito.mock(HttpEntity.class);
@@ -215,14 +215,14 @@ public class RecordCountFromWebhdfsValidatorTest {
 		InputStream inputStream = new ByteArrayInputStream(
 				"testString \n new line in file".getBytes(Charset.forName("UTF-8")));
 		Mockito.when(mockHttpEntity.getContent()).thenReturn(inputStream);
-		Assert.assertEquals(recordCountFromWebhdfsValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hdfsRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.PASSED);
 	}
 
 	@Test
 	public void recordCountWithRCErrorDirExistsDiffTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator hdfsRecordCountValidator = new HdfsRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 
 		Map<String, String> mockMap = new HashMap<>();
@@ -238,7 +238,7 @@ public class RecordCountFromWebhdfsValidatorTest {
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 
 		WebHdfs mockWebHdfs = Mockito.mock(WebHdfs.class);
-		ReflectionTestUtils.setField(recordCountFromWebhdfsValidator, "webHdfs", mockWebHdfs);
+		ReflectionTestUtils.setField(hdfsRecordCountValidator, "webHdfs", mockWebHdfs);
 		HttpResponse mockResponse = Mockito.mock(HttpResponse.class);
 		Mockito.when(mockWebHdfs.openFile(any(String.class))).thenReturn(mockResponse);
 		HttpEntity mockHttpEntity = Mockito.mock(HttpEntity.class);
@@ -254,13 +254,13 @@ public class RecordCountFromWebhdfsValidatorTest {
 		when(mockResponse1.getStatusLine()).thenReturn(mockSL1);
 		when(mockSL1.getStatusCode()).thenReturn(200);
 		doNothing().when(mockWebHdfs).releaseConnection();
-		Assert.assertEquals(recordCountFromWebhdfsValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hdfsRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.FAILED);
 	}
 
 	@Test
 	public void gettersAndSettersTest() {
-		RecordCountFromWebhdfsValidator recordCountFromWebhdfsValidator = new RecordCountFromWebhdfsValidator();
+		HdfsRecordCountValidator recordCountFromWebhdfsValidator = new HdfsRecordCountValidator();
 		recordCountFromWebhdfsValidator.setName("testName");
 		Assert.assertEquals(recordCountFromWebhdfsValidator.getName(), "testName");
 	}

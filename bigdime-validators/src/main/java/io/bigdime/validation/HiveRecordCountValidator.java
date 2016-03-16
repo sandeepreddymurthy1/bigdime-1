@@ -46,33 +46,14 @@ import io.bigdime.validation.common.AbstractValidator;
  * @author Rita Liu
  */
 
-@Factory(id = "record_count_hive", type = RecordCountFromHiveValidator.class)
+@Factory(id = "record_count_hive", type = HiveRecordCountValidator.class)
 @Component
 @Scope("prototype")
-public class RecordCountFromHiveValidator implements Validator {
+public class HiveRecordCountValidator implements Validator {
 
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountFromHiveValidator.class);
+	private static final Logger logger = LoggerFactory.getLogger(HiveRecordCountValidator.class);
 	
 	private String name;
-
-	protected boolean isReadyToValidate(final ActionEvent actionEvent) {
-		String hdfsBasePath = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_PATH);
-		String hdfsFileName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_FILE_NAME);
-
-
-		String totalSize = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_SIZE);
-		String totalRead = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_FILE_TOTAL_READ);
-		
-		String validationReady = actionEvent.getHeaders().get(ActionEventHeaderConstants.VALIDATION_READY);
-		if (validationReady == null || !validationReady.equalsIgnoreCase("true")) {
-			logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
-					"processing RecordCountValidator",
-					"Record Count validation being skipped, totalSize={} totalRead={} hdfsBasePath={} hdfsFileName={} validationReady={}",
-					totalSize, totalRead, hdfsBasePath, hdfsFileName, validationReady);
-			return false;
-		}
-		return true;
-	}
 	
 	/**
 	 * This validate method will compare Hdfs record count(get from Hive) and source record
@@ -108,11 +89,6 @@ public class RecordCountFromHiveValidator implements Validator {
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "NumberFormatException",
 					"Illegal port number input{} while parsing string to integer", portString);
 			throw new NumberFormatException();
-		}
-
-		if (!isReadyToValidate(actionEvent)) {
-			validationPassed.setValidationResult(ValidationResult.NOT_READY);
-			return validationPassed;
 		}
 		
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);

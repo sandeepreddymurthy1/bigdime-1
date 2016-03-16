@@ -3,10 +3,7 @@
  */
 package io.bigdime.validation.integration;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import io.bigdime.core.ActionEvent;
@@ -14,102 +11,95 @@ import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.libs.hive.constants.HiveClientConstants;
-import io.bigdime.validation.RecordCountFromHiveValidator;
+import io.bigdime.validation.HiveRecordCountValidator;
 
-public class RecordCountFromHiveValidatorIntegrationTest{
+public class HiveRecordCountValidatorIntegrationTest{
 	
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountFromHiveValidatorIntegrationTest.class);
-
-    @BeforeTest
-	public void setup() {
-		logger.info("Setting the environment");
-	}
-
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHiveHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullPort() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
   
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParsePortStringToIntException() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "port");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullSrcRecordCount() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, null);
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParseSrcRecordCountStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "count");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHiveDBName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHiveTableName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "test");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
  
     @Test(expectedExceptions = DataValidationException.class)
     public void testNullHiveTableNotCreated() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "test");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "not_exist");
-    	recordCountFromHiveValidator.validate(actionEvent);
+    	hiveRecordCountValidator.validate(actionEvent);
     }
     
     @Test
     public void testValidateRecordCountWithPartitionsDiff() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "234");
@@ -118,46 +108,46 @@ public class RecordCountFromHiveValidatorIntegrationTest{
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "entityName, dt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "two, 20120218");
     	actionEvent.getHeaders().put(HiveClientConstants.HA_ENABLED, "false");
-    	Assert.assertEquals(recordCountFromHiveValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
+    	Assert.assertEquals(hiveRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
     
     @Test
     public void testValidateRecordCountWithPartitionsHaEnabledDiff() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "slcd000hen202.stubcorp.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());	
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "234");
-    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "jdbcdatabase");
-    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "geography");
-    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "");
-    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "stbcat");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "tickets");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, "dt");
+    	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "20140213");
     	actionEvent.getHeaders().put(HiveClientConstants.HA_ENABLED, "true");
     	actionEvent.getHeaders().put(HiveClientConstants.HA_SERVICE_NAME, "hdfs-cluster");
     	actionEvent.getHeaders().put(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER, "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider");
     	actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_SERVICES, "hdfs-cluster");
     	actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1, "slcd000hnn201.stubcorp.com:8020");
     	actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2, "slcd000hnn203.stubcorp.com:8020");
-    	Assert.assertEquals(recordCountFromHiveValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
+    	Assert.assertEquals(hiveRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
     
     @Test
     public void testValidateRecordCountWithoutPartitions() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
+    	HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, "9083");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "3");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, "test");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "one");
-    	Assert.assertEquals(recordCountFromHiveValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
+    	Assert.assertEquals(hiveRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
     }
     
 	@Test
 	public void testSettersAndGetters(){
-		RecordCountFromHiveValidator recordCountFromHiveValidator= new RecordCountFromHiveValidator();
-		recordCountFromHiveValidator.setName("testName");
-		Assert.assertEquals(recordCountFromHiveValidator.getName(), "testName");
+		HiveRecordCountValidator hiveRecordCountValidator= new HiveRecordCountValidator();
+		hiveRecordCountValidator.setName("testName");
+		Assert.assertEquals(hiveRecordCountValidator.getName(), "testName");
 	}
 }

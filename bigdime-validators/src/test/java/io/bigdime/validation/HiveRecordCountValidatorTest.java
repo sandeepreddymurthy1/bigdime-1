@@ -12,7 +12,7 @@ import io.bigdime.core.ActionEvent;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
-import io.bigdime.validation.RecordCountFromHiveValidator;
+import io.bigdime.validation.HiveRecordCountValidator;
 import io.bigdime.libs.hive.constants.HiveClientConstants;
 import io.bigdime.libs.hive.table.HiveTableManger;
 
@@ -30,117 +30,99 @@ import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 @PrepareForTest(HiveTableManger.class)
-public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
+public class HiveRecordCountValidatorTest extends PowerMockTestCase {
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveHostTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> mockMap = Mockito.mock(Map.class);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		when(mockMap.get(anyString())).thenReturn("");
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHivePortTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> mockMap = Mockito.mock(Map.class);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		when(mockMap.get(anyString())).thenReturn("host").thenReturn(null);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 	
 	@Test(expectedExceptions = NumberFormatException.class)
 	public void validatePortNumberFormatTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		@SuppressWarnings("unchecked")
 		Map<String, String> mockMap = Mockito.mock(Map.class);
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
 		when(mockMap.get(anyString())).thenReturn("host").thenReturn("port");
-		recordCountFromHiveValidator.validate(mockActionEvent);
-	}
-	
-	@Test
-	public void validateNotReadyTest() throws DataValidationException{
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
-		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
-		Map<String, String> mockMap = new HashMap<>();
-		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
-		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.FALSE.toString());
-		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		Assert.assertEquals(recordCountFromHiveValidator.validate(mockActionEvent).getValidationResult(),
-				ValidationResult.NOT_READY);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 	
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullSrcRecordCountTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = NumberFormatException.class)
 	public void validateSrcRCParseToIntTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "src");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveDBNameTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validateNullHiveTableNameTest() throws DataValidationException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "");
 		when(mockActionEvent.getHeaders()).thenReturn(mockMap);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 	
 	@Test(expectedExceptions = DataValidationException.class)
 	public void validateHiveTableNotCreated() throws DataValidationException, HCatException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "table");
@@ -149,17 +131,16 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);	
 		Mockito.when(mockHiveTableManager.isTableCreated(anyString(), anyString())).thenReturn(false);
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 	
 	@Test(expectedExceptions = DataValidationException.class)
 	public void validateGetHDFSRecordCountException() throws DataValidationException, HCatException{
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "table");
@@ -168,19 +149,18 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 		PowerMockito.mockStatic(HiveTableManger.class);
 		PowerMockito.when(HiveTableManger.getInstance((Properties) Mockito.any())).thenReturn(mockHiveTableManager);	
 		Mockito.doThrow(HCatException.class).when(mockHiveTableManager).isTableCreated(anyString(), anyString());	
-		recordCountFromHiveValidator.validate(mockActionEvent);
+		hiveRecordCountValidator.validate(mockActionEvent);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Test
 	public void recordCountWithoutPartitionDiffTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "table");
@@ -195,7 +175,7 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 		ReaderContext mockContext = Mockito.mock(ReaderContext.class);
 		Mockito.when(mockHiveTableManager.readData(anyString(), anyString(), anyString(), anyString(), anyInt(), anyMap()))
 				.thenReturn(mockContext);
-		Assert.assertEquals(recordCountFromHiveValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hiveRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.FAILED);
 	}
 
@@ -203,12 +183,11 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 	@Test
 	public void recordCountWithPartitionMatchTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "0");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "table");
@@ -223,7 +202,7 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 		ReaderContext mockContext = Mockito.mock(ReaderContext.class);
 		Mockito.when(mockHiveTableManager.readData(anyString(), anyString(), anyString(), anyString(), anyInt(), anyMap()))
 				.thenReturn(mockContext);
-		Assert.assertEquals(recordCountFromHiveValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hiveRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.PASSED);
 	}
 
@@ -231,12 +210,11 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 	@Test
 	public void recordCountWithHAEnabledNoPartitionDiffTest()
 			throws DataValidationException, ClientProtocolException, IOException {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
 		ActionEvent mockActionEvent = Mockito.mock(ActionEvent.class);
 		Map<String, String> mockMap = new HashMap<>();
 		mockMap.put(ActionEventHeaderConstants.HIVE_HOST_NAME, "host");
 		mockMap.put(ActionEventHeaderConstants.HIVE_PORT, "111");
-		mockMap.put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 		mockMap.put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
 		mockMap.put(ActionEventHeaderConstants.HIVE_DB_NAME, "db");
 		mockMap.put(ActionEventHeaderConstants.HIVE_TABLE_NAME, "table");
@@ -256,15 +234,15 @@ public class RecordCountFromHiveValidatorTest extends PowerMockTestCase {
 		ReaderContext mockContext = Mockito.mock(ReaderContext.class);
 		Mockito.when(mockHiveTableManager.readData(anyString(), anyString(), anyString(), anyString(), anyInt(), anyMap()))
 				.thenReturn(mockContext);
-		Assert.assertEquals(recordCountFromHiveValidator.validate(mockActionEvent).getValidationResult(),
+		Assert.assertEquals(hiveRecordCountValidator.validate(mockActionEvent).getValidationResult(),
 				ValidationResult.FAILED);
 	}
 
 	@Test
 	public void gettersAndSettersTest() {
-		RecordCountFromHiveValidator recordCountFromHiveValidator = new RecordCountFromHiveValidator();
-		recordCountFromHiveValidator.setName("testName");
-		Assert.assertEquals(recordCountFromHiveValidator.getName(), "testName");
+		HiveRecordCountValidator hiveRecordCountValidator = new HiveRecordCountValidator();
+		hiveRecordCountValidator.setName("testName");
+		Assert.assertEquals(hiveRecordCountValidator.getName(), "testName");
 	}
 
 }
