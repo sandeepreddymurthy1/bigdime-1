@@ -519,7 +519,7 @@ public class WebHDFSWriterHandlerTest {
 
 		Status status = webHDFSWriterHandler.process();
 		Mockito.verify(mockWebHdfs, Mockito.times(1)).mkdir("/webhdfs/mweb-us/20151111");
-		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151111/unit-channel"),
+		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151111/unit-Channel"),
 				Mockito.any(InputStream.class));
 		Assert.assertSame(status, Status.CALLBACK);
 		Assert.assertEquals(((WebHDFSWriterHandlerJournal) handlerContext.getJournal(webHDFSWriterHandler.getId()))
@@ -530,7 +530,7 @@ public class WebHDFSWriterHandlerTest {
 		ReflectionTestUtils.setField(webHDFSWriterHandler, "webHdfs", mockWebHdfs);
 		status = webHDFSWriterHandler.process();
 		Mockito.verify(mockWebHdfs, Mockito.times(1)).mkdir("/webhdfs/mweb-us/20151112");
-		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151112/unit-channel"),
+		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151112/unit-Channel"),
 				Mockito.any(InputStream.class));
 		Assert.assertSame(status, Status.CALLBACK);
 		Assert.assertEquals(((WebHDFSWriterHandlerJournal) handlerContext.getJournal(webHDFSWriterHandler.getId()))
@@ -542,7 +542,7 @@ public class WebHDFSWriterHandlerTest {
 		status = webHDFSWriterHandler.process();
 		Mockito.verify(mockWebHdfs, Mockito.times(1)).mkdir("/webhdfs/mweb-us/20151113");
 		Assert.assertNull(((WebHDFSWriterHandlerJournal) handlerContext.getJournal(webHDFSWriterHandler.getId())));
-		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151113/unit-channel"),
+		Mockito.verify(mockWebHdfs, Mockito.times(1)).append(Mockito.eq("/webhdfs/mweb-us/20151113/unit-Channel"),
 				Mockito.any(InputStream.class));
 		Assert.assertSame(status, Status.READY);
 

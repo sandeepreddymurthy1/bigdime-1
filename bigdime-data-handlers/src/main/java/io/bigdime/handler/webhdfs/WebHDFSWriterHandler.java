@@ -227,8 +227,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 	private void buildFileName(ActionEvent actionEvent) {
 		String sourceFileNameFromHeader = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_FILE_NAME);
 		hdfsFileName = new HdfsFileNameBuilder().withChannelDesc(channelDesc).withPrefix(hdfsFileNamePrefix)
-				.withSourceFileName(sourceFileNameFromHeader).withExtension(hdfsFileNameExtension)
-				.withCase(hdfsPathCaseEnum).build();
+				.withSourceFileName(sourceFileNameFromHeader).withExtension(hdfsFileNameExtension).build();
 	}
 
 	private Status process0(List<ActionEvent> actionEvents) throws HandlerException {

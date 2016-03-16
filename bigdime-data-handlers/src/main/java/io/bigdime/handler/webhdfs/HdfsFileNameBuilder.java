@@ -15,7 +15,7 @@ public class HdfsFileNameBuilder {
 	private String channelDesc;
 	private String sourceFileName;
 	private String extension;
-	private StringCase stringCase=StringCase.DEFAULT;
+	private StringCase stringCase = StringCase.DEFAULT;
 
 	public HdfsFileNameBuilder withPrefix(String prefix) {
 		this.prefix = prefix;
@@ -37,22 +37,13 @@ public class HdfsFileNameBuilder {
 		return this;
 	}
 
-	public HdfsFileNameBuilder withCase(StringCase stringCase) {
-		this.stringCase = stringCase;
-		return this;
-	}
-
 	public String build() {
 		Preconditions.checkNotNull(prefix, "prefix can't be null");
 		Preconditions.checkNotNull(channelDesc, "channelDesc can't be null");
 		Preconditions.checkNotNull(extension, "extension can't be null");
 		if (StringUtils.isBlank(sourceFileName)) {
-			return formatField(StringHelper.formatField(prefix + channelDesc + extension, stringCase));
+			return StringHelper.formatField(prefix + channelDesc + extension, stringCase);
 		}
-		return formatField(StringHelper.formatField(prefix + sourceFileName + extension, stringCase));
-	}
-	
-	private String formatField(final String inputValue) {
-		return StringHelper.formatField(inputValue, stringCase);
+		return StringHelper.formatField(prefix + sourceFileName + extension, stringCase);
 	}
 }
