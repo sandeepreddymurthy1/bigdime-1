@@ -20,11 +20,11 @@ import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.validation.DataValidationException;
 import io.bigdime.core.validation.ValidationResponse.ValidationResult;
 import io.bigdime.libs.hdfs.WebHdfs;
-import io.bigdime.validation.RecordCountValidator;
+import io.bigdime.validation.HdfsRecordCountValidator;
 
-public class RecordCountValidatorIntegrationTest{
+public class HdfsRecordCountValidatorIntegrationTest{
 	
-	private static final Logger logger = LoggerFactory.getLogger(RecordCountValidatorIntegrationTest.class);
+	private static final Logger logger = LoggerFactory.getLogger(HdfsRecordCountValidatorIntegrationTest.class);
 	private String remoteFile1 = "/webhdfs/v1/test1/20120218/0900/test-20120218-0900.txt";
 	private String remoteFile2 = "/webhdfs/v1/test1/test-no-partition.txt";
 	
@@ -42,93 +42,93 @@ public class RecordCountValidatorIntegrationTest{
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHostName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullPort() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullUserName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, null);
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParsePortStringToIntException() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "Hello");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "test");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullSrcRecordCount() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, null);
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = NumberFormatException.class)
     public void testParseSrcRecordCountStringToInt() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "count");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsPath() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(expectedExceptions = IllegalArgumentException.class)
     public void testNullHdfsFileName() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, "123");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "");
-    	recordCountValidator.validate(actionEvent);
+    	hdfsRecordCountValidator.validate(actionEvent);
     }
     
     @Test(priority = 2)
     public void testValidateRecordCountWithPartitionsDiff() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -136,13 +136,13 @@ public class RecordCountValidatorIntegrationTest{
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "test-20120218-0900.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "20120218, 0900");
-    	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
+    	Assert.assertEquals(hdfsRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
     
     @Test(priority = 3)
     public void testValidateRecordCountWithoutPartitions() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -150,13 +150,13 @@ public class RecordCountValidatorIntegrationTest{
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "test-no-partition.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
-    	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
+    	Assert.assertEquals(hdfsRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.PASSED);
     }
 
     @Test(priority = 4)
     public void testValidateRecordCountWithRCErrorDirExists() throws DataValidationException{
     	ActionEvent actionEvent = new ActionEvent();
-    	RecordCountValidator recordCountValidator= new RecordCountValidator();
+    	HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HOST_NAMES, "sandbox.hortonworks.com");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.PORT, "50070");
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.USER_NAME, "root");
@@ -164,14 +164,14 @@ public class RecordCountValidatorIntegrationTest{
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH, "/webhdfs/v1/test1/");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_FILE_NAME, "test-no-partition.txt");
     	actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "");
-    	Assert.assertEquals(recordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
+    	Assert.assertEquals(hdfsRecordCountValidator.validate(actionEvent).getValidationResult(), ValidationResult.FAILED);
     }
 	
 	@Test
 	public void testSettersAndGetters(){
-		RecordCountValidator recordCountValidator= new RecordCountValidator();
-		recordCountValidator.setName("testName");
-		Assert.assertEquals(recordCountValidator.getName(), "testName");
+		HdfsRecordCountValidator hdfsRecordCountValidator= new HdfsRecordCountValidator();
+		hdfsRecordCountValidator.setName("testName");
+		Assert.assertEquals(hdfsRecordCountValidator.getName(), "testName");
 	}
 	
 	private boolean writeFile(String sourceFileName, String remoteFilePath) throws ClientProtocolException, 
