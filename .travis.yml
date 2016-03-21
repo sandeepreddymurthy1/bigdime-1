@@ -1,8 +1,9 @@
 language: java
+sudo: required
 
 jdk:
   - openjdk7
 script:
   mvn clean test -Pjavadoc 
-  
-# StubHUb
+
+# StubHub 
