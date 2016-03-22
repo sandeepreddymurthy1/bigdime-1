@@ -187,7 +187,7 @@ public class DataSourceTest {
 		dataSource.start();
 
 		try {
-			Thread.sleep(20);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
