@@ -38,7 +38,7 @@ public class HdfsFilePathBuilderTest {
 		ActionEvent actionEvent = createSampleTestEventWithHeaders();
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).withCase(StringCase.LOWER)
 				.build();
-		Assert.assertEquals(path, "unithdfs/unitbase/unitrelative");
+		Assert.assertEquals(path, "unithdFS/unitbase/unitrelative");
 	}
 
 	@Test
@@ -48,7 +48,7 @@ public class HdfsFilePathBuilderTest {
 		ActionEvent actionEvent = createSampleTestEventWithHeaders();
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).withCase(StringCase.UPPER)
 				.build();
-		Assert.assertEquals(path, "UNITHDFS/UNITBASE/UNITRELATIVE");
+		Assert.assertEquals(path, "unithdFS/unitbase/unitrelative");
 	}
 
 	@Test
@@ -263,7 +263,7 @@ public class HdfsFilePathBuilderTest {
 		actionEvent.setHeaders(headers);
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
 				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.LOWER).build();
-		Assert.assertEquals(path, "unithdfs/partition1-value/partition2-value/partition3");
+		Assert.assertEquals(path, "UNIThdfs/partition1-value/partition2-value/partition3");
 
 		Map<String, String> hivePartitionNameValueMap = hdfsFilePathBuilder.getPartitionNameValueMap();
 		Assert.assertEquals(hivePartitionNameValueMap.get("partition1"), "partition1-value");
@@ -290,7 +290,7 @@ public class HdfsFilePathBuilderTest {
 		actionEvent.setHeaders(headers);
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
 				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.UPPER).build();
-		Assert.assertEquals(path, "UNITHDFS/PARTITION1-VALUE/PARTITION2-VALUE/PARTITION3");
+		Assert.assertEquals(path, "unithdfs/PARTITION1-VALUE/PARTITION2-VALUE/partition3");
 
 		Map<String, String> hivePartitionNameValueMap = hdfsFilePathBuilder.getPartitionNameValueMap();
 		Assert.assertEquals(hivePartitionNameValueMap.get("partition1"), "PARTITION1-VALUE");

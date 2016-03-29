@@ -38,8 +38,8 @@ public class HdfsFilePathBuilder {
 	private String partitionNames;
 	private String partitionValues;
 	private Map<String, String> hivePartitionNameValueMap = new LinkedHashMap<>();
-	private StringCase stringCase=StringCase.DEFAULT;
-	
+	private StringCase stringCase = StringCase.DEFAULT;
+
 	public HdfsFilePathBuilder withCase(StringCase stringCase) {
 		this.stringCase = stringCase;
 		return this;
@@ -95,7 +95,7 @@ public class HdfsFilePathBuilder {
 		// separator.
 		if (path.endsWith(File.separator))
 			path = path.substring(0, path.length() - 1);
-		return formatField(path);
+		return path;
 	}
 
 	private String buildBaseHdfsPath() {
@@ -124,7 +124,7 @@ public class HdfsFilePathBuilder {
 			baseHdfsPath = hdfsPath.substring(0, $Index);
 		}
 		this.hdfsPath = addTrailingSlashToPath(baseHdfsPath);
-		return formatField(this.hdfsPath);
+		return this.hdfsPath;
 	}
 
 	private String addTrailingSlashToPath(final String path) {
@@ -189,11 +189,11 @@ public class HdfsFilePathBuilder {
 				detokenizedHdfsPath = detokenizedHdfsPath.replace(tokenHeaderNameEntry.getKey(), headerValue);
 			}
 		}
-		return formatField(detokenizedHdfsPath);
+		return detokenizedHdfsPath;
 	}
-	
+
 	private String formatField(final String inputValue) {
 		return StringHelper.formatField(inputValue, stringCase);
 	}
-	
+
 }

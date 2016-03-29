@@ -233,7 +233,7 @@ public class WebHDFSWriterHandlerTest {
 		mockWebHdfs = mockWebHdfs(200, 200, 200, false);
 		Mockito.doNothing().when(mockWebHdfs).releaseConnection();
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "webHdfs", mockWebHdfs);
-		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsPath", "/webHDFS/${account}/${timestamp}");
+		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsPath", "/webhdfs/${account}/${timestamp}");
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "hdfsFileName", "unitFile");
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "tokenToHeaderNameMap", tokenToHeaderNameMap);
 		ReflectionTestUtils.setField(WebHDFSWriterHandler, "runtimeInfoStore", runtimeInfoStore);
