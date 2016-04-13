@@ -167,6 +167,7 @@ public class ZipFileInputStreamHandler extends AbstractHandler {
 	@Override
 	public Status process() throws HandlerException {
 		handlerPhase = "processing ZipFileInputStreamHandler";
+		incrementInvocationCount();
 		try {
 			Status status = preProcess();
 			if (status == Status.BACKOFF) {
@@ -181,6 +182,10 @@ public class ZipFileInputStreamHandler extends AbstractHandler {
 		} catch (RuntimeInfoStoreException e) {
 			throw new HandlerException("Unable to process message from file", e);
 		}
+	}
+	
+	private boolean isFirstRun() {
+		return getInvocationCount() == 1;
 	}
 	
 	long dirtyRecordCount = 0;
@@ -201,8 +206,11 @@ public class ZipFileInputStreamHandler extends AbstractHandler {
 
 	private Status preProcess() throws IOException, RuntimeInfoStoreException, HandlerException {
 		
-		if (readAllFromZip() && readAllFromFile()) {
+		if(isFirstRun()){
 			getStartedRecordsFromRuntimeInfos();
+		}
+		
+		if (readAllFromZip() && readAllFromFile()) {
 			currentFileToProcess = getNextFileToProcess();
 			if (currentFileToProcess == null) {			
 				logger.info(handlerPhase, "_message=\"no file to process\" handler_id={} ", getId());
@@ -328,14 +336,6 @@ public class ZipFileInputStreamHandler extends AbstractHandler {
 					Boolean.FALSE.toString());
 			
 			getHandlerContext().createSingleItemEventList(outputEvent);
-		
-			logger.debug(
-				handlerPhase,
-				"_message=\"handler read data, ready to return\", context.list_size={} total_read={} total_size={} context={} fileSize={}",
-				getHandlerContext().getEventList().size(),
-				getTotalReadFromJournal(), getTotalSizeFromJournal(),
-				getHandlerContext(), getZipFileHandlerJournal()
-						.getTotalSize());
 
 			processChannelSubmission(outputEvent);
 			
