@@ -30,7 +30,29 @@ public class PartitionParserHandlerTest {
 		Assert.assertEquals(partitionNamesParserHandler.getHeaderName(), ActionEventHeaderConstants.SOURCE_FILE_NAME);
 		// Assert.assertEquals(partitionNamesParserHandler.getPartitionNames(),
 		// "account, timestamp");
-//		Assert.assertEquals(partitionNamesParserHandler.getTruncateCharacters(), "-:");
+		// Assert.assertEquals(partitionNamesParserHandler.getTruncateCharacters(),
+		// "-:");
+	}
+
+	@Test
+	public void testBuildWithDifferentInputOutputOrder() throws AdaptorConfigurationException {
+
+		PartitionParserHandler partitionNamesParserHandler = new PartitionParserHandler();
+
+		Map<String, Object> propertyMap = new HashMap<>();
+		propertyMap.put(PartitionNamesParserHandlerConstants.HEADER_NAME, ActionEventHeaderConstants.SOURCE_FILE_NAME);
+		propertyMap.put(PartitionNamesParserHandlerConstants.REGEX, "(.*)_(\\d{2}(?:-?)\\d{2}(?:-?)\\d{4}).log$");
+		propertyMap.put(PartitionNamesParserHandlerConstants.PARTITION_NAMES, "account, timestamp");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_NAME, "timestamp");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_INPUT_FORMAT, "MM-dd-yyyy");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_OUTPUT_FORMAT, "yyyyMMdd");
+		propertyMap.put(PartitionNamesParserHandlerConstants.PARTITION_NAMES_OUTPUT_ORDER, "timestamp, account");
+
+		partitionNamesParserHandler.setPropertyMap(propertyMap);
+		partitionNamesParserHandler.build();
+
+		Assert.assertEquals(partitionNamesParserHandler.getRegex(), "(.*)_(\\d{2}(?:-?)\\d{2}(?:-?)\\d{4}).log$");
+		Assert.assertEquals(partitionNamesParserHandler.getHeaderName(), ActionEventHeaderConstants.SOURCE_FILE_NAME);
 	}
 
 	@Test
@@ -58,36 +80,31 @@ public class PartitionParserHandlerTest {
 		propertyMap.put(PartitionNamesParserHandlerConstants.HEADER_NAME, ActionEventHeaderConstants.SOURCE_FILE_NAME);
 		propertyMap.put(PartitionNamesParserHandlerConstants.REGEX, "(.*)_(\\d{2}(?:-?)\\d{2}(?:-?)\\d{4}).log$");
 		propertyMap.put(PartitionNamesParserHandlerConstants.PARTITION_NAMES, "account, timestamp");
-//		propertyMap.put(PartitionNamesParserHandlerConstants.TRUNCATE_CHARACTERS, "-:");
 		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_NAME, "timestamp");
 		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_INPUT_FORMAT, "MM-dd-yyyy");
 		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_OUTPUT_FORMAT, "yyyyMMdd");
+
 		partitionNamesParserHandler.setPropertyMap(propertyMap);
 		partitionNamesParserHandler.build();
 		return partitionNamesParserHandler;
 	}
 
-	// public static void main(String[] args) {
-	// String regex = "(^.+_?\\d{4}_?\\d{7}_?)(\\d{2}-?\\d{2}-?\\d{4}).log$";
-	// regex = "(.*)_((\\d{2})(?:-?)(\\d{2})-?(\\d{4})).log$";
-	// regex = "(.*)_((\\d{2})(?:-?)(\\d{2})(?:-?)(\\d{4})).log$";
-	// regex = "(.*)_(\\d{2}(?:-?)\\d{2}(?:-?)\\d{4}).log$";
-	// String rawString = "NetworkActivity_7937_3791772_11-03-2015.log";
-	// // rawString ="NetworkImpression_7937_11-03-2015.log";
-	// // rawString ="NetworkClick_7937_11-03-2015.log";
-	// Pattern p = Pattern.compile(regex);
-	// Matcher m = p.matcher(rawString);
-	//
-	// while (m.find()) {
-	// System.out.println("group_count="+m.groupCount());
-	// for (int i = 0; i <= m.groupCount(); i++) {
-	// System.out.println(m.group(i));
-	// }
-	// // System.out.println(m.group(1));
-	//
-	// }
-	//
-	// }
+	private PartitionParserHandler getPartitionNamesParserHandlerWithDifferentPartitionOrder()
+			throws AdaptorConfigurationException {
+		PartitionParserHandler partitionNamesParserHandler = new PartitionParserHandler();
+		Map<String, Object> propertyMap = new HashMap<>();
+		propertyMap.put(PartitionNamesParserHandlerConstants.HEADER_NAME, ActionEventHeaderConstants.SOURCE_FILE_NAME);
+		propertyMap.put(PartitionNamesParserHandlerConstants.REGEX, "(.*)_(\\d{2}(?:-?)\\d{2}(?:-?)\\d{4}).log$");
+		propertyMap.put(PartitionNamesParserHandlerConstants.PARTITION_NAMES, "account, timestamp");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_NAME, "timestamp");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_INPUT_FORMAT, "MM-dd-yyyy");
+		propertyMap.put(PartitionNamesParserHandlerConstants.DATE_PARTITION_OUTPUT_FORMAT, "yyyyMMdd");
+		propertyMap.put(PartitionNamesParserHandlerConstants.PARTITION_NAMES_OUTPUT_ORDER, "timestamp, account");
+
+		partitionNamesParserHandler.setPropertyMap(propertyMap);
+		partitionNamesParserHandler.build();
+		return partitionNamesParserHandler;
+	}
 
 	@Test
 	public void testProcess() throws Throwable {
@@ -101,6 +118,39 @@ public class PartitionParserHandlerTest {
 						"NetworkActivity_7937_3791772_11-03-2015.log");
 				context.createSingleItemEventList(actionEvent);
 				Status status = partitionNamesParserHandler.process();
+				ActionEvent outputEvent = context.getEventList().get(0);
+				Assert.assertEquals(outputEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES),
+						"account, timestamp");
+				return status;
+			}
+		});
+
+		ExecutorService executorService = Executors.newFixedThreadPool(1);
+		executorService.execute(futureTask);
+		try {
+			futureTask.get();
+		} catch (ExecutionException ex) {
+			throw ex.getCause();
+		}
+	}
+
+	@Test
+	public void testProcessWithDifferentPartitionOrder() throws Throwable {
+		FutureTask<Status> futureTask = new FutureTask<>(new Callable<Status>() {
+			@Override
+			public Status call() throws Exception {
+				PartitionParserHandler partitionNamesParserHandler = getPartitionNamesParserHandlerWithDifferentPartitionOrder();
+				HandlerContext context = HandlerContext.get();
+				ActionEvent actionEvent = new ActionEvent();
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_NAME,
+						"NetworkActivity_7937_3791772_11-03-2015.log");
+				context.createSingleItemEventList(actionEvent);
+				Status status = partitionNamesParserHandler.process();
+				ActionEvent outputEvent = context.getEventList().get(0);
+				Assert.assertEquals(outputEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES),
+						"20151103,NetworkActivity_7937_3791772");
+				Assert.assertEquals(outputEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES),
+						"timestamp, account");
 				return status;
 			}
 		});

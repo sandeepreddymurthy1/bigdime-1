@@ -16,6 +16,8 @@ import com.google.common.base.Preconditions;
 import io.bigdime.core.ActionEvent;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.InvalidDataException;
+import io.bigdime.core.commons.StringCase;
+import io.bigdime.core.commons.StringHelper;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 
 /**
@@ -36,6 +38,12 @@ public class HdfsFilePathBuilder {
 	private String partitionNames;
 	private String partitionValues;
 	private Map<String, String> hivePartitionNameValueMap = new LinkedHashMap<>();
+	private StringCase stringCase = StringCase.DEFAULT;
+
+	public HdfsFilePathBuilder withCase(StringCase stringCase) {
+		this.stringCase = stringCase;
+		return this;
+	}
 
 	public HdfsFilePathBuilder withHdfsPath(String hdfsPath) {
 		this.hdfsPath = hdfsPath;
@@ -152,11 +160,12 @@ public class HdfsFilePathBuilder {
 			StringBuilder builder = new StringBuilder(detokenizedHdfsPath);
 			int partitionIndex = 0;
 			for (String partitionValue : partitionList) {
-				builder.append(partitionValue).append(File.separator);
+				String tempPartitionValue = formatField(partitionValue);
+				builder.append(tempPartitionValue).append(File.separator);
 				if (partitionNameList != null && partitionNameList.length >= partitionIndex)
-					hivePartitionNameValueMap.put(partitionNameList[partitionIndex], partitionValue);
+					hivePartitionNameValueMap.put(partitionNameList[partitionIndex], tempPartitionValue);
 				else
-					hivePartitionNameValueMap.put(partitionValue, partitionValue);
+					hivePartitionNameValueMap.put(partitionValue, tempPartitionValue);
 				partitionIndex++;
 			}
 			detokenizedHdfsPath = builder.toString();
@@ -174,6 +183,7 @@ public class HdfsFilePathBuilder {
 							+ " found in ActionEvent. This is needed to compute the filepath on hdfs. src="
 							+ actionEvent.getHeaders().get("src-desc"));
 				}
+				headerValue = formatField(headerValue);
 				hivePartitionNameValueMap.put(tokenHeaderNameEntry.getValue(), headerValue);
 
 				detokenizedHdfsPath = detokenizedHdfsPath.replace(tokenHeaderNameEntry.getKey(), headerValue);
@@ -181,4 +191,9 @@ public class HdfsFilePathBuilder {
 		}
 		return detokenizedHdfsPath;
 	}
+
+	private String formatField(final String inputValue) {
+		return StringHelper.formatField(inputValue, stringCase);
+	}
+
 }
