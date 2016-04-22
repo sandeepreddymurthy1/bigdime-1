@@ -47,44 +47,44 @@ public class StringHelperTest {
 	@Test
 	public void testPartitionByNewLineWithNewLineInMiddle() {
 		String str = "testpartitionByNewLineWithNewLineInMiddle-new line starts here\n and more data on second line";
-		byte[][] parsedLines = StringHelper.partitionByNewLine(str.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]),
+		Segment parsedLines = StringHelper.partitionByNewLine(str.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()),
 				"testpartitionByNewLineWithNewLineInMiddle-new line starts here\n");
-		Assert.assertEquals(new String(parsedLines[1]), " and more data on second line");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()), " and more data on second line");
 	}
 
 	@Test
 	public void testPartitionByNewLineWithNewLineInTheEnd() {
 		String str = "testpartitionByNewLineWithNewLineInTheEnd-new line starts here\n";
-		byte[][] parsedLines = StringHelper.partitionByNewLine(str.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]),
+		Segment parsedLines = StringHelper.partitionByNewLine(str.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()),
 				"testpartitionByNewLineWithNewLineInTheEnd-new line starts here\n");
-		Assert.assertEquals(new String(parsedLines[1]), "");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()), "");
 	}
 
 	@Test
 	public void testPartitionByNewLineWithNoNewLine() {
 		String str = "testpartitionByNewLineWithNoNewLine-no line here";
-		byte[][] parsedLines = StringHelper.partitionByNewLine(str.getBytes());
+		Segment parsedLines = StringHelper.partitionByNewLine(str.getBytes());
 		Assert.assertNull(parsedLines);
 	}
 
 	@Test
 	public void testPartitionByNewLineWithNewLineInTheBeginning() {
 		String str = "\ntestpartitionByNewLineWithNewLineInTheBeginning-new line in beginning here";
-		byte[][] parsedLines = StringHelper.partitionByNewLine(str.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]), "\n");
-		Assert.assertEquals(new String(parsedLines[1]),
+		Segment parsedLines = StringHelper.partitionByNewLine(str.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()), "\n");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()),
 				"testpartitionByNewLineWithNewLineInTheBeginning-new line in beginning here");
 	}
 
 	@Test
 	public void testPartitionByNewLineWithMultipleNewLines() {
 		String str = "\ntestpartitionByNewLineWithMultipleNewLines\n-new line in beginning here\n";
-		byte[][] parsedLines = StringHelper.partitionByNewLine(str.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]),
+		Segment parsedLines = StringHelper.partitionByNewLine(str.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()),
 				"\ntestpartitionByNewLineWithMultipleNewLines\n-new line in beginning here\n");
-		Assert.assertEquals(new String(parsedLines[1]), "");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()), "");
 	}
 
 	/**
@@ -94,10 +94,10 @@ public class StringHelperTest {
 	public void testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNewLineInSecondPart() {
 		String part1 = "testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNewLineInSecondPart-part1-no new line in part1";
 		String part2 = "testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNewLineInSecondPart-part2-\nnew line in part2";
-		byte[][] parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]),
+		Segment parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()),
 				"testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNewLineInSecondPart-part1-no new line in part1testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNewLineInSecondPart-part2-\n");
-		Assert.assertEquals(new String(parsedLines[1]), "new line in part2");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()), "new line in part2");
 	}
 
 	/**
@@ -107,10 +107,10 @@ public class StringHelperTest {
 	public void testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNoNewLineInSecondPart() {
 		String part1 = "testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNoNewLineInSecondPart-part1-no new line in part1";
 		String part2 = "testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNoNewLineInSecondPart-part2-no new line in part2";
-		byte[][] parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
-		Assert.assertEquals(new String(parsedLines[0], Charset.defaultCharset()),
+		Segment parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines(), Charset.defaultCharset()),
 				"testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNoNewLineInSecondPart-part1-no new line in part1");
-		Assert.assertEquals(new String(parsedLines[1], Charset.defaultCharset()),
+		Assert.assertEquals(new String(parsedLines.getLeftoverData(), Charset.defaultCharset()),
 				"testAppendAndPartitionByNewLineWithNoNewLineInFirstPartAndNoNewLineInSecondPart-part2-no new line in part2");
 	}
 
@@ -121,10 +121,10 @@ public class StringHelperTest {
 	public void testAppendAndPartitionByNewLineWithNewLineInFirstPartAndNewLineInSecondPart() {
 		String part1 = "testAppendAndPartitionByNewLineWithNewLineInFirstPartAndNewLineInSecondPart-part1-\n new line in part1";
 		String part2 = "testAppendAndPartitionByNewLineWithNewLineInFirstPartAndNewLineInSecondPart-part2-\n new line in part2";
-		byte[][] parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
-		Assert.assertEquals(new String(parsedLines[0]),
+		Segment parsedLines = StringHelper.appendAndPartitionByNewLine(part1.getBytes(), part2.getBytes());
+		Assert.assertEquals(new String(parsedLines.getLines()),
 				"testAppendAndPartitionByNewLineWithNewLineInFirstPartAndNewLineInSecondPart-part1-\n new line in part1testAppendAndPartitionByNewLineWithNewLineInFirstPartAndNewLineInSecondPart-part2-\n");
-		Assert.assertEquals(new String(parsedLines[1]), " new line in part2");
+		Assert.assertEquals(new String(parsedLines.getLeftoverData()), " new line in part2");
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
