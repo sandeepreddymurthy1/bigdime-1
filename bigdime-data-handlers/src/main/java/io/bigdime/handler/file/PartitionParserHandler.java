@@ -4,7 +4,10 @@
 
 package io.bigdime.handler.file;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,13 +55,40 @@ public class PartitionParserHandler extends AbstractHandler {
 	private String headerName;
 	private String handlerPhase;
 	private char[] truncateChars;
+
+	/**
+	 * Should any characters be truncated from the string?
+	 */
 	private String truncateCharacters;
-	private String partitionNames;
+	/**
+	 * say partition-names="account, date, country",
+	 * partition-names-output-order could be = "country, account, date"
+	 * 
+	 */
+	private String outputPartitionNamesStr;
+	/**
+	 * Use list as opposed to set, allow same partition value to be in multiple
+	 * places in the path.
+	 */
+	private List<String> inputPartitionNames = new ArrayList<>();
+	private List<String> outputPartitionNames = new ArrayList<>();
+	private Map<String, String> partitionaNameValueMap = new HashMap<>();
 
 	private String datePartitionName;
 	private DateTimeFormatter datePartitionInputFormatter;
 	private DateTimeFormatter datePartitionOutputFormatter;
 	private int datePartitionIndex = 0;
+
+	private String getParam(String paramName, String defaultValue) {
+		String paramValue = PropertyHelper.getStringProperty(getPropertyMap(), paramName, defaultValue);
+		return paramValue;
+	}
+
+	private String getRequiredParam(String paramName) {
+		String paramValue = PropertyHelper.getStringProperty(getPropertyMap(), paramName);
+		Preconditions.checkNotNull(paramValue, paramName + " must be configured in handler properties");
+		return paramValue;
+	}
 
 	@Override
 	public void build() throws AdaptorConfigurationException {
@@ -66,13 +96,11 @@ public class PartitionParserHandler extends AbstractHandler {
 		logger.info(handlerPhase, "handler_name={} handler_id={} \"properties={}\"", getName(), getId(),
 				getPropertyMap());
 		super.build();
-		regex = PropertyHelper.getStringProperty(getPropertyMap(), PartitionNamesParserHandlerConstants.REGEX);
-		Preconditions.checkNotNull(regex,
-				PartitionNamesParserHandlerConstants.REGEX + " must be configured in handler properties");
-		partitionNames = PropertyHelper.getStringProperty(getPropertyMap(),
-				PartitionNamesParserHandlerConstants.PARTITION_NAMES);
-		Preconditions.checkNotNull(partitionNames,
-				PartitionNamesParserHandlerConstants.PARTITION_NAMES + "  must be configured in handler properties");
+		regex = getRequiredParam(PartitionNamesParserHandlerConstants.REGEX);
+
+		final String partitionNames = getRequiredParam(PartitionNamesParserHandlerConstants.PARTITION_NAMES);
+		outputPartitionNamesStr = getParam(PartitionNamesParserHandlerConstants.PARTITION_NAMES_OUTPUT_ORDER,
+				partitionNames);
 
 		headerName = PropertyHelper.getStringProperty(getPropertyMap(),
 				PartitionNamesParserHandlerConstants.HEADER_NAME);
@@ -111,19 +139,28 @@ public class PartitionParserHandler extends AbstractHandler {
 			datePartitionInputFormatter = DateTimeFormat.forPattern(datePartitionInputFormat);
 
 			datePartitionOutputFormatter = DateTimeFormat.forPattern(datePartitionOutputFormat);
+		}
 
-			String[] partitionNameArray = partitionNames.split(",");
-			for (int i = 0; i < partitionNameArray.length; i++) {
-				if (StringUtils.trim(partitionNameArray[i]).equals(datePartitionName)) {
-					datePartitionIndex = i;
-					logger.debug(handlerPhase, "headerId={} datePartitionIndex={}", getId(), datePartitionIndex);
-					break;
-				}
+		final String[] partitionNameArray = partitionNames.split(",");
+		for (int i = 0; i < partitionNameArray.length; i++) {
+			String temp = StringUtils.trim(partitionNameArray[i]);
+			inputPartitionNames.add(temp);
+			if (datePartitionName != null && temp.equals(datePartitionName)) {
+				datePartitionIndex = i;
+				logger.debug(handlerPhase, "headerId={} datePartitionIndex={}", getId(), datePartitionIndex);
+				break;
 			}
 		}
 
-		logger.debug(handlerPhase, "headerId={} headerName={} regex={} truncateCharacters={}", getId(), headerName,
-				regex, truncateCharacters);
+		final String[] partitionNameOutputArray = outputPartitionNamesStr.split(",");
+		for (int i = 0; i < partitionNameOutputArray.length; i++) {
+			String temp = StringUtils.trim(partitionNameOutputArray[i]);
+			outputPartitionNames.add(temp);
+		}
+
+		logger.debug(handlerPhase,
+				"headerId={} headerName={} regex={} truncateCharacters={} outputPartitionNamesStr={} outputPartitionNames={}",
+				getId(), headerName, regex, truncateCharacters, outputPartitionNamesStr, outputPartitionNames);
 	}
 
 	@Override
@@ -152,11 +189,10 @@ public class PartitionParserHandler extends AbstractHandler {
 					for (char ch : truncateChars) {
 						temp = temp.replace(String.valueOf(ch), "");
 					}
-					if (partitionValuesSb == null) {
-						partitionValuesSb = new StringBuilder();
-					} else {
-						partitionValuesSb.append(",");
-					}
+					/*
+					 * If the partition is a date partition, then format the
+					 * value.
+					 */
 					if (datePartitionName != null && (i - 1) == datePartitionIndex) {
 						logger.debug(handlerPhase, "handler_id={} inputTimestamp={}", getId(), temp);
 
@@ -166,14 +202,23 @@ public class PartitionParserHandler extends AbstractHandler {
 								temp1);
 						temp = temp1;
 					}
-					partitionValuesSb.append(temp);
+					logger.debug(handlerPhase, "pName={} pValue={}", inputPartitionNames.get(i - 1), temp);
+					partitionaNameValueMap.put(inputPartitionNames.get(i - 1), temp);
 				}
 			}
+			logger.debug(handlerPhase, "handler_id={} partitionNameValueMap={}", getId(), partitionaNameValueMap);
+			for (final String pName : outputPartitionNames) {
+				if (partitionValuesSb == null) {
+					partitionValuesSb = new StringBuilder();
+				} else {
+					partitionValuesSb.append(",");
+				}
+				partitionValuesSb.append(partitionaNameValueMap.get(pName));
+			}
 			partitionValues = partitionValuesSb.toString();
-			logger.debug(handlerPhase, "handler_id={} partitionNames={} partitionValues={}", getId(), partitionNames,
-					partitionValues);
-			logger.debug(handlerPhase, "handler_id={} partitionValues={}", getId(), partitionValues);
-			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, partitionNames);
+			logger.debug(handlerPhase, "handler_id={} partitionNames={} partitionValues={}", getId(),
+					outputPartitionNamesStr, partitionValues);
+			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_NAMES, outputPartitionNamesStr);
 			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, partitionValues);
 			processChannelSubmission(actionEvent);
 		}
@@ -189,7 +234,7 @@ public class PartitionParserHandler extends AbstractHandler {
 	}
 
 	public String getPartitionNames() {
-		return partitionNames;
+		return outputPartitionNamesStr;
 	}
 
 	public String getTruncateCharacters() {
