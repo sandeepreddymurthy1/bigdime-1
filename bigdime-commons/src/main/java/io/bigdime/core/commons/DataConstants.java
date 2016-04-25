@@ -20,7 +20,7 @@ public final class DataConstants {
 	public static final String COLUMN_SEPARATED_BY =  "columnSeparatedBy";
 	public static final String ROW_SEPARATED_BY =  "rowSeparatedBy";
 	public static final String SCHEMA_FILE_NAME = "schemaFileName";
-	public static final String ENTITY_NAME = "entityName";
+	public static final String ENTITY_NAME = "entity-name";
 	public static final String COLON = ":";
 	public static final String COMMA = ",";
 

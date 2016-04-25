@@ -225,4 +225,29 @@ public class JsonHelperTest extends AbstractTestNGSpringContextTests {
 		Assert.assertTrue(((ArrayList<?>) properties.get("arrayKey")).contains("array1"));
 		Assert.assertTrue(((ArrayList<?>) properties.get("arrayKey")).contains("array2"));
 	}
+	/**
+	 *  if a required key is not present in the node,  an IllegalArgumentException is thrown.
+	 */
+	@Test(expectedExceptions = IllegalArgumentException.class, expectedExceptionsMessageRegExp = "no node found with key=notTextualRequiredNodeKey")
+	public void testGetRequiredProperty() {
+		JsonNode node = Mockito.mock(JsonNode.class);
+		String notTextualRequiredNodeKey = "notTextualRequiredNodeKey";
+		Mockito.when(node.get(notTextualRequiredNodeKey)).thenReturn(null);
+		jsonHelper.getRequiredProperty(node, notTextualRequiredNodeKey);
+		Mockito.verify(node, Mockito.times(1)).get(notTextualRequiredNodeKey);
+	}
+	/**
+	 * Make sure that if a required key is  present in the node,  an IllegalArgumentException is thrown.
+	 */
+	@Test
+	public void testGetRequiredPropertyIfPresent() {
+		JsonNode node = Mockito.mock(JsonNode.class);
+		String notTextualRequiredNodeKey = "notTextualRequiredNodeKey";
+		JsonNode notTextualRequiredNode = Mockito.mock(JsonNode.class);
+		Mockito.when(notTextualRequiredNode.getTextValue()).thenReturn(notTextualRequiredNodeKey);
+		Mockito.when(node.get(notTextualRequiredNodeKey)).thenReturn(notTextualRequiredNode);
+		Object object = jsonHelper.getRequiredProperty(node, notTextualRequiredNodeKey);
+		Assert.assertEquals(object, notTextualRequiredNodeKey);
+		Mockito.verify(node, Mockito.times(1)).get(notTextualRequiredNodeKey);
+	}	
 }
