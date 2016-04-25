@@ -67,6 +67,7 @@ public class KafkaReaderHandler extends AbstractHandler {
 	private static final DateTimeFormatter formatter = DateTimeFormat.forPattern(DF).withZone(timeZone);
 	private final String TIMESTAMP = "DT";
 	private final String HOUR = "HOUR";
+	private static  final String PARTITION = "PARTITION";
 
 	/**
 	 * KakfaConsumer component that's used to fetch data from Kafka.
@@ -117,6 +118,9 @@ public class KafkaReaderHandler extends AbstractHandler {
 
 		try {
 			currentOffset = getOffsetFromRuntimeInfo(runtimeInfoStore,inputDescriptor.getEntityName(), String.valueOf(inputDescriptor.getPartition()), KAFKA_MESSAGE_READER_OFFSET);
+			if(currentOffset > 0){
+				currentOffset++;
+			}	
 		} catch (RuntimeInfoStoreException e) {
 			throw new AdaptorConfigurationException(e);
 		}
@@ -238,6 +242,9 @@ public class KafkaReaderHandler extends AbstractHandler {
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME, inputDescriptor.getTopic());
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.INPUT_DESCRIPTOR,
 				String.valueOf(inputDescriptor.getPartition()));
+		actionEvent.getHeaders().put(PARTITION,
+				String.valueOf(inputDescriptor.getPartition()));		
+		
 		actionEvent.getHeaders().put(KAFKA_MESSAGE_READER_OFFSET, String.valueOf(messageOffset));
 
 		DateTime dt = timeManager.getLocalDateTime();
@@ -248,6 +255,7 @@ public class KafkaReaderHandler extends AbstractHandler {
 		
 		processChannelSubmission(actionEvent);
 
+		// default behavior is hour partition.
 		if (getTotalReadFromJournal() == getTotalSizeFromJournal()) {
 			logger.info(handlerPhase, "totalRead from Journal ={}", getTotalSizeFromJournal());
 
