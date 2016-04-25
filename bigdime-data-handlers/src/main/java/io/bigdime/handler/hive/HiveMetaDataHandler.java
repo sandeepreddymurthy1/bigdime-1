@@ -24,6 +24,7 @@ import io.bigdime.adaptor.metadata.MetadataStore;
 import io.bigdime.adaptor.metadata.model.Attribute;
 import io.bigdime.adaptor.metadata.model.Entitee;
 import io.bigdime.adaptor.metadata.model.Metasegment;
+import io.bigdime.adaptor.metadata.utils.MetaDataJsonUtils;
 import io.bigdime.alert.LoggerFactory;
 import io.bigdime.alert.Logger.ALERT_CAUSE;
 import io.bigdime.alert.Logger.ALERT_SEVERITY;
@@ -61,16 +62,21 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	private HiveDBManger hiveDBManager = null;
 	private HiveTableManger hiveTableManager = null;
 	private HivePartitionManger hivePartitionManager = null;
-	private static String hdfsScheme = null;
-	
-	@Autowired private MetadataStore metadataStore;
 
+	private static String hdfsScheme = null;
+
+	private static final String HIVE_SCHEME = "hive.uri.hdfs.scheme";
+	private static final String HIVE_DEFAULT_SCHEME = "hdfs://";
+
+	@Autowired private MetadataStore metadataStore;
+	@Autowired private MetaDataJsonUtils metaDataJsonUtils;
+	
 	@Override
 	public void build() throws AdaptorConfigurationException {
 		props.putAll(getPropertyMap());
-		hdfsScheme = PropertyHelper.getStringProperty(getPropertyMap(), "hive.uri.hdfs.scheme","hdfs://");
+		hdfsScheme = PropertyHelper.getStringProperty(getPropertyMap(), HIVE_SCHEME,HIVE_DEFAULT_SCHEME);
 	}
-
+	
 	@Override
 	public Status process() throws HandlerException {
 		try {
@@ -103,6 +109,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
 				createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
 			}
+			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
 		} catch (MetadataAccessException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.BLOCKER,
 					"\"hive metadata handler exception \" error={}", e.toString());			
@@ -119,6 +126,12 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		return Status.READY;
 	}
 
+	private void setMetaDataProperties(String databaseName,String tableName,ActionEvent actionEvent){
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, databaseName);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, tableName);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_METASTORE_URI,props.getProperty(ActionEventHeaderConstants.HIVE_METASTORE_URI));
+		
+	}
 	/**
 	 * @throws HCatException 
 	 * 
