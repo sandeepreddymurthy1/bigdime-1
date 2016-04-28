@@ -1,6 +1,3 @@
-<!-- <div ng-include="'views/sourcechannelsinkselection/sourcechannelmap.html'" style="height:inherit;"></div>
-<div ng-include="'views/sourcechannelsinkselection/channelsinkmap.html'"></div> -->
-
 <div class="container">
 	<form class="boxbottomborder">
 		<div>
@@ -30,42 +27,5 @@
 			</div>
 		</div>
 	</form>
-	<!-- <form class="boxbottomborder">
-		<div>
-			<div class="form-group row">
-				<label class="col-xs-4">Map channel to sink</label>
-			</div>
-			<div class="form-group row"
-				ng-repeat="channel in channellist track by $index"
-				id="channelsink{{$index}}">
-				<div class="col-xs-3">
-					<select class="form-control" id="channelmap{{$index}}"
-						ng-model="channelselected"
-						ng-options="channel as channel for channel in channellist">
-						  
-						<option value="" disabled selected style="display: none;">Choose
-							channel</option>
-					</select>
-				</div>
-				<div class="col-xs-3">
-					<select class="form-control" id="sinkmap{{$index}}"
-						ng-model="sinkselected"
-						ng-options="sink as sink for sink in sinklist"
-						ng-change="uponChannelSinkSelection(channelselected,sinkselected)">
-						  
-						<option value="" disabled selected style="display: none;">Choose
-							sink</option>
-					</select>
-				</div>
-			</div>
-
-			<div>
-				<div class="col-xs-12 text-right bottom-align-next" >
-					<a ui-sref="homepage.viewjson" href="" class="btn btn-success"
-						type="button" ng-click="updateAdaptor()">Next</a>
-				</div>
-			</div>
-		</div>
-	</form> -->
 </div>
 
