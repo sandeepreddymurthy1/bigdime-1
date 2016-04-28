@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2015 Stubhub.
  */
-package io.bigdime.impl.splunkalert.test;
+package io.bigdime.impl.biz.dao;
 
 import static io.bigdime.impl.splunkalert.test.constants.TestResourceConstants.ENVIORNMENT;
 import static io.bigdime.impl.splunkalert.test.constants.TestResourceConstants.ENVIRONMENT_VALUE;
@@ -26,7 +26,10 @@ import io.bigdime.alert.LoggerFactory;
 import io.bigdime.alert.ManagedAlert;
 import io.bigdime.impl.biz.dao.AlertData;
 import io.bigdime.impl.biz.dao.AlertListDao;
+import io.bigdime.impl.biz.dao.Datahandler;
+import io.bigdime.impl.biz.dao.JsonData;
 import io.bigdime.impl.biz.exception.AuthorizationException;
+import io.bigdime.impl.biz.service.HbaseJsonDataService;
 import io.bigdime.splunkalert.SplunkAlert;
 import io.bigdime.splunkalert.response.AlertBuilder;
 import io.bigdime.splunkalert.retriever.SplunkSourceMetadataRetriever;
@@ -37,6 +40,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import com.cenqua.clover.PerTestRecorder.Any;
 
 /**
  * 
@@ -101,7 +106,7 @@ public class AlertListDaoTest {
 		ReflectionTestUtils.setField(alertListDao,
 				"splunkSourceMetadataRetriever", splunkSourceMetadataRetriever);
 		ReflectionTestUtils.setField(alertListDao, "numberOfDays", "10");
-		Assert.assertTrue(alertListDao.getAlerts("test") != null);
+		Assert.assertTrue(alertListDao.getAlerts("test",1l,1,"test") != null);
 	}
 
 	@Test(expectedExceptions = AlertException.class)
@@ -119,18 +124,16 @@ public class AlertListDaoTest {
 				.thenThrow(AlertException.class);
 		Mockito.when(alertServiceResponse.getAlerts()).thenReturn(
 				new ArrayList<ManagedAlert>());
-		// Mockito.doNothing().when(alertServiceRequest).setFromDate((Date)
-		// Mockito.any());
 		ReflectionTestUtils.setField(alertListDao,
 				"splunkSourceMetadataRetriever", splunkSourceMetadataRetriever);
 		ReflectionTestUtils.setField(alertListDao, "numberOfDays", "10");
-		alertListDao.getAlerts("test");
+		alertListDao.getAlerts("test",1l,1,"test");
 	}
 
 	@Test(expectedExceptions = AuthorizationException.class)
 	public void getAlertAuthorizationExceptionTest() throws AlertException {
 		AlertListDao alertListDao = new AlertListDao();
-		alertListDao.getAlerts(null);
+		alertListDao.getAlerts(null,0,0,null);
 	}
 
 	@Test
@@ -212,5 +215,57 @@ public class AlertListDaoTest {
 				metadataStore);
 		alertListDao.getSetOfAlerts();
 	}
+	
+	@Test
+	public void getDatesTest() throws AlertException{
+		AlertListDao alertListDao = new AlertListDao();
+		SplunkSourceMetadataRetriever splunkSourceMetadataRetriever=Mockito.mock(SplunkSourceMetadataRetriever.class);
+		Mockito.when(splunkSourceMetadataRetriever.getDates(Mockito.any(AlertServiceRequest.class))).thenReturn(Mockito.mock(List.class));
+		ReflectionTestUtils.setField(alertListDao, "splunkSourceMetadataRetriever",splunkSourceMetadataRetriever);
+		Assert.assertNotNull(alertListDao.getDates("test", 1l));
+	}
+	@Test(expectedExceptions = AlertException.class)
+	public void getDatesAlertExceptionTest() throws AlertException{
+		AlertListDao alertListDao = new AlertListDao();
+		SplunkSourceMetadataRetriever splunkSourceMetadataRetriever = Mockito
+				.mock(SplunkSourceMetadataRetriever.class);
+		Mockito.when(splunkSourceMetadataRetriever.getDates(Mockito.any(AlertServiceRequest.class))).thenThrow(AlertException.class);
+		ReflectionTestUtils.setField(alertListDao,"splunkSourceMetadataRetriever", splunkSourceMetadataRetriever);
+		alertListDao.getDates("test", 1l);
+	}
 
+	@Test
+	public void getJSONTest(){
+		AlertListDao alertListDao = new AlertListDao();
+		HbaseJsonDataService hbaseJsonDataService=Mockito.mock(HbaseJsonDataService.class);
+		Mockito.when(hbaseJsonDataService.getJSON(Mockito.any(String.class))).thenReturn(Mockito.mock(JsonData.class));
+		ReflectionTestUtils.setField(alertListDao,"hbaseJsonDataService", hbaseJsonDataService);
+		Assert.assertTrue(alertListDao.getJSON("test") instanceof JsonData);
+	}
+	
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void getJSONAuthorizationExceptionTest(){
+		AlertListDao alertListDao = new AlertListDao();
+		HbaseJsonDataService hbaseJsonDataService=Mockito.mock(HbaseJsonDataService.class);
+		ReflectionTestUtils.setField(alertListDao,"hbaseJsonDataService", hbaseJsonDataService);
+	   alertListDao.getJSON(null) ;
+	}
+	
+	@Test
+	public void getHanndlerTest(){
+		AlertListDao alertListDao = new AlertListDao();
+		HbaseJsonDataService hbaseJsonDataService=Mockito.mock(HbaseJsonDataService.class);
+		Mockito.when(hbaseJsonDataService.getHandler(Mockito.any(String.class))).thenReturn(Mockito.mock(Datahandler.class));
+		ReflectionTestUtils.setField(alertListDao,"hbaseJsonDataService", hbaseJsonDataService);
+		Assert.assertTrue(alertListDao.getHandler("test") instanceof Datahandler);
+	}
+	
+	@Test(expectedExceptions = AuthorizationException.class)
+	public void getHandlerAuthorizationExceptionTest(){
+		AlertListDao alertListDao = new AlertListDao();
+		HbaseJsonDataService hbaseJsonDataService=Mockito.mock(HbaseJsonDataService.class);
+		ReflectionTestUtils.setField(alertListDao,"hbaseJsonDataService", hbaseJsonDataService);
+	   alertListDao.getHandler(null) ;
+	}
+	
 }

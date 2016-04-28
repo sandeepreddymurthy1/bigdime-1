@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2015 Stubhub.
  */
-package io.bigdime.impl.splunkalert.test;
+package io.bigdime.impl.biz.exception;
 
 import static io.bigdime.impl.splunkalert.test.constants.TestResourceConstants.TEST_EXCEPTION;
 import static io.bigdime.impl.splunkalert.test.constants.TestResourceConstants.ENVIORNMENT;
