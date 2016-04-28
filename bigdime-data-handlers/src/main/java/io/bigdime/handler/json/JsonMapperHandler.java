@@ -46,6 +46,12 @@ import io.bigdime.handler.kafka.KafkaInputDescriptor;
  * A handler that receives the Json document, and read relevant fields , optionally,
  * submits to channel.
  * 
+ * user's want to use this handler can optionally set these values(timestamp/partition_name) to the adaptor.json
+ * {partition_name : "account"}
+ * { timestamp  : "timestamp"}
+ * these property values used on the input message,retrieve the corresponding value from the Json
+ * and add the values to the action header for downstream to consume.
+ * 
  * @author mnamburi
  *
  */
@@ -229,14 +235,20 @@ public class JsonMapperHandler extends AbstractHandler {
 	private Status processIt(List<ActionEvent> actionEvents) throws HandlerException {
 		Status statusToReturn = Status.READY;
 		String dt = null;
-		String hour = null;		
+		String hour = null;
+		DateTime dateTime = null;		
 		try {
 			ActionEvent actionEvent = actionEvents.remove(0);
 			JsonNode jsonDocument = objectMapper.readTree(actionEvent.getBody());
 
 			try {
 				Object serverTimestamp = jsonHelper.getRequiredProperty(jsonDocument, timestamp);
-				DateTime dateTime = new DateTime(serverTimestamp, timeZone);
+				if(serverTimestamp instanceof String){
+					dateTime = new DateTime(serverTimestamp, timeZone);
+				}
+				if(serverTimestamp instanceof Long){
+					dateTime = new DateTime(((Long) serverTimestamp).longValue(), timeZone);
+				}
 				dt = formatter.print(dateTime);
 				hour = hourFormatter.print(dateTime);
 				logger.debug(handlerPhase, "formatted date from message is: {} ", dt);
@@ -248,6 +260,8 @@ public class JsonMapperHandler extends AbstractHandler {
 				hour = hourFormatter.print(localTime);
 				actionEvent.getHeaders().put(TIMESTAMP, dt);
 				actionEvent.getHeaders().put(HOUR, hour);
+				logger.warn("process JsonMapperHandler",
+						"_message=\"timestamp not found in the Json \" timestamp={} error={}", timestamp,e.getMessage());
 			}
 			actionEvent.setBody((jsonDocument.toString()+rowSeparatedBy).getBytes(Charset.defaultCharset()));
 			if(isValidationReady(dt,hour)){

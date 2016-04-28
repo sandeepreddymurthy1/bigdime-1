@@ -12,6 +12,11 @@ import java.util.Map;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.Assert;
@@ -35,7 +40,12 @@ import io.bigdime.handler.constants.KafkaReaderHandlerConstants;
 
 public class JsonMapperHandlerTest {
 
-
+	private static final String DF = "yyyyMMdd";
+	private static final String HOUR_FORMAT = "HH";
+	private static final DateTimeZone timeZone = DateTimeZone.forID("UTC");
+	private static final DateTimeFormatter hourFormatter = DateTimeFormat.forPattern(HOUR_FORMAT).withZone(timeZone);
+	private static final DateTimeFormatter formatter = DateTimeFormat.forPattern(DF).withZone(timeZone);
+	
 	public Map<String, Object> mockProperties() throws JsonProcessingException, IOException{
 		Map<String, Object> propertyMap = new HashMap<>();
 		MapDescriptorParser descriptorParser = new MapDescriptorParser();
@@ -109,6 +119,58 @@ public class JsonMapperHandlerTest {
 		Mockito.verify(dataChannel, Mockito.times(1)).put(actionEvent);
 	}
 
+	@Test
+	public void testVerifyTheProcessFolw() throws AdaptorConfigurationException, IOException, HandlerException {
+		JsonHelper jsonHelper = new JsonHelper();
+		HandlerContext handlerContext = HandlerContext.get();
+		ActionEvent actionEvent = new ActionEvent();
+		List<ActionEvent> eventList = new ArrayList<>();
+		long currentTime = System.currentTimeMillis();
+		HandlerJournal journal = null;
+		JsonMapperHandler jsonMapperHandler = new JsonMapperHandler();
+		RuntimeInfoStore<RuntimeInfo> runtimeInfoStore = Mockito.mock(RuntimeInfoStore.class);
+		ReflectionTestUtils.setField(jsonMapperHandler, "runtimeInfoStore", runtimeInfoStore);
+		ReflectionTestUtils.setField(jsonMapperHandler, "jsonHelper", jsonHelper);
+		
+		Map<String, Object> properties = mockProperties();
+		properties.put("timestamp", "ts");
+		properties.put("partition_name", "account");
+		jsonMapperHandler.setPropertyMap(properties);
+		jsonMapperHandler.build();
+	
+		ObjectNode mockNode  = (ObjectNode) getSampleJsonNode();
+		mockNode.put("ts", "2015-04-01");
+		actionEvent = new ActionEvent();		
+		actionEvent.setBody(mockNode.toString().getBytes());
+		eventList.add(actionEvent);	
+		
+		mockNode.put("ts", System.currentTimeMillis());
+		actionEvent = new ActionEvent();		
+		actionEvent.setBody(mockNode.toString().getBytes());
+		eventList.add(actionEvent);
+
+		handlerContext.setEventList(eventList);
+		jsonMapperHandler.process();
+		journal = (HandlerJournal) handlerContext.getJournal(jsonMapperHandler.getId());
+		Assert.assertEquals(journal.getEventList().size(), 1);
+		List<ActionEvent>  eventList101 =  handlerContext.getEventList();
+		ActionEvent actionEvent1= eventList101.get(0);
+		Assert.assertEquals(actionEvent1.getHeaders().get("DT"), "20150401");
+		Assert.assertEquals(actionEvent1.getHeaders().get("HOUR"), "00");
+		
+		jsonMapperHandler.process();
+		eventList101 =  handlerContext.getEventList();
+		actionEvent1= eventList101.get(0);
+		
+		DateTime dateTime = new DateTime(currentTime);
+		Assert.assertEquals(actionEvent1.getHeaders().get("DT"),formatter.print(dateTime));
+		Assert.assertEquals(actionEvent1.getHeaders().get("HOUR"),hourFormatter.print(dateTime));
+		
+		journal = (HandlerJournal) handlerContext.getJournal(jsonMapperHandler.getId());
+		Assert.assertEquals(journal.getTotalRead(), 0);
+		Assert.assertEquals(journal.getTotalSize(), 0);
+	}	
+	
 	private byte[] buildSampleJsonMessage() throws IOException {
 		String msg = "{\"name\": \"John Doe1\", \"favorite_number\": {\"int\": 421}, \"favorite_color\":{\"string\": \"Blue\"}}";
 		JsonNode m = buildJsonMessage(msg);
@@ -116,9 +178,16 @@ public class JsonMapperHandlerTest {
 		return jsonMessage;
 	}
 
-
+	
+	private JsonNode getSampleJsonNode() throws IOException {
+		String msg = "{\"name\": \"John Doe1\", \"favorite_number\": {\"int\": 421}, \"favorite_color\":{\"string\": \"Blue\"}}";
+		JsonNode messageNode = buildJsonMessage(msg);
+		return messageNode;
+	}	
+	
 	public static JsonNode buildJsonMessage(String str) {
 		ObjectMapper mapper = new ObjectMapper();
+		
 		JsonNode actualObj = null;
 		try {
 			actualObj = mapper.readTree(str);
