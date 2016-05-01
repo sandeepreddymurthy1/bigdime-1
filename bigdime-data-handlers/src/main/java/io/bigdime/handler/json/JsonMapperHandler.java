@@ -167,7 +167,7 @@ public class JsonMapperHandler extends AbstractHandler {
 	 */
 	@Override
 	public Status process() throws HandlerException {
-		logger.debug("processing handler", "processing avro handler");
+		logger.debug("processing handler", "processing jsonmapper handler");
 		if (getSimpleJournal().getEventList() != null && !getSimpleJournal().getEventList().isEmpty()) {
 			// process for CALLBACK status.
 			/*
