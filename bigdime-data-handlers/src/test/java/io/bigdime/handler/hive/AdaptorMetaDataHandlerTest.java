@@ -19,6 +19,7 @@ import io.bigdime.adaptor.metadata.MetadataStore;
 import io.bigdime.adaptor.metadata.model.Metasegment;
 import io.bigdime.adaptor.metadata.utils.MetaDataJsonUtils;
 import io.bigdime.core.ActionEvent;
+import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.commons.JsonHelper;
@@ -39,11 +40,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 @ContextConfiguration(classes = { MetaDataJsonUtils.class})
-public class AdapterMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
+public class AdaptorMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
 	
 	@Mock
 	MetadataStore metadataStore;
@@ -80,7 +82,7 @@ public class AdapterMetaDataHandlerTest extends AbstractTestNGSpringContextTests
 
 	@Test
 	public void testProcess() throws ClientProtocolException, IOException, InterruptedException, MetadataAccessException, HandlerException{
-		AdapterMetaDataHandler adapterMetaDataHandler = new AdapterMetaDataHandler();
+		AdaptorMetaDataHandler adapterMetaDataHandler = new AdaptorMetaDataHandler();
 
 		HandlerContext handlerContext = HandlerContext.get();
 		List<ActionEvent> actionEvents = new ArrayList<>();
@@ -95,20 +97,21 @@ public class AdapterMetaDataHandlerTest extends AbstractTestNGSpringContextTests
 		actionEvent.setHeaders(headers);
 		actionEvents.add(actionEvent);
 		handlerContext.setEventList(actionEvents);
-		adapterMetaDataHandler.process();
+		Status status = adapterMetaDataHandler.process();
+		Assert.assertEquals(Status.READY, status);
 	}
 
 	@Test
 	public void testBuild() throws JsonProcessingException, IOException, AdaptorConfigurationException, InterruptedException, MetadataAccessException{
-		AdapterMetaDataHandler adapterMetaDataHandler = mockAdapterMetaDataHandler();
+		AdaptorMetaDataHandler adapterMetaDataHandler = mockAdapterMetaDataHandler();
 		adapterMetaDataHandler.setPropertyMap(mockProperties());
 		adapterMetaDataHandler.build();
 		adapterMetaDataHandler.build();
 	}
 
-	private AdapterMetaDataHandler mockAdapterMetaDataHandler()
+	private AdaptorMetaDataHandler mockAdapterMetaDataHandler()
 			throws ClientProtocolException, IOException, InterruptedException, MetadataAccessException {
-		AdapterMetaDataHandler hiveMetaDataHandler = new AdapterMetaDataHandler();
+		AdaptorMetaDataHandler hiveMetaDataHandler = new AdaptorMetaDataHandler();
 		metadataStore = Mockito.mock(MetadataStore.class);
 		Metasegment metaSegment = metaDataJsonUtils.convertJsonToMetaData("mock-app","clickStreamEvents",
 				objectMapper1.readTree(trackingSchema.getBytes()));
