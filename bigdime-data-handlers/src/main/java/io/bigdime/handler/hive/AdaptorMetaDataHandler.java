@@ -44,8 +44,8 @@ import io.bigdime.core.handler.AbstractHandler;
  * @author mnamburi
  *
  */
-public class AdapterMetaDataHandler  extends AbstractHandler {
-	private static final AdaptorLogger logger = new AdaptorLogger(LoggerFactory.getLogger(AdapterMetaDataHandler.class));
+public class AdaptorMetaDataHandler  extends AbstractHandler {
+	private static final AdaptorLogger logger = new AdaptorLogger(LoggerFactory.getLogger(AdaptorMetaDataHandler.class));
 	
 	private static String hiveSchemaFileName = null;
 	private static String entityName = null;
@@ -57,14 +57,14 @@ public class AdapterMetaDataHandler  extends AbstractHandler {
 	
 	/**
 	 * <p>
-	 * The build method being called only once by the framework ( bootstrap), upon startup of the adapter 
+	 * The build method being called only once by the framework ( bootstrap), upon startup of the Adaptor 
 	 * the builder method will read a schema file from class path and persist the object to metadata.
 	 * the method expects ENTITY_NAME,SCHEMA_FILE_NAME. It will throw Runtime Exception in case it didn't find ENTITY_NAME,SCHEMA_FILE_NAME.
 	 */
 	@Override
 	public void build() throws AdaptorConfigurationException{
 		super.build();
-		handlerPhase = "building AdapterMetaDataHandler";
+		handlerPhase = "building AdaptorMetaDataHandler";
 		
 		Metasegment metaSegment = null;
 
