@@ -38,22 +38,6 @@ public final class JsonHelper {
 		}
 	}
 
-	/**
-	 * If the node is not  present return -1,
-	 * 
-	 * @param node
-	 * @param key
-	 * @return true if the node is present has the value as true, false
-	 *         otherwise.
-	 */
-	public int getIntProperty(final JsonNode node, final String key) {
-		try {
-			String stringValue = getRequiredStringProperty(node, key);
-			return Integer.valueOf(stringValue);
-		} catch (IllegalArgumentException ex) {
-			return -1;
-		}
-	}
 	public String getRequiredStringProperty(final JsonNode node, final String key) {
 		final JsonNode childNode = getRequiredNode(node, key);
 		if (childNode.isTextual()) {
@@ -95,14 +79,6 @@ public final class JsonHelper {
 		return childNode.asText();
 	}	
 
-	public String getStringProperty(final JsonNode node, final String key) {
-		final JsonNode childNode = getOptionalNodeOrNull(node, key);
-		if (childNode != null && childNode.isTextual()) {
-			return childNode.getTextValue();
-		}
-		return null;
-	}
-	
 	public JsonNode getRequiredNode(final JsonNode node, final String key) {
 		final JsonNode childNode = getOptionalNodeOrNull(node, key);
 		if (childNode == null) {
