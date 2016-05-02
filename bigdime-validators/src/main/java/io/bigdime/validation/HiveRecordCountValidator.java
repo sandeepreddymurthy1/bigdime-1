@@ -56,6 +56,32 @@ public class HiveRecordCountValidator implements Validator {
 	private String name;
 	
 	/**
+	 * This validate method will get hdfs file raw checksum based on provided
+	 * parameters from actionEvent, and get source file raw checksum based on
+	 * source file path, then compare them
+	 * 
+	 * @param actionEvent
+	 * @return true if both raw checksum are same, else return false and hdfs
+	 *         file move to errorChecksum location
+	 *
+	 */
+
+	private boolean isReadyToValidate(final ActionEvent actionEvent) {
+
+		String sourceRecordCount = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
+		String validationReady = actionEvent.getHeaders().get(ActionEventHeaderConstants.VALIDATION_READY);
+		
+		if (validationReady != null && !validationReady.equalsIgnoreCase(Boolean.TRUE.toString())) {
+			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
+					"processing HiveRecordCountValidator",
+					"validation is skipped, not ready yet to validate , recordCount={}",
+					sourceRecordCount);
+			return false;
+		}
+		return true;
+	}
+	
+	/**
 	 * This validate method will compare Hdfs record count(get from Hive) and source record
 	 * count
 	 * 
@@ -67,31 +93,26 @@ public class HiveRecordCountValidator implements Validator {
 
 	@Override
 	public ValidationResponse validate(ActionEvent actionEvent) throws DataValidationException {
+		
 		ValidationResponse validationPassed = new ValidationResponse();
+		if (!isReadyToValidate(actionEvent)) {
+			validationPassed.setValidationResult(ValidationResult.NOT_READY);
+			return validationPassed;
+		}
 		AbstractValidator commonCheckValidator = new AbstractValidator();
 		validationPassed.setValidationResult(ValidationResult.FAILED);
-		int port = 0;
-		String hiveHost = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_HOST_NAME);
-		String portString = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PORT);
 		String srcRCString = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
 		String hiveDBName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_DB_NAME);
 		String hiveTableName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_TABLE_NAME);
 		String hivePartitionNames = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES);
 		String hivePartitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
+		String hiveMetaStoreURL = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_METASTORE_URI);
 		
 		int sourceRecordCount = 0;
 
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_HOST_NAME, hiveHost);
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_PORT, portString);
-		try {
-			 port = Integer.parseInt(portString);
-		} catch (NumberFormatException e) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "NumberFormatException",
-					"Illegal port number input{} while parsing string to integer", portString);
-			throw new NumberFormatException();
-		}
-		
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
+		commonCheckValidator.checkNullStrings(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
+		
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);
 		} catch (NumberFormatException e) {
@@ -111,11 +132,10 @@ public class HiveRecordCountValidator implements Validator {
 		}
 		int hdfsRecordCount = 0;
 		Properties props = new Properties();
-		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost
-				+ DataConstants.COLON + port);
+		props.put(HiveConf.ConfVars.METASTOREURIS, hiveMetaStoreURL);
 		try {
 			hdfsRecordCount = getHdfsRecordCountFromHive(props, hiveDBName, hiveTableName, partitionColumnsMap, 
-								hiveHost, port, getHAProperties(actionEvent));
+								getHAProperties(actionEvent));
 		} catch (HCatException e) {
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext()
 					.getAdaptorName(), "HCatException",
@@ -143,16 +163,17 @@ public class HiveRecordCountValidator implements Validator {
 
 	/**
 	 * This is for hdfs record count using Hive
-	 * 
-	 * @param fileName
-	 *            hdfs file name
-	 * @throws DataValidationException 
-	 * @throws IOException
-	 * @throws ClientProtocolException
-	 * 
+	 * @param props
+	 * @param databaseName
+	 * @param tableName
+	 * @param partitionMap
+	 * @param configuration
+	 * @return
+	 * @throws HCatException
+	 * @throws DataValidationException
 	 */
 	private int getHdfsRecordCountFromHive(Properties props, String databaseName, String tableName, Map<String, String> partitionMap,
-						String host, int port, Map<String, String> configuration) throws HCatException, DataValidationException{
+			Map<String, String> configuration) throws HCatException, DataValidationException{
 		int count = 0;
 		String filterValue="";
 		StringBuilder sb = new StringBuilder();
@@ -181,7 +202,6 @@ public class HiveRecordCountValidator implements Validator {
 				databaseName,
 				tableName,
 				sb.toString(),
-				host, port,
 				configuration);
 			
 			for (int slaveNode = 0; slaveNode < cntxt.numSplits(); slaveNode++) {

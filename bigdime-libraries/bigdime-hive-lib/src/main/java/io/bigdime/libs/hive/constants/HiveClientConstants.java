@@ -27,4 +27,8 @@ public final class HiveClientConstants {
 	public static final String TYPE_INT = "INT";
 	public static final String TYPE_BOOLEAN = "BOOLEAN";
 	public static final String TYPE_RAW = "RAW";
+
+	public static final String HIVE_METASTORE_URI = "hive.metastore.uris";
+	public static final String HIVE_SCHEME = "hive.uri.hdfs.scheme";
+	public static final String HIVE_DEFAULT_SCHEME = "hdfs://";	
 }
