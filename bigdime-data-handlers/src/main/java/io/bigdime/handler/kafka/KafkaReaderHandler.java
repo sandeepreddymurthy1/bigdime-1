@@ -68,7 +68,7 @@ public class KafkaReaderHandler extends AbstractHandler {
 	private final String TIMESTAMP = "DT";
 	private final String HOUR = "HOUR";
 	private static  final String PARTITION = "PARTITION";
-
+	private String entityName = null;
 	/**
 	 * KakfaConsumer component that's used to fetch data from Kafka.
 	 */
@@ -114,6 +114,12 @@ public class KafkaReaderHandler extends AbstractHandler {
 		} catch (IllegalArgumentException ex) {
 			throw new InvalidValueConfigurationException(
 					 "incorrect value specified in src-desc "+ ex.getMessage());
+		}
+		
+		entityName = inputDescriptor.getEntityName();
+		// if entityName not found, assign the topic name to entity.
+		if(entityName == null){
+			entityName = inputDescriptor.getTopic();
 		}
 
 		try {
@@ -239,7 +245,7 @@ public class KafkaReaderHandler extends AbstractHandler {
 		long totalRead = nextIndexToRead + 1;
 		getSimpleJournal().setTotalRead(totalRead);
 
-		actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME, inputDescriptor.getTopic());
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME, entityName);
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.INPUT_DESCRIPTOR,
 				String.valueOf(inputDescriptor.getPartition()));
 		actionEvent.getHeaders().put(PARTITION,
