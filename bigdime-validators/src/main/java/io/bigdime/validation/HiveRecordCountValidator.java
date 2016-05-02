@@ -3,7 +3,6 @@
  */
 package io.bigdime.validation;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -18,7 +17,6 @@ import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.transfer.DataTransferFactory;
 import org.apache.hive.hcatalog.data.transfer.HCatReader;
 import org.apache.hive.hcatalog.data.transfer.ReaderContext;
-import org.apache.http.client.ClientProtocolException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -221,6 +219,8 @@ public class HiveRecordCountValidator implements Validator {
 		Map<String, String> configMap = new HashMap<String, String>();
 		String haEnabledString = actionEvent.getHeaders().get(HiveClientConstants.HA_ENABLED);
 		Boolean haEnabled = Boolean.valueOf(haEnabledString);
+		String hiveMetaStoreURL = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_METASTORE_URI);
+		configMap.put(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
 		if(haEnabled){
 			String hiveProxyProvider = actionEvent.getHeaders().get(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER);
 			String haServiceName = actionEvent.getHeaders().get(HiveClientConstants.HA_SERVICE_NAME);
