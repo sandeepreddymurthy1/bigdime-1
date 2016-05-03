@@ -1,4 +1,11 @@
-'use strict';
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @description # Provides factory implementations required by the application
+ */
 
 /**
  * @ngdoc service
@@ -8,6 +15,7 @@
  * Factory in the jsonerApp.
  */
 
+'use strict';
 angular.module('jsonerApp')
  .factory('AdaptorObjectFactory',function(){
   return{

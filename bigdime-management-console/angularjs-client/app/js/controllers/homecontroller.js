@@ -1,4 +1,7 @@
 /**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
  * @author Sandeep Reddy,Murthy
  * @ngdoc function
  * @name jsonerApp.controller:HomecontrollerCtrl
@@ -25,7 +28,7 @@ angular.module('jsonerApp').controller(
 						function(response) {
 							$scope.applicationlist = response;
 							$rootScope.applicationlist = response;
-							SharedService.prepareBroadCast(response[0].label);
+//							SharedService.prepareBroadCast(response[0].label);
 						});
 			};
 			$scope.init();

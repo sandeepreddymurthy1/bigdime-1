@@ -1,5 +1,10 @@
 /**
- * Created by Sandeep Reddy,Murthy.
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @description # Provides application constants and routes for the application
  */
 'use strict';
 

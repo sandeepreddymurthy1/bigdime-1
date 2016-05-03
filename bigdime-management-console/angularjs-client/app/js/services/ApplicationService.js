@@ -1,3 +1,12 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @name jsonerApp.ApplicationService
+ * @description # Provides application specific services
+ */
 angular.module('jsonerApp').factory('ApplicationService',
 		function($http, $rootScope) {
 	        var envConstants=[];
@@ -76,8 +85,20 @@ angular.module('jsonerApp').factory('ApplicationService',
             	$.each(applicationService.getEnvConstants(),function(index,value){
             		if($rootScope.environment.selected !==null ||$rootScope.environment.selected !==undefined ||$rootScope.environment.selected !==""){
             		  if(applicationService.getEnvConstants()[index].environment.toLowerCase()===$rootScope.environment.selected.toLowerCase()){
-            			  console.log(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/recentalerts?alertName='+applicationname+'&start='+offsetdate+'&limit=10');
-            			  $http.get(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/recentalerts?alertName='+applicationname+'&start='+offsetdate+'&limit=10').success(function(response){
+            			  console.log(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/recentalerts?alertName='+applicationname+'&start='+offsetdate+'&limit=20');
+            			  $http.get(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/recentalerts?alertName='+applicationname+'&start='+offsetdate+'&limit=20').success(function(response){
+      					   	callback(response);
+      						});
+            	     	}
+            		}
+            	});
+            }
+            
+            function getDates(applicationname,offsetdate,callback){
+            	$.each(applicationService.getEnvConstants(),function(index,value){
+            		if($rootScope.environment.selected !==null ||$rootScope.environment.selected !==undefined ||$rootScope.environment.selected !==""){
+            		  if(applicationService.getEnvConstants()[index].environment.toLowerCase()===$rootScope.environment.selected.toLowerCase()){
+            			  $http.get(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/dates?alertName='+applicationname+'&start='+offsetdate).success(function(response){
       					   	callback(response);
       						});
             	     	}

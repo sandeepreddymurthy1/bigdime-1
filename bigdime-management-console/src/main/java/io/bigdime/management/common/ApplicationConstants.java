@@ -36,5 +36,5 @@ public class ApplicationConstants {
 	public static final String ERROR="error";
 	public static final String JSONBUILDERROOT="/jsonbuilder";
 	public static final String JSONBUILDER="jsonbuilder";
-	
+	public static final String UTF_FORMAT = "UTF-8";
 }

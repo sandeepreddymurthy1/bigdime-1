@@ -1,4 +1,7 @@
 /**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
  * @author Sandeep Reddy,Murthy
  * @ngdoc function
  * @name jsonerApp.controller:MappercontrollerCtrl

@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @name jsonerApp.SharedService
+ * @description # Provides Shared services which will be used by multiple controllers
+ */
+
 angular.module('jsonerApp').factory('SharedService',function($rootScope,$timeout){
 	var sharedService={};
 	  sharedService.applicationselected="";
@@ -7,9 +17,9 @@ angular.module('jsonerApp').factory('SharedService',function($rootScope,$timeout
 		  sharedService.broadcastchange();  
 	  };
 	  sharedService.broadcastchange=function(){
-		  $timeout(function(){
+//		  $timeout(function(){
 		  $rootScope.$broadcast('handleApplicationchangedBroadcast');
-	       },1000);
+//	       },1000);
 	  };
 	  
 	  sharedService.highlightbreadcrumb=function(){

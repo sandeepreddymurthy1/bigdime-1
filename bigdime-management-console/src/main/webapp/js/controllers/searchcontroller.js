@@ -1,4 +1,7 @@
 /**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
  * @author Sandeep Reddy,Murthy
  * @ngdoc function
  * @name jsonerApp.controller:ChannelcontrollerCtrl
@@ -19,7 +22,7 @@ angular
 					$scope.reverse = false;
 					$scope.filteredItems = [];
 					$scope.groupedItems = [];
-					$scope.itemsPerPage = 25;
+					$scope.itemsPerPage = 10;
 					$scope.pagedItems = [];
 					$scope.currentPage = 0;
 					$scope.query = "";
@@ -103,6 +106,10 @@ angular
 
 					$scope.setPage = function() {
 						$scope.currentPage = this.n;
+						if($scope.currentPage >=$scope.pagedItems.length-1){
+							$scope.items.sort(function(a, b){return b.dateTime-a.dateTime});
+							getAlertData(SharedService.applicationselected,$scope.items[$scope.items.length-1]['dateTime']+1 );
+						}
 					};
 
 					// change sorting order
@@ -125,7 +132,7 @@ angular
 					var getAlertData = function(applicationname, offsetdate) {
 						ApplicationService.getAlertData(applicationname,
 								offsetdate, function(response) {
-									$scope.items = response.raisedAlerts;
+							    	   $scope.items=$scope.items.concat(response.raisedAlerts);
 									$scope.search();
 								});
 					};

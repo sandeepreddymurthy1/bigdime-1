@@ -1,3 +1,13 @@
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @name jsonerApp.AdaptorSharedService
+ * @description # Provides adaptor specific services
+ */
+
 angular.module('jsonerApp').factory('AdaptorSharedService',function($rootScope,$timeout,AdaptorConstants,AdaptorObjectFactory,jsonBuilderFactory){
 	var adaptorSharedService={};
 	adaptorSharedService.adaptor={};

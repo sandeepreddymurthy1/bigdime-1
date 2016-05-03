@@ -1,3 +1,13 @@
+
+/**
+ * Copyright (C) 2015 Stubhub.
+ */
+/**
+ * @author Sandeep Reddy,Murthy
+ * @ngdoc function
+ * @description # Provides filters required in the application
+ */
+
 angular.module('jsonerApp')
 .filter('formatDate',function(){
 	return function(inputLongFormatdate){
