@@ -24,6 +24,7 @@ import io.bigdime.adaptor.metadata.MetadataStore;
 import io.bigdime.adaptor.metadata.model.Attribute;
 import io.bigdime.adaptor.metadata.model.Entitee;
 import io.bigdime.adaptor.metadata.model.Metasegment;
+import io.bigdime.adaptor.metadata.utils.MetaDataJsonUtils;
 import io.bigdime.alert.LoggerFactory;
 import io.bigdime.alert.Logger.ALERT_CAUSE;
 import io.bigdime.alert.Logger.ALERT_SEVERITY;
@@ -38,6 +39,7 @@ import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.AbstractHandler;
 import io.bigdime.libs.hive.common.Column;
+import io.bigdime.libs.hive.constants.HiveClientConstants;
 import io.bigdime.libs.hive.database.DatabaseSpecification;
 import io.bigdime.libs.hive.database.HiveDBManger;
 import io.bigdime.libs.hive.partition.HivePartitionManger;
@@ -61,16 +63,18 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	private HiveDBManger hiveDBManager = null;
 	private HiveTableManger hiveTableManager = null;
 	private HivePartitionManger hivePartitionManager = null;
-	private static String hdfsScheme = null;
-	
-	@Autowired private MetadataStore metadataStore;
 
+	private static String hdfsScheme = null;
+
+	@Autowired private MetadataStore metadataStore;
+	@Autowired private MetaDataJsonUtils metaDataJsonUtils;
+	
 	@Override
 	public void build() throws AdaptorConfigurationException {
 		props.putAll(getPropertyMap());
-		hdfsScheme = PropertyHelper.getStringProperty(getPropertyMap(), "hive.uri.hdfs.scheme","hdfs://");
+		hdfsScheme = PropertyHelper.getStringProperty(getPropertyMap(), HiveClientConstants.HIVE_SCHEME,HiveClientConstants.HIVE_DEFAULT_SCHEME);
 	}
-
+	
 	@Override
 	public Status process() throws HandlerException {
 		try {
@@ -103,6 +107,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
 				createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
 			}
+			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
 		} catch (MetadataAccessException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.BLOCKER,
 					"\"hive metadata handler exception \" error={}", e.toString());			
@@ -119,6 +124,32 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		return Status.READY;
 	}
 
+	private void setMetaDataProperties(String databaseName,String tableName,ActionEvent actionEvent){
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_DB_NAME, databaseName);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, tableName);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_METASTORE_URI, props.getProperty(HiveClientConstants.HIVE_METASTORE_URI));
+
+		String haEnabled = actionEvent.getHeaders().get(HiveClientConstants.HA_ENABLED);
+		if(haEnabled != null && Boolean.valueOf(haEnabled)){
+			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER),
+					HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER + " cannot be null when ha.enable is true");
+			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.HA_SERVICE_NAME),
+					HiveClientConstants.HA_SERVICE_NAME + " cannot be null when ha.enable is true");
+			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_NAME_SERVICES),
+					HiveClientConstants.DFS_NAME_SERVICES +" cannot be null when ha.enable is true");
+			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1),
+					HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1 +" cannot be null when ha.enable is true");
+			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2),
+					HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2 +" cannot be null when ha.enable is true");			
+			
+			actionEvent.getHeaders().put(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER,props.getProperty(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER));
+			actionEvent.getHeaders().put(HiveClientConstants.HA_SERVICE_NAME,props.getProperty(HiveClientConstants.HA_SERVICE_NAME));
+			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_SERVICES,props.getProperty(HiveClientConstants.DFS_NAME_SERVICES));
+			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1,props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1));
+			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2,props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2));
+			
+		}
+	}
 	/**
 	 * @throws HCatException 
 	 * 

@@ -10,6 +10,7 @@ import java.util.Properties;
 import io.bigdime.libs.hive.client.HiveClientProvider;
 import io.bigdime.libs.hive.common.ColumnMetaDataUtil;
 import io.bigdime.libs.hive.common.HiveConfigManager;
+import io.bigdime.libs.hive.constants.HiveClientConstants;
 import io.bigdime.libs.hive.metadata.TableMetaData;
 
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -155,32 +156,34 @@ public class HiveTableManger extends HiveConfigManager {
 		return tableMetaData;
 	}
 	
-	
+	/**
+	 * Retrieve the data from HDFS block to compute the values.
+	 * @param databaseName
+	 * @param tableName
+	 * @param filterCol
+	 * @param configuration
+	 * @return
+	 * @throws HCatException
+	 */
 	public synchronized ReaderContext readData(String databaseName,
-			String tableName, String filterCol,
-			String host, int port, Map<String, String> configuration)
+			String tableName, String filterCol, Map<String, String> configuration)
 			throws HCatException {
-
 		ReadEntity.Builder builder = new ReadEntity.Builder();
 		
 		ReadEntity entity = builder.withDatabase(databaseName)
 				.withTable(tableName).withFilter(filterCol).build();
 
-		configuration.put(HiveConf.ConfVars.METASTOREURIS.toString(),
-				"thrift://" + host +  ":"+ port);
+		configuration.put(HiveConf.ConfVars.METASTOREURIS.toString(),configuration.get(HiveClientConstants.HIVE_METASTORE_URI));
 
 		HCatReader reader = DataTransferFactory.getHCatReader(entity,
 				configuration);
 		
 		ReaderContext context = null;
 		try {
-
 			context = reader.prepareRead();
-
 		} catch (Throwable ex) {
 			throw ex;
 		}
-
 		return context;
 	}
 }

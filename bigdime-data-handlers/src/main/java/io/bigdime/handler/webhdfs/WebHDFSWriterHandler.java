@@ -32,9 +32,11 @@ import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.InvalidDataException;
+import io.bigdime.core.InvalidValueConfigurationException;
 import io.bigdime.core.SinkHandlerException;
 import io.bigdime.core.commons.AdaptorLogger;
 import io.bigdime.core.commons.PropertyHelper;
+import io.bigdime.core.commons.StringCase;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.config.AdaptorConfigConstants.SinkConfigConstants;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
@@ -68,6 +70,16 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 	private String hdfsOverwrite;
 	private String hdfsPermission;
 	private WebHdfs webHdfs;
+
+	/**
+	 * Allow user to specify whether to convert the whole hdfs path to lower or
+	 * upper case by specifying "lower" or "upper". If this field is not
+	 * specified, the path and partitions are left unchanged.
+	 */
+
+	private String hdfsPathCase = null;
+	private StringCase hdfsPathCaseEnum = StringCase.DEFAULT;
+
 	@Autowired
 	private RuntimeInfoStore<RuntimeInfo> runtimeInfoStore;
 
@@ -106,6 +118,23 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 
 			logger.info(handlerPhase, "hdfsFileNamePrefix={} hdfsFileNameExtension={} channelDesc={} hdfsFileName={}",
 					hdfsFileNamePrefix, hdfsFileNameExtension, channelDesc, hdfsFileName);
+
+			hdfsPathCase = PropertyHelper.getStringProperty(getPropertyMap(),
+					WebHDFSWriterHandlerConstants.HDFS_PATH_LOWER_UPPER_CASE, "");
+
+			if (StringUtils.isNotBlank(hdfsPathCase)) {
+				if (StringUtils.equalsIgnoreCase(hdfsPathCase, "lower")) {
+					hdfsPathCaseEnum = StringCase.LOWER;
+					// hdfsPathLowerCase = true;
+				} else if (StringUtils.equalsIgnoreCase(hdfsPathCase, "upper")) {
+					hdfsPathCaseEnum = StringCase.UPPER;
+					// hdfsPathUpperCase = true;
+				} else {
+					throw new InvalidValueConfigurationException(
+							"invalid value for hdfsPathCase, only \"lower\" or \"upper\" is allowed");
+				}
+			}
+
 			hdfsPath = PropertyHelper.getStringProperty(getPropertyMap(), WebHDFSWriterHandlerConstants.HDFS_PATH);
 			hdfsUser = PropertyHelper.getStringProperty(getPropertyMap(), WebHDFSWriterHandlerConstants.HDFS_USER);
 			logger.info(handlerPhase, "hdfsUser={}", hdfsUser);
@@ -127,8 +156,9 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 			}
 
 			logger.info("building WebHDFSWriterHandler",
-					"hostNames={} port={} hdfsFileName={} hdfsPath={} hdfsUser={} hdfsPermission={} hdfsOverwrite={}",
-					hostNames, port, hdfsFileName, hdfsPath, hdfsUser, hdfsPermission, hdfsOverwrite);
+					"hostNames={} port={} hdfsFileName={} hdfsPath={} hdfsUser={} hdfsPermission={} hdfsOverwrite={} hdfsPathCase={} hdfsPathCaseEnum={}",
+					hostNames, port, hdfsFileName, hdfsPath, hdfsUser, hdfsPermission, hdfsOverwrite, hdfsPathCase,
+					hdfsPathCaseEnum);
 		} catch (final Exception ex) {
 			throw new AdaptorConfigurationException(ex);
 		}
@@ -225,7 +255,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 				buildFileName(actionEvent);
 				hdfsFilePathBuilder = new HdfsFilePathBuilder();
 				detokenizedHdfsPath = hdfsFilePathBuilder.withActionEvent(actionEvent).withHdfsPath(hdfsPath)
-						.withTokenHeaderMap(tokenToHeaderNameMap).build();
+						.withTokenHeaderMap(tokenToHeaderNameMap).withCase(hdfsPathCaseEnum).build();
 
 				actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH,
 						hdfsFilePathBuilder.getBaseHdfsPath());// needed
@@ -331,7 +361,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		final WebHdfsWriter writer = new WebHdfsWriter();
 		HdfsFilePathBuilder hdfsFilePathBuilder = new HdfsFilePathBuilder();
 		String detokenizedHdfsPath = hdfsFilePathBuilder.withActionEvent(inputEvent).withHdfsPath(hdfsPath)
-				.withTokenHeaderMap(tokenToHeaderNameMap).build();
+				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(hdfsPathCaseEnum).build();
 		WebHDFSWriterHandlerJournal journal = getJournal(WebHDFSWriterHandlerJournal.class);
 		logger.debug(handlerPhase, "journal={}", journal);
 		logger.debug(handlerPhase, "_message=\"writing to hdfs\" hdfsPath={} hdfsFileName={} hdfsUser={}",
@@ -375,7 +405,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		return actionEvent;
 
 	}
-	
+
 	private void initializeRecordCountInJournal(final ActionEvent actionEvent,
 			final WebHDFSWriterHandlerJournal journal) throws RuntimeInfoStoreException {
 		if (journal.getRecordCount() < 0) {
