@@ -18,7 +18,7 @@ angular.module('jsonerApp').factory('SharedService',function($rootScope,$timeout
 	  };
 	  sharedService.broadcastchange=function(){
 //		  $timeout(function(){
-		  $rootScope.$broadcast('handleApplicationchangedBroadcast');
+		  $rootScope.$broadcast('handleApplicationchangedBroadcast',sharedService.applicationselected);
 //	       },1000);
 	  };
 	  

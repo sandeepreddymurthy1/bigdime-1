@@ -55,7 +55,7 @@ angular.module('jsonerApp')
 	  getHandlerObject:function(handlername) {
 		  var dataReturned;
 		  var url;
-		  $.each(ApplicationService,function(index,value){
+		  $.each(ApplicationService.getEnvConstants(),function(index,value){
 				if(ApplicationService.getEnvConstants()[index].environment.toLowerCase()===$rootScope.environment.selected.toLowerCase()){
 					 url=ApplicationService.getEnvConstants()[index].url+ApplicationService.getEnvConstants()[index].port+"/"+ApplicationService.getEnvConstants()[index].application+'/rest/alertService/data-platform/bigdime-adaptor/handlerTemplate?handlerId=handler.'+handlername.toLowerCase();
 				}

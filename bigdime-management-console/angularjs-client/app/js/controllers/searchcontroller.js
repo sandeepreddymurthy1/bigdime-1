@@ -59,7 +59,9 @@ angular
 									$scope.filteredItems, $scope.sortingOrder,
 									$scope.reverse);
 						}
+						if($scope.query !==""){
 						$scope.currentPage = 0;
+						}
 						// now group by pages
 						$scope.groupToPages();
 					};
@@ -116,12 +118,11 @@ angular
 					$scope.sort_by = function(newSortingOrder) {
 						if ($scope.sortingOrder == newSortingOrder)
 							$scope.reverse = !$scope.reverse;
-
-						$scope.sortingOrder = newSortingOrder;
+						    $scope.sortingOrder = newSortingOrder;
 
 					};
 
-					$scope.$on('handleApplicationchangedBroadcast', function() {
+					$scope.$on('handleApplicationchangedBroadcast', function(event,args) {
 						$scope.pagedItems = [];
 						$scope.items = [];
 						$scope.filteredItems = [];
