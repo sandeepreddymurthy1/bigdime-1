@@ -224,5 +224,21 @@ public class JsonMapperHandlerTest {
 		Status status = jsonMapperHandler.process();
 		Assert.assertSame(status, Status.CALLBACK);
 	}
-
+	
+	@Test
+	public void testisValidationReady() throws AdaptorConfigurationException, JsonProcessingException, IOException{
+		JsonMapperHandler jsonMapperHandler = buildjsonMapperHandler();
+		boolean validationNotReady = 	jsonMapperHandler.isValidationReady(null, null);
+		Assert.assertFalse(validationNotReady);
+		validationNotReady = 	jsonMapperHandler.isValidationReady("20160101", "00");
+		Assert.assertFalse(validationNotReady);
+		validationNotReady = 	jsonMapperHandler.isValidationReady("20160101", "02");
+		Assert.assertTrue(validationNotReady);
+		validationNotReady = 	jsonMapperHandler.isValidationReady("20160102", "02");
+		Assert.assertTrue(validationNotReady);	
+		validationNotReady = 	jsonMapperHandler.isValidationReady("20160102", "03");
+		Assert.assertTrue(validationNotReady);		
+		validationNotReady = 	jsonMapperHandler.isValidationReady("20160102", "03");
+		Assert.assertFalse(validationNotReady);			
+	}
 }
