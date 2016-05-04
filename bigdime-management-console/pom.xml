@@ -128,7 +128,6 @@
     </plugins>
     </build>
 
-
 		<profiles>
         <profile>
             <id>rpm</id>
@@ -136,6 +135,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
 						<properties>
+							<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 							<com.app.user>gaia</com.app.user>
 							<service.group>stub_bigdata</service.group>
 							<deploy.directory>/opt/tomcat/webapps</deploy.directory>
