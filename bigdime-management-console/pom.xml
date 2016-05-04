@@ -7,7 +7,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
    	<artifactId>bigdime-management-console</artifactId>
 	<packaging>war</packaging>
 	<name>bigdime management console</name>
@@ -68,7 +68,7 @@
 			<artifactId>servlet-api</artifactId>
 			<scope>provided</scope>
 			<version>2.5</version>
-		</dependency> 
+		</dependency>
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
@@ -127,7 +127,59 @@
         </plugin>
     </plugins>
     </build>
-    
-    
-   
+
+		<profiles>
+        <profile>
+            <id>rpm</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+						<properties>
+							<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+							<com.app.user>gaia</com.app.user>
+							<service.group>stub_bigdata</service.group>
+							<deploy.directory>/opt/tomcat/webapps</deploy.directory>
+							<timestamp>${maven.build.timestamp}</timestamp>
+   						<maven.build.timestamp.format>yyyy</maven.build.timestamp.format>
+						</properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>rpm-maven-plugin</artifactId>
+                        <version>2.1.5</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>attached-rpm</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <copyright>${timestamp}, StubHub</copyright>
+                            <group>StubHub/Servers</group>
+                            <needarch>x86_64</needarch>
+
+                            <mappings>
+                                <mapping>
+                                    <directory>${deploy.directory}</directory>
+                                    <filemode>755</filemode>
+                                    <username>${com.app.user}</username>
+                                    <groupname>${service.group}</groupname>
+                                    <sources>
+                                        <source>
+                                            <location>target/${project.artifactId}-${project.version}.war</location>
+                                        </source>
+                                    </sources>
+                                </mapping>
+                            </mappings>
+
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
