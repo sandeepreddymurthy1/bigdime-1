@@ -180,7 +180,7 @@ public class KafkaReaderHandler extends AbstractHandler {
 				throw new HandlerException("Unable to read the messages from Kafka", e);
 			}			
 			if (kafkaMessages == null || kafkaMessages.isEmpty()) {
-				logger.info(handlerPhase, "no data in the kafka , will BACKOFF");
+				logger.info(handlerPhase, "no data in the kafka , will BACKOFF topicName={} partition={} currentOffset={}",inputDescriptor.getTopic(),inputDescriptor.getPartition(),currentOffset);
 				return Status.BACKOFF;
 			}
 
