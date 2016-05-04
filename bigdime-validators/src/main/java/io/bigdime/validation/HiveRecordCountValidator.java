@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -173,21 +172,9 @@ public class HiveRecordCountValidator implements Validator {
 	private int getHdfsRecordCountFromHive(Properties props, String databaseName, String tableName, Map<String, String> partitionMap,
 			Map<String, String> configuration) throws HCatException, DataValidationException{
 		int count = 0;
-		String filterValue="";
-		StringBuilder sb = new StringBuilder();
-		if(partitionMap!=null){
-			Set<String> partitionNames = partitionMap.keySet();
-			Iterator<String> iter = partitionNames.iterator();
-			while (iter.hasNext()) {
-				String key = iter.next();
-				if(!key.equalsIgnoreCase(ActionEventHeaderConstants.ENTITY_NAME)){
-					filterValue = key
-						+ "=\""
-						+ partitionMap.get(key)
-						+ "\"";
-					sb.append(filterValue);
-				}
-			}
+		String filterValue = null;
+		if(partitionMap != null && !partitionMap.isEmpty()){
+			filterValue = getFilterString(partitionMap);
 		}
 		HiveTableManger hiveTableManager = HiveTableManger.getInstance(props);
 		if(!hiveTableManager.isTableCreated(databaseName, tableName)){
@@ -199,7 +186,7 @@ public class HiveRecordCountValidator implements Validator {
 			ReaderContext cntxt = hiveTableManager.readData(
 				databaseName,
 				tableName,
-				sb.toString(),
+				filterValue,
 				configuration);
 			
 			for (int slaveNode = 0; slaveNode < cntxt.numSplits(); slaveNode++) {
@@ -214,6 +201,26 @@ public class HiveRecordCountValidator implements Validator {
 		}
 		return count;	
 	}
+	/**
+	 * Return's Constructed string from the partition map.
+	 * @param partitionSpec
+	 * @return
+	 */
+	private static String getFilterString(Map<String, String> partitionSpec) {
+		StringBuilder filter = new StringBuilder();
+	    for (Map.Entry<String, String> entry : partitionSpec.entrySet()) {
+			if(!entry.getKey().equalsIgnoreCase(ActionEventHeaderConstants.ENTITY_NAME)){
+	      filter.append(entry.getKey()).append(DataConstants.EQUAL)
+	      		.append(DataConstants.BACK_SLASH).append(entry.getValue())
+	      		.append(DataConstants.BACK_SLASH).append(DataConstants.AND);
+			}
+	    }
+
+	    int length = filter.toString().length();
+	    if (length > 0)
+	      filter.delete(length - DataConstants.AND.length(), length);
+	    return filter.toString();
+	  }
 	
 	private Map<String, String> getHAProperties(ActionEvent actionEvent) {
 		Map<String, String> configMap = new HashMap<String, String>();
