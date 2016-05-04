@@ -3,5 +3,6 @@ language: java
 jdk:
   - openjdk7
 script:
-  mvn clean install -DskipTests=true -Pjavadoc -Psign -Dgpg.passphrase=stubhub2016
-# StubHUb
+  mvn clean test -Pjavadoc 
+
+# StubHub 

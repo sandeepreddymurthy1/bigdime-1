@@ -45,6 +45,39 @@ public final class JsonHelper {
 		}
 		throw new IllegalArgumentException("no text node found with key=" + key);
 	}
+	
+	/**
+	 * Return's string object if the required key presents in Json node.
+	 * if it is present, it will check the type of the object and return's corresponding object.
+	 * if not present, it throws IllegalArgumentException
+	 * 
+	 * @param node
+	 * @param key
+	 * @return
+	 */
+	public Object getRequiredProperty(final JsonNode node, final String key) {
+		final JsonNode childNode = getRequiredNode(node, key);
+		if(childNode == null)
+			throw new IllegalArgumentException("no text node found with key=" + key);
+
+		if(childNode.isBoolean()){
+			return childNode.getBooleanValue();
+		}
+		if(childNode.isNumber()){
+			return childNode.getNumberValue();
+		}
+		if(childNode.isLong()){
+			return childNode.getLongValue();
+		}		
+		if(childNode.isDouble()){
+			return childNode.getDoubleValue();
+		}
+		if (childNode.isTextual()) {
+			return childNode.getTextValue();
+		}		
+		// all others, send as a text
+		return childNode.asText();
+	}	
 
 	public JsonNode getRequiredNode(final JsonNode node, final String key) {
 		final JsonNode childNode = getOptionalNodeOrNull(node, key);
