@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.springframework.stereotype.Component;
 
 /**
@@ -78,6 +80,35 @@ public final class JsonHelper {
 		// all others, send as a text
 		return childNode.asText();
 	}	
+	
+	/**
+	 * Returns the Object node until it find's the node for corresponding fieldname.
+	 * @param node
+	 * @param fieldName
+	 * @return
+	 */
+	public  ObjectNode find(JsonNode node, String fieldName) {
+		Iterator<Entry<String, JsonNode>>iter = node.getFields();
+		ObjectNode on = null; 
+		while (iter.hasNext()) {
+			Entry<String, JsonNode> entry = iter.next();
+			if (entry.getKey().equals(fieldName)) {
+				on = new ObjectMapper().createObjectNode();
+				on.put(entry.getKey(), entry.getValue());
+				break;
+			}
+			else if (entry.getValue().isArray()) {
+				for (JsonNode jnode : entry.getValue()) {
+					on = find(jnode, fieldName);
+				}
+			}
+			else if (entry.getValue().isObject()) {
+				JsonNode jnode = entry.getValue();
+				on = find(jnode, fieldName);
+			}	
+		}
+		return on;
+	}
 
 	public JsonNode getRequiredNode(final JsonNode node, final String key) {
 		final JsonNode childNode = getOptionalNodeOrNull(node, key);

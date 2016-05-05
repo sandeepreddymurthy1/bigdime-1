@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -279,4 +280,23 @@ public class JsonHelperTest extends AbstractTestNGSpringContextTests {
 		Assert.assertEquals(object, nodeStringValue);		
 		Mockito.verify(node, Mockito.times(6)).get(notTextualRequiredNodeKey);
 	}	
+	
+	
+	@Test
+	public void testFindJsonNode() throws JsonProcessingException, IOException{
+		String jsonString = "{\"unit-input\" : {\"entity-name\" : \"unit-entity-name-value\",\"topic\" : \"topic1\",\"partition\" : \"1\", \"unit-separator\" : \"unit-separator-value\"}}";
+		ObjectMapper objectMapper = new ObjectMapper();
+		JsonNode node = objectMapper.readTree(jsonString.getBytes());
+
+		ObjectNode objectNode = jsonHelper.find(node, "partition1");
+		Assert.assertNull(objectNode);
+
+		objectNode = jsonHelper.find(node, "topic");
+		Object nodeValue = jsonHelper.getRequiredProperty(objectNode, "topic");
+		Assert.assertEquals(nodeValue, "topic1");
+
+		objectNode = jsonHelper.find(node, "partition");
+		nodeValue = jsonHelper.getRequiredProperty(objectNode, "partition");
+		Assert.assertEquals(nodeValue,"1");
+	}
 }

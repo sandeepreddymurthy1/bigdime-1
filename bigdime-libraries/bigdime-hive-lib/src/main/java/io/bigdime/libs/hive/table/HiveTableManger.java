@@ -52,7 +52,7 @@ public class HiveTableManger extends HiveConfigManager {
 	 * @param tableSpecfication
 	 * @throws HCatException
 	 */
-	public void createTable(TableSpecification tableSpecfication) throws HCatException{
+	public synchronized void createTable(TableSpecification tableSpecfication) throws HCatException{
 		HCatClient client = null;
 		HCatCreateTableDesc tableDescriptor;
 		HCatTable htable = new HCatTable(tableSpecfication.databaseName, tableSpecfication.tableName);
@@ -104,7 +104,7 @@ public class HiveTableManger extends HiveConfigManager {
 	 * @return true if table is created, otherwise return false
 	 * @throws HCatException
 	 */
-	public boolean isTableCreated(String databaseName, String tableName) throws HCatException{
+	public synchronized boolean isTableCreated(String databaseName, String tableName) throws HCatException{
 		HCatClient client = null;
 		boolean tableCreated = false;
 		try {
@@ -166,12 +166,16 @@ public class HiveTableManger extends HiveConfigManager {
 	 * @throws HCatException
 	 */
 	public synchronized ReaderContext readData(String databaseName,
-			String tableName, String filterCol, Map<String, String> configuration)
+			String tableName, String filter, Map<String, String> configuration)
 			throws HCatException {
 		ReadEntity.Builder builder = new ReadEntity.Builder();
+		ReadEntity entity = null;
 		
-		ReadEntity entity = builder.withDatabase(databaseName)
-				.withTable(tableName).withFilter(filterCol).build();
+		if(filter != null && !filter.isEmpty())
+			entity = builder.withDatabase(databaseName).withTable(tableName).withFilter(filter).build();
+		else
+			entity = builder.withDatabase(databaseName).withTable(tableName).build();
+
 
 		configuration.put(HiveConf.ConfVars.METASTOREURIS.toString(),configuration.get(HiveClientConstants.HIVE_METASTORE_URI));
 
