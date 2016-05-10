@@ -19,6 +19,7 @@ public class HBaseAlertSchema {
 		public static final String ALERT_ALERT_MESSAGE = "ms";
 		public static final String ALERT_ALERT_DATE = "dt";
 		public static final String ALERT_ALERT_EXCEPTION = "ex";
+		public static final String ALERT_HOST_DETAILS = "hd";
 		public static final String LOG_LEVEL = "lv";
 	}
 }
