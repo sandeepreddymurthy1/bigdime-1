@@ -3,13 +3,11 @@
  */
 package io.bigdime.validation;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -18,7 +16,6 @@ import org.apache.hive.hcatalog.data.HCatRecord;
 import org.apache.hive.hcatalog.data.transfer.DataTransferFactory;
 import org.apache.hive.hcatalog.data.transfer.HCatReader;
 import org.apache.hive.hcatalog.data.transfer.ReaderContext;
-import org.apache.http.client.ClientProtocolException;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +53,32 @@ public class HiveRecordCountValidator implements Validator {
 	private String name;
 	
 	/**
+	 * This validate method will get hdfs file raw checksum based on provided
+	 * parameters from actionEvent, and get source file raw checksum based on
+	 * source file path, then compare them
+	 * 
+	 * @param actionEvent
+	 * @return true if both raw checksum are same, else return false and hdfs
+	 *         file move to errorChecksum location
+	 *
+	 */
+
+	private boolean isReadyToValidate(final ActionEvent actionEvent) {
+
+		String sourceRecordCount = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
+		String validationReady = actionEvent.getHeaders().get(ActionEventHeaderConstants.VALIDATION_READY);
+		
+		if (validationReady != null && !validationReady.equalsIgnoreCase(Boolean.TRUE.toString())) {
+			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(),
+					"processing HiveRecordCountValidator",
+					"validation is skipped, not ready yet to validate , recordCount={}",
+					sourceRecordCount);
+			return false;
+		}
+		return true;
+	}
+	
+	/**
 	 * This validate method will compare Hdfs record count(get from Hive) and source record
 	 * count
 	 * 
@@ -67,31 +90,26 @@ public class HiveRecordCountValidator implements Validator {
 
 	@Override
 	public ValidationResponse validate(ActionEvent actionEvent) throws DataValidationException {
+		
 		ValidationResponse validationPassed = new ValidationResponse();
+		if (!isReadyToValidate(actionEvent)) {
+			validationPassed.setValidationResult(ValidationResult.NOT_READY);
+			return validationPassed;
+		}
 		AbstractValidator commonCheckValidator = new AbstractValidator();
 		validationPassed.setValidationResult(ValidationResult.FAILED);
-		int port = 0;
-		String hiveHost = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_HOST_NAME);
-		String portString = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PORT);
 		String srcRCString = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
 		String hiveDBName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_DB_NAME);
 		String hiveTableName = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_TABLE_NAME);
 		String hivePartitionNames = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES);
 		String hivePartitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
+		String hiveMetaStoreURL = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_METASTORE_URI);
 		
 		int sourceRecordCount = 0;
 
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_HOST_NAME, hiveHost);
-		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_PORT, portString);
-		try {
-			 port = Integer.parseInt(portString);
-		} catch (NumberFormatException e) {
-			logger.warn(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "NumberFormatException",
-					"Illegal port number input{} while parsing string to integer", portString);
-			throw new NumberFormatException();
-		}
-		
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
+		commonCheckValidator.checkNullStrings(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
+		
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);
 		} catch (NumberFormatException e) {
@@ -111,11 +129,10 @@ public class HiveRecordCountValidator implements Validator {
 		}
 		int hdfsRecordCount = 0;
 		Properties props = new Properties();
-		props.put(HiveConf.ConfVars.METASTOREURIS, "thrift://" + hiveHost
-				+ DataConstants.COLON + port);
+		props.put(HiveConf.ConfVars.METASTOREURIS, hiveMetaStoreURL);
 		try {
 			hdfsRecordCount = getHdfsRecordCountFromHive(props, hiveDBName, hiveTableName, partitionColumnsMap, 
-								hiveHost, port, getHAProperties(actionEvent));
+								getHAProperties(actionEvent));
 		} catch (HCatException e) {
 			logger.warn(AdaptorConfig.getInstance().getAdaptorContext()
 					.getAdaptorName(), "HCatException",
@@ -143,32 +160,21 @@ public class HiveRecordCountValidator implements Validator {
 
 	/**
 	 * This is for hdfs record count using Hive
-	 * 
-	 * @param fileName
-	 *            hdfs file name
-	 * @throws DataValidationException 
-	 * @throws IOException
-	 * @throws ClientProtocolException
-	 * 
+	 * @param props
+	 * @param databaseName
+	 * @param tableName
+	 * @param partitionMap
+	 * @param configuration
+	 * @return
+	 * @throws HCatException
+	 * @throws DataValidationException
 	 */
 	private int getHdfsRecordCountFromHive(Properties props, String databaseName, String tableName, Map<String, String> partitionMap,
-						String host, int port, Map<String, String> configuration) throws HCatException, DataValidationException{
+			Map<String, String> configuration) throws HCatException, DataValidationException{
 		int count = 0;
-		String filterValue="";
-		StringBuilder sb = new StringBuilder();
-		if(partitionMap!=null){
-			Set<String> partitionNames = partitionMap.keySet();
-			Iterator<String> iter = partitionNames.iterator();
-			while (iter.hasNext()) {
-				String key = iter.next();
-				if(!key.equalsIgnoreCase(ActionEventHeaderConstants.ENTITY_NAME)){
-					filterValue = key
-						+ "=\""
-						+ partitionMap.get(key)
-						+ "\"";
-					sb.append(filterValue);
-				}
-			}
+		String filterValue = null;
+		if(partitionMap != null && !partitionMap.isEmpty()){
+			filterValue = getFilterString(partitionMap);
 		}
 		HiveTableManger hiveTableManager = HiveTableManger.getInstance(props);
 		if(!hiveTableManager.isTableCreated(databaseName, tableName)){
@@ -180,8 +186,7 @@ public class HiveRecordCountValidator implements Validator {
 			ReaderContext cntxt = hiveTableManager.readData(
 				databaseName,
 				tableName,
-				sb.toString(),
-				host, port,
+				filterValue,
 				configuration);
 			
 			for (int slaveNode = 0; slaveNode < cntxt.numSplits(); slaveNode++) {
@@ -196,11 +201,33 @@ public class HiveRecordCountValidator implements Validator {
 		}
 		return count;	
 	}
+	/**
+	 * Return's Constructed string from the partition map.
+	 * @param partitionSpec
+	 * @return
+	 */
+	private static String getFilterString(Map<String, String> partitionSpec) {
+		StringBuilder filter = new StringBuilder();
+	    for (Map.Entry<String, String> entry : partitionSpec.entrySet()) {
+			if(!entry.getKey().equalsIgnoreCase(ActionEventHeaderConstants.ENTITY_NAME)){
+	      filter.append(entry.getKey()).append(DataConstants.EQUAL)
+	      		.append(DataConstants.BACK_SLASH).append(entry.getValue())
+	      		.append(DataConstants.BACK_SLASH).append(DataConstants.AND);
+			}
+	    }
+
+	    int length = filter.toString().length();
+	    if (length > 0)
+	      filter.delete(length - DataConstants.AND.length(), length);
+	    return filter.toString();
+	  }
 	
 	private Map<String, String> getHAProperties(ActionEvent actionEvent) {
 		Map<String, String> configMap = new HashMap<String, String>();
 		String haEnabledString = actionEvent.getHeaders().get(HiveClientConstants.HA_ENABLED);
 		Boolean haEnabled = Boolean.valueOf(haEnabledString);
+		String hiveMetaStoreURL = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_METASTORE_URI);
+		configMap.put(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
 		if(haEnabled){
 			String hiveProxyProvider = actionEvent.getHeaders().get(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER);
 			String haServiceName = actionEvent.getHeaders().get(HiveClientConstants.HA_SERVICE_NAME);

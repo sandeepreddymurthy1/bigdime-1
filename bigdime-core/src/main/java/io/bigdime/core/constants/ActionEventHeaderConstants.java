@@ -71,4 +71,7 @@ public final class ActionEventHeaderConstants {
 	public static final String HIVE_PORT = "hivePort";
 	public static final String HIVE_DB_NAME = "hiveDBName";
 	public static final String HIVE_TABLE_NAME = "hiveTableName";
+	public static final String VALIDATION_READY = "validationReady";
+	public static final String HIVE_METASTORE_URI = "hive.metastore.uris";
+	
 }
