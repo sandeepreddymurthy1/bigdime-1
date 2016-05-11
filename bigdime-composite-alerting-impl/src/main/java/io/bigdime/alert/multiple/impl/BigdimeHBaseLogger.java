@@ -78,7 +78,7 @@ public class BigdimeHBaseLogger implements Logger {
 	private boolean infoEnabled = false;
 	private boolean warnEnabled = false;
 	private ExecutorService executorService;
-    private static String hostName;
+    private static String hostName="UNKNOWN";
     private static String hostIp;
      
     static{
@@ -98,10 +98,11 @@ public class BigdimeHBaseLogger implements Logger {
 			        }
 			    }
 			}
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
+		} catch (UnknownHostException e) {	
+			System.err.print("The host name is "+hostName);
+			
 		} catch (SocketException e1) {
-			e1.printStackTrace();
+			System.err.print("Error while connecting to "+hostName +" host");
 		}
     }
     
