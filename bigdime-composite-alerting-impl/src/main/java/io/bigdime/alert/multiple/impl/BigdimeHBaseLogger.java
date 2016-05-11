@@ -62,7 +62,8 @@ public class BigdimeHBaseLogger implements Logger {
 	public static final byte[] ALERT_ALERT_MESSAGE_COLUMN = Bytes.toBytes(ColumnQualifier.ALERT_ALERT_MESSAGE);
 	public static final byte[] ALERT_ALERT_DATE_COLUMN = Bytes.toBytes(ColumnQualifier.ALERT_ALERT_DATE);
 	public static final byte[] ALERT_ALERT_EXCEPTION_COLUMN = Bytes.toBytes(ColumnQualifier.ALERT_ALERT_EXCEPTION);
-	public static final byte[] ALERT_HOST_DETAILS = Bytes.toBytes(ColumnQualifier.ALERT_HOST_DETAILS);
+	public static final byte[] ALERT_HOST_NAME = Bytes.toBytes(ColumnQualifier.ALERT_HOST_NAME);
+	public static final byte[] ALERT_HOST_IP = Bytes.toBytes(ColumnQualifier.ALERT_HOST_IP);
 	public static final byte[] LOG_LEVEL = Bytes.toBytes(ColumnQualifier.LOG_LEVEL);
 
 	// Constants
@@ -92,8 +93,8 @@ public class BigdimeHBaseLogger implements Logger {
 			    {
 			        InetAddress i = (InetAddress) ee.nextElement();
 			        if(i.getHostAddress().startsWith(IP_INIT_VAL)){
-			        	 System.out.println(i.getHostAddress());
 			        	 hostIp=i.getHostAddress();
+			        	 break;
 			        }
 			    }
 			}
@@ -285,7 +286,8 @@ public class BigdimeHBaseLogger implements Logger {
 		Put put = new Put(createRowKey(source));
 		addToPut(put, ALERT_ADAPTOR_NAME_COLUMN, source);
 		addToPut(put, ALERT_MESSAGE_CONTEXT_COLUMN, shortMessage);
-		addToPut(put, ALERT_HOST_DETAILS, hostName+":"+hostIp);
+		addToPut(put, ALERT_HOST_NAME, hostName);
+		addToPut(put, ALERT_HOST_IP, hostIp);
 
 		if (alertMessage != null) {
 			if (alertMessage.getType() != null) {
