@@ -12,41 +12,29 @@
 
 angular.module('jsonerApp').controller(
 		'HomecontrollerCtrl',
-		function($scope, $location, $rootScope, ApplicationService, $filter,
-				SharedService,AdaptorSharedService,jsonBuilderFactory) {
+		function($scope, $location, $rootScope, $filter, ApplicationService,SharedService,AdaptorSharedService,jsonBuilderFactory) {
 			$scope.environmentoptions = [ 'Dev', 'Qa', 'Prod' ];
 			$scope.environment = {};
 			$scope.environment.selected = $scope.environmentoptions[0];
 			$scope.userid = $rootScope.globals.currentUser.username;
-			$scope.displayName = $rootScope.globals.currentUser.displayName;
-			$scope.init = function() {
+			$scope.displayName = $rootScope.globals.currentUser.displayName;			
+			 $scope.init = function() {
+				//get the applications of the left hand panel
 				$scope.getjqxTree();
+				//get the adaptor constants
+				ApplicationService.setAdaptorConstants($rootScope.environment.selected );
+				
 			};
 			$scope.getjqxTree = function() {
 				$rootScope.environment = $scope.environment;
-				ApplicationService.getjqxTree($scope.environment.selected,
+			     SharedService.getjqxTree($scope.environment.selected,
 						function(response) {
 							$scope.applicationlist = response;
-							$rootScope.applicationlist = response;
-							SharedService.prepareBroadCast(response[0].label);
 						});
-			};
-			$scope.init();
-			$scope.getDates = function(applicationname) {
-				$rootScope.selectedapplication = applicationname;
-				ApplicationService.getDates(applicationame, function(response) {
-					$.each($scope.applicationlist, function(index, value) {
-						if (value['name'].tolowercase() === applicationame
-								.tolowercase()) {
-							$scope.applicationlist[index].datesArray
-									.push(response);
-						}
-					});
-				});
-			};
+			};			
 
 			$scope.updateRoot = function(applicationname) {
-				SharedService.prepareBroadCast(applicationname);
+				SharedService.updateRoot(applicationname);	
 			};
 			$scope.logout =function(){
 				AdaptorSharedService.resetbreadcrumbs();

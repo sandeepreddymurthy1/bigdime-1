@@ -163,5 +163,9 @@ public class AlertListDao {
 					"The parameters provided in the call are invalid, insufficient or not properly parsed");
 		}
 	}
+	
+	public  List<AdaptorConstants> getAdaptorConstants(){
+		return hbaseJsonDataService.getAdaptorConstants();
+	}
 
 }

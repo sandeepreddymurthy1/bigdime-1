@@ -12,7 +12,7 @@ angular
 		.module('jsonerApp')
 		.controller(
 				'ChannelcontrollerCtrl',
-				function($scope, $rootScope, AdaptorConstants,
+				function($scope, $rootScope, ApplicationService,
 						jsonBuilderFactory, HandlerFactory,
 						AdaptorSharedService) {
 
@@ -34,21 +34,21 @@ angular
 					};
 					$
 							.each(
-									AdaptorConstants,
+									ApplicationService.getAdaptorConstants(),
 									function(index, value) {
 										if ($rootScope.environment.selected
-												.toLowerCase() === AdaptorConstants[index].environment
+												.toLowerCase() === ApplicationService.getAdaptorConstants()[index].environment
 												.toLowerCase()) {
 											$
 													.each(
-															AdaptorConstants[index].adaptors,
+															ApplicationService.getAdaptorConstants()[index].adaptors,
 															function(
 																	adaptorindex,
 																	value) {
 																if ($rootScope.adaptor.selected
-																		.toLowerCase() === AdaptorConstants[index].adaptors[adaptorindex].name
+																		.toLowerCase() === ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].name
 																		.toLowerCase()) {
-																	$scope.channellist = AdaptorConstants[index].adaptors[adaptorindex].channellist;
+																	$scope.channellist = ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].channellist;
 																}
 															});
 										}
@@ -81,23 +81,23 @@ angular
 					$scope.reset = function(inputindex) {
 						$
 								.each(
-										AdaptorConstants,
+										ApplicationService.getAdaptorConstants(),
 										function(index, value) {
 											if ($rootScope.environment.selected
-													.toLowerCase() === AdaptorConstants[index].environment
+													.toLowerCase() === ApplicationService.getAdaptorConstants()[index].environment
 													.toLowerCase()) {
 												$
 														.each(
-																AdaptorConstants[index].adaptors,
+																ApplicationService.getAdaptorConstants()[index].adaptors,
 																function(
 																		adaptorindex,
 																		value) {
 																	if ($rootScope.adaptor.selected
-																			.toLowerCase() === AdaptorConstants[index].adaptors[adaptorindex].name
+																			.toLowerCase() === ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].name
 																			.toLowerCase()) {
 																		$
 																				.each(
-																						AdaptorConstants[index].adaptors[adaptorindex].nondefaults,
+																						ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].nondefaults,
 																						function(
 																								nondefaultindex,
 																								value) {
@@ -105,9 +105,9 @@ angular
 																									.indexOf(".") > -1) {
 																								var valueArray = value
 																										.split('.');
-																								$scope.datahandlers[inputindex][valueArray[0]][valueArray[1]] = "";
+																								$scope.channels[inputindex][valueArray[0]][valueArray[1]] = "";
 																							} else {
-																								$scope.datahandlers[inputindex][value] = "";
+																								$scope.channels[inputindex][value] = "";
 																							}
 																						});
 																	}
@@ -118,10 +118,7 @@ angular
 						$('.reset').on('click', function(event) {
 							event.stopPropagation();
 						});
-						if (inputindex !== 0) {
-							$scope.channels[inputindex] = HandlerFactory
-									.getHandlerObject($scope.channel.selected);
-						}
+						$scope.channels[inputindex] = HandlerFactory.getHandlerObject($scope.channels[inputindex].name);
 						$scope.shownext();
 					};
 

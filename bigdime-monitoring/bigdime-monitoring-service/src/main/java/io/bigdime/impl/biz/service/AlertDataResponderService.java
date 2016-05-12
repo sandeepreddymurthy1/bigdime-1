@@ -102,4 +102,12 @@ public interface AlertDataResponderService {
 	 * 
 	 */
 	public Response getHandler(@QueryParam("handlerId") String handlerId);
+	
+	@GET
+	@Produces({ MediaType.APPLICATION_JSON })
+	@Path("/data-platform/bigdime-adaptor/adaptorConstants/")
+	/**
+	 * 
+	 */
+	public Response getAdaptorConstants();
 }
