@@ -104,6 +104,10 @@ angular
 						if ($scope.currentPage < $scope.pagedItems.length - 1) {
 							$scope.currentPage++;
 						}
+						if($scope.currentPage >=$scope.pagedItems.length-1){
+							$scope.items.sort(function(a, b){return b.dateTime-a.dateTime});
+							getAlertData(SharedService.applicationselected,$scope.items[$scope.items.length-1]['dateTime']+1 );
+						}
 					};
 
 					$scope.setPage = function() {
@@ -126,6 +130,7 @@ angular
 						$scope.pagedItems = [];
 						$scope.items = [];
 						$scope.filteredItems = [];
+						$scope.currentPage = 0;
 						getAlertData(SharedService.applicationselected,
 								new Date().getTime());
 					});

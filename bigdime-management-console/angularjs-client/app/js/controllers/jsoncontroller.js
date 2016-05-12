@@ -12,7 +12,7 @@
 
 'use strict';
 angular.module('jsonerApp')
-  .controller('JsoncontrollerCtrl', function ($scope,$rootScope,AdaptorConstants,AdaptorObjectFactory,ApplicationDetailsFactory,jsonBuilderFactory,AdaptorSharedService) {
+  .controller('JsoncontrollerCtrl', function ($scope,$rootScope,AdaptorObjectFactory,ApplicationDetailsFactory,jsonBuilderFactory,AdaptorSharedService) {
 
 	 $scope.adaptornames=AdaptorSharedService.getadaptornames();
      $scope.adaptor={};
