@@ -8,7 +8,7 @@
  * @description # Provides adaptor specific services
  */
 
-angular.module('jsonerApp').factory('AdaptorSharedService',function($rootScope,$timeout,AdaptorConstants,AdaptorObjectFactory,jsonBuilderFactory){
+angular.module('jsonerApp').factory('AdaptorSharedService',function($rootScope,$timeout,ApplicationService,AdaptorObjectFactory,jsonBuilderFactory){
 	var adaptorSharedService={};
 	adaptorSharedService.adaptor={};
 	  $rootScope.breadcrumbs={
@@ -58,10 +58,10 @@ angular.module('jsonerApp').factory('AdaptorSharedService',function($rootScope,$
       
       adaptorSharedService.getlist=function(){
        var list=[];
-   	   $.each(AdaptorConstants,function(index,value){
-			 if($rootScope.environment.selected.toLowerCase()===AdaptorConstants[index].environment.toLowerCase()){
-				 $.each(AdaptorConstants[index].adaptors,function(adaptorindex,value){
-					 list.push(AdaptorConstants[index].adaptors[adaptorindex]);
+   	   $.each(ApplicationService.getAdaptorConstants(),function(index,value){
+			 if($rootScope.environment.selected.toLowerCase()===ApplicationService.getAdaptorConstants()[index].environment.toLowerCase()){
+				 $.each(ApplicationService.getAdaptorConstants()[index].adaptors,function(adaptorindex,value){
+					 list.push(ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex]);
 				 });
 			 }
 		 });
@@ -262,9 +262,9 @@ angular.module('jsonerApp').factory('AdaptorSharedService',function($rootScope,$
       };
       
       adaptorSharedService.reset=function(inputindex){
-    	  $.each(AdaptorConstants,function(index,value){
-    	  if($rootScope.environment.selected.toLowerCase()===AdaptorConstants[index].environment.toLowerCase()){
-    		  $.each(defaults=AdaptorConstants[index].adaptors,function(adaptorindex,value){	
+    	  $.each(ApplicationService.getAdaptorConstants(),function(index,value){
+    	  if($rootScope.environment.selected.toLowerCase()===ApplicationService.getAdaptorConstants()[index].environment.toLowerCase()){
+    		  $.each(defaults=ApplicationService.getAdaptorConstants()[index].adaptors,function(adaptorindex,value){	
     			  for(var property in nondefault){
     				  if(typeof nondefault[property] =="object"){
     					  
