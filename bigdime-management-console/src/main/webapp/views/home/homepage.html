@@ -27,7 +27,7 @@
 		<select style="width: auto;" ui-sref=".search"
 			class="form-control pull-right" ng-model="environment.selected"
 			ng-options="option as option for option in environmentoptions"
-			ng-change="getjqxTree()">
+			ng-change="getjqxTree()" ng-init="init()">
 		</select>
 	</div>
 </div>

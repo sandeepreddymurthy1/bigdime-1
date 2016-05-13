@@ -12,7 +12,7 @@ angular
 		.module('jsonerApp')
 		.controller(
 				'SourcehandlercontrollerCtrl',
-				function($scope, $rootScope, AdaptorConstants,
+				function($scope, $rootScope, ApplicationService,
 						jsonBuilderFactory,
 						HandlerFactory, AdaptorSharedService) {
 					$scope.handler = {};
@@ -65,23 +65,23 @@ angular
 					$scope.reset = function(inputindex) {
 						$
 								.each(
-										AdaptorConstants,
+										ApplicationService.getAdaptorConstants(),
 										function(index, value) {
 											if ($rootScope.environment.selected
-													.toLowerCase() === AdaptorConstants[index].environment
+													.toLowerCase() === ApplicationService.getAdaptorConstants()[index].environment
 													.toLowerCase()) {
 												$
 														.each(
-																AdaptorConstants[index].adaptors,
+																ApplicationService.getAdaptorConstants()[index].adaptors,
 																function(
 																		adaptorindex,
 																		value) {
 																	if ($rootScope.adaptor.selected
-																			.toLowerCase() === AdaptorConstants[index].adaptors[adaptorindex].name
+																			.toLowerCase() === ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].name
 																			.toLowerCase()) {
 																		$
 																				.each(
-																						AdaptorConstants[index].adaptors[adaptorindex].nondefaults,
+																						ApplicationService.getAdaptorConstants()[index].adaptors[adaptorindex].nondefaults,
 																						function(
 																								nondefaultindex,
 																								value) {
@@ -103,10 +103,7 @@ angular
 						$('.reset').on('click', function(event) {
 							event.stopPropagation();
 						});
-						if (inputindex !== 0) {
-							$scope.datahandlers[inputindex] = HandlerFactory
-									.getHandlerObject($scope.handler.selected);
-						}
+						$scope.datahandlers[inputindex] = HandlerFactory.getHandlerObject($scope.datahandlers[inputindex].name);
 						$scope.shownext();
 					};
 

@@ -196,5 +196,27 @@ public class AlertDataResponderServiceImpl implements AlertDataResponderService 
 
 		}
 	}
+	
+	public Response getAdaptorConstants(){
+		try {
+			return Response
+					.ok(alertListDao.getAdaptorConstants())
+					.header("Access-Control-Allow-Origin", "*")
+					.header("Access-Control-Allow-Methods",
+							"POST, GET, OPTIONS, DELETE, PUT")
+					.header("Access-Control-Max-Age", "100000").build();
+		} catch (AuthorizationException e) {
+			logger.warn(SOURCE_TYPE,
+					"Error occured while calling alert serivce", e.getMessage());
+			return Response.status(Response.Status.NOT_ACCEPTABLE)
+					.entity(e.getMessage()).type(MediaType.TEXT_PLAIN).build();
+
+		} catch (Exception e) {
+			logger.warn(SOURCE_TYPE,
+					"Error occured while calling alert serivce", e.getMessage());
+			return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
+
+		}
+	}
 
 }

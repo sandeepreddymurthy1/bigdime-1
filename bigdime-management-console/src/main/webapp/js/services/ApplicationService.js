@@ -11,12 +11,15 @@ angular.module('jsonerApp').factory('ApplicationService',
 		function($http, $rootScope) {
 	        var envConstants=[];
 			var applicationService={};
-			applicationService.getjqxTree = getjqxTree;
+//			applicationService.getjqxTree = getjqxTree;
 			applicationService.getDates=getDates;
 			applicationService.getAlertData=getAlertData;
 			applicationService.setEnvConstants=setEnvConstants;
 			applicationService.getEnvConstants=getEnvConstants;
 			applicationService.envConstants=[];
+			applicationService.setAdaptorConstants=setAdaptorConstants;
+			applicationService.getAdaptorConstants=getAdaptorConstants;
+			applicationService.adaptorConstants=[];			
 			return applicationService;
             
 			function setEnvConstants(){
@@ -52,14 +55,29 @@ angular.module('jsonerApp').factory('ApplicationService',
 				}
 				return applicationService.envConstants;
 			}
-			function getjqxTree(environment,callback) {				
+			
+			function setAdaptorConstants(environment){
+				var url;
 				$.each(applicationService.getEnvConstants(),function(index,value){
-					if(applicationService.getEnvConstants()[index].environment.toLowerCase()===environment.toLowerCase()){
-						$http.get(applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/alertset').success(function(response){
-					   	callback(response);
-						});
-					}
+					  if(applicationService.getEnvConstants()[index].environment.toLowerCase()===environment.toLowerCase()){
+						 url=applicationService.getEnvConstants()[index].url+applicationService.getEnvConstants()[index].port+"/"+applicationService.getEnvConstants()[index].application+'/rest/alertService/data-platform/bigdime-adaptor/adaptorConstants'
+					  }
+				  });
+				$.ajax({
+					  dataType: "json",
+					  url:url,
+					  async: false,
+					  success: function(data) { 
+						  applicationService.adaptorConstants=data; 
+						}
 				});
+			};
+			
+			function getAdaptorConstants(){
+				if(applicationService.adaptorConstants ==undefined || applicationService.adaptorConstants.length==0){
+					applicationService.setAdaptorConstants($rootScope.environment.selected);					
+				}
+				return applicationService.adaptorConstants;
 			}
 			
 			function getDates(){
