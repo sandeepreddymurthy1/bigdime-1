@@ -93,12 +93,17 @@ public class JsonMapperHandler extends AbstractHandler {
 	private KafkaInputDescriptor inputDescriptor;
 	private String handlerPhase;
 	
+	private static  final String SKIP_VALIDATIONS = "skip-validations";
+	private boolean skipValidations  = false;
+	
 	@Override
 	public void build() throws AdaptorConfigurationException {
 		super.build();
 		handlerPhase = "building Json MapperHandler";
 		timestamp = PropertyHelper.getStringProperty(getPropertyMap(), TIME_STAMP);
 		partition_name = PropertyHelper.getStringProperty(getPropertyMap(), PARTITION_NAME);
+		skipValidations = PropertyHelper.getBooleanProperty(getPropertyMap(), SKIP_VALIDATIONS);
+
 		objectMapper = new ObjectMapper();
 		
 		@SuppressWarnings("unchecked")
@@ -219,8 +224,9 @@ public class JsonMapperHandler extends AbstractHandler {
 	 * @param date
 	 * @return
 	 */
+	@Deprecated
 	public boolean isValidationReady(String date,String hour){
-		boolean validationNotReady = false;
+		boolean validationReady = false;
 		if(partition_hour == null ||  partition_dt == null ){
 			partition_dt = date;
 			partition_hour = hour;
@@ -229,10 +235,12 @@ public class JsonMapperHandler extends AbstractHandler {
 				){
 			partition_dt = date;
 			partition_hour = hour;			
-			validationNotReady = true;
+			validationReady = true;
 		}
-		return validationNotReady;
+		return validationReady;
 	}
+	
+	
 	private Status processIt(List<ActionEvent> actionEvents) throws HandlerException {
 		Status statusToReturn = Status.READY;
 		String dt = null;
@@ -267,7 +275,9 @@ public class JsonMapperHandler extends AbstractHandler {
 						"_message=\"timestamp not found in the Json \" timestamp={} error={}", timestamp,e.getMessage());
 			}
 			actionEvent.setBody((jsonDocument.toString()+rowSeparatedBy).getBytes(Charset.defaultCharset()));
-			if(isValidationReady(dt,hour)){
+			if(skipValidations){
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.FALSE.toString());
+			} else{
 				actionEvent.getHeaders().put(ActionEventHeaderConstants.VALIDATION_READY, Boolean.TRUE.toString());
 			}
 			/*
