@@ -23,5 +23,10 @@ public final class DataConstants {
 	public static final String ENTITY_NAME = "entity-name";
 	public static final String COLON = ":";
 	public static final String COMMA = ",";
+	public static final String AND = " AND ";
+	
+	public static final String EQUAL = "=";
+	public static final String BACK_SLASH = "\"";
+
 
 }

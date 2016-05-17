@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -218,13 +219,13 @@ public class JsonMapperHandler extends AbstractHandler {
 	 * @param date
 	 * @return
 	 */
-	private boolean isValidationReady(String date,String hour){
+	public boolean isValidationReady(String date,String hour){
 		boolean validationNotReady = false;
-		if(partition_dt == null || partition_hour == null){
+		if(partition_hour == null ||  partition_dt == null ){
 			partition_dt = date;
 			partition_hour = hour;
-		} else if(!partition_dt.equalsIgnoreCase(date)
-				|| !partition_hour.equalsIgnoreCase(hour)				
+		} else if(!partition_hour.equalsIgnoreCase(hour) || 
+				!partition_dt.equalsIgnoreCase(date)
 				){
 			partition_dt = date;
 			partition_hour = hour;			
@@ -242,7 +243,9 @@ public class JsonMapperHandler extends AbstractHandler {
 			JsonNode jsonDocument = objectMapper.readTree(actionEvent.getBody());
 
 			try {
-				Object serverTimestamp = jsonHelper.getRequiredProperty(jsonDocument, timestamp);
+				ObjectNode s = jsonHelper.find(jsonDocument, timestamp);
+				Object serverTimestamp = jsonHelper.getRequiredProperty(s, timestamp);
+				
 				if(serverTimestamp instanceof String){
 					dateTime = new DateTime(serverTimestamp, timeZone);
 				}
