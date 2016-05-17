@@ -31,4 +31,5 @@ public final class HiveClientConstants {
 	public static final String HIVE_METASTORE_URI = "hive.metastore.uris";
 	public static final String HIVE_SCHEME = "hive.uri.hdfs.scheme";
 	public static final String HIVE_DEFAULT_SCHEME = "hdfs://";	
+	public static final String DFS_HOST = "dfs.host";
 }
