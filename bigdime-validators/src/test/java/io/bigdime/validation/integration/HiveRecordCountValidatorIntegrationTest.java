@@ -149,4 +149,5 @@ public class HiveRecordCountValidatorIntegrationTest{
 		hiveRecordCountValidator.setName("testName");
 		Assert.assertEquals(hiveRecordCountValidator.getName(), "testName");
 	}
+
 }

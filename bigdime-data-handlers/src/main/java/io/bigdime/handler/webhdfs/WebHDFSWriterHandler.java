@@ -307,7 +307,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 					logger.debug(handlerPhase, "new hdfspath, payloadEmpty={} hdfsFileName={} previousHdfsFileName={}",
 							payloadEmpty, hdfsFileName, getPreviousHdfsFileName(journal));
 					if (!payloadEmpty) {
-						logger.info(handlerPhase, "writing to hdfs, validation should be performed");
+						logger.info(handlerPhase, "writing to hdfs, validation should be performed hdfsFile={} recordCount={}",detokenizedHdfsPathWithName,journal.getRecordCount());
 						ActionEvent returnEvent = writeToHdfs(getPreviousHdfsPath(journal), payload.toByteArray(),
 								getPreviousHdfsFileName(journal), hdfsFilePathBuilder, prevActionEvent);
 						payloadEmpty = true;
@@ -333,9 +333,9 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 			if (actionEvent != null && actionEvents.isEmpty()) {
 				if (!payloadEmpty) {
 					logger.info(handlerPhase,
-							"writing to hdfs. previousHdfsPath={} detokenizedHdfsPath={} previousHdfsPathWithName={} detokenizedHdfsPathWithName={}",
+							"writing to hdfs. previousHdfsPath={} detokenizedHdfsPath={} previousHdfsPathWithName={} detokenizedHdfsPathWithName={} hdfsFile={} recordCount={}",
 							getPreviousHdfsPath(journal), detokenizedHdfsPath, getPreviousHdfsPathWithName(journal),
-							detokenizedHdfsPathWithName);
+							detokenizedHdfsPathWithName,journal.getRecordCount());
 					ActionEvent returnEvent = writeToHdfs(detokenizedHdfsPath, payload.toByteArray(), hdfsFileName,
 							hdfsFilePathBuilder, actionEvent);
 					getHandlerContext().createSingleItemEventList(returnEvent);
@@ -401,7 +401,6 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		headers.put(ActionEventHeaderConstants.HOST_NAMES, hostNames);
 		headers.put(ActionEventHeaderConstants.PORT, String.valueOf(port));
 		headers.put(ActionEventHeaderConstants.USER_NAME, hdfsUser);
-		logger.debug(handlerPhase, "headers_from_hdfswriter={}", headers);
 		return actionEvent;
 
 	}

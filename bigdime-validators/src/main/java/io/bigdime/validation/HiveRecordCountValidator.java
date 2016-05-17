@@ -62,7 +62,6 @@ public class HiveRecordCountValidator implements Validator {
 	 *         file move to errorChecksum location
 	 *
 	 */
-
 	private boolean isReadyToValidate(final ActionEvent actionEvent) {
 
 		String sourceRecordCount = actionEvent.getHeaders().get(ActionEventHeaderConstants.SOURCE_RECORD_COUNT);
@@ -93,7 +92,7 @@ public class HiveRecordCountValidator implements Validator {
 		
 		ValidationResponse validationPassed = new ValidationResponse();
 		if (!isReadyToValidate(actionEvent)) {
-			validationPassed.setValidationResult(ValidationResult.NOT_READY);
+			validationPassed.setValidationResult(ValidationResult.INCOMPLETE_SETUP);
 			return validationPassed;
 		}
 		AbstractValidator commonCheckValidator = new AbstractValidator();
@@ -230,7 +229,7 @@ public class HiveRecordCountValidator implements Validator {
 		configMap.put(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
 		if(haEnabled){
 			String hiveProxyProvider = actionEvent.getHeaders().get(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER);
-			String haServiceName = actionEvent.getHeaders().get(HiveClientConstants.HA_SERVICE_NAME);
+			String haServiceName = actionEvent.getHeaders().get(HiveClientConstants.DFS_NAME_SERVICES);
 			String dfsNameService = actionEvent.getHeaders().get(HiveClientConstants.DFS_NAME_SERVICES);
 			String dfsNameNode1 = actionEvent.getHeaders().get(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1);
 			String dfsNameNode2 = actionEvent.getHeaders().get(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2);
