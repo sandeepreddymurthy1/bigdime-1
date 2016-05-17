@@ -194,9 +194,10 @@ footer >div
     display:table-row;
 }
 .boxtopborder >div{
-	border: 1px solid grey;
-	padding-top: 2vh;
-	height:inherit;
+	position: relative;
+    border: 1px solid grey;
+    padding-top: 2vh;
+    /* padding-bottom: 2vh; */
 }
 
 .boxbottomborder {
@@ -207,11 +208,12 @@ footer >div
 }
 
 .boxbottomborder >div{
-	position: relative;
 	border: 1px solid grey;
-	padding-top: 2vh;
-	padding-bottom: 2vh;
-	height:inherit;
+	height:100%;
+/*	position: relative;
+    padding-top: 2vh;
+ 	padding-bottom: 2vh;
+	height:inherit; */
 }
 .defaulttopboxborder {
 	border: 1px solid grey;
@@ -230,7 +232,7 @@ footer >div
 }
 
 .padding-top{
-	padding-top: 5vh;
+/* 	padding-top: 5vh; */
 }
 
 .ok{
@@ -279,7 +281,17 @@ footer >div
 	color:black;
 }
 .thirdBox {
-	padding: 3em;
-	height:100%;
-	width:calc(100% - 250px);
+	padding: 1em;
+	padding-right: 1.5em;
+    height: calc(100% - 50px);
+    width: calc(100% - 250px);
+    overflow: scroll;
 }
+
+.waitimagealign{
+	position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+

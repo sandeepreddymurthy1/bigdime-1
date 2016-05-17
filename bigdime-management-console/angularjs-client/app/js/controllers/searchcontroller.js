@@ -17,6 +17,7 @@ angular
 				function($scope, $rootScope, $filter, ApplicationService,
 						SharedService) {
 					// init
+					$scope.search={};
 					var sortingOrder = "";
 					$scope.sortingOrder = sortingOrder;
 					$scope.reverse = false;
@@ -25,8 +26,10 @@ angular
 					$scope.itemsPerPage = 10;
 					$scope.pagedItems = [];
 					$scope.currentPage = 0;
-					$scope.query = "";
+					$scope.search.query = "";
 					$scope.items = [];
+					$scope.applicatioName="";
+					$scope.dataLoad={};
 
 					var searchMatch = function(haystack, needle) {
 						if (!needle) {
@@ -43,11 +46,11 @@ angular
 								function(item) {
 									for ( var attr in item) {
 										if ($.inArray(attr, [
-												'applicationName', 'logLevel',
+												'applicationName', 'logLevel','dateTimeString',
 												'severity', 'messageContext',
 												'message' ]) > -1) {
 											if (searchMatch(item[attr],
-													$scope.query))
+													$scope.search.query))
 												return true;
 										}
 									}
@@ -59,7 +62,7 @@ angular
 									$scope.filteredItems, $scope.sortingOrder,
 									$scope.reverse);
 						}
-						if($scope.query !==""){
+						if($scope.search.query !==""){
 						$scope.currentPage = 0;
 						}
 						// now group by pages
@@ -105,6 +108,7 @@ angular
 							$scope.currentPage++;
 						}
 						if($scope.currentPage >=$scope.pagedItems.length-1){
+							$scope.dataLoad.dataLoading=true;
 							$scope.items.sort(function(a, b){return b.dateTime-a.dateTime});
 							getAlertData(SharedService.applicationselected,$scope.items[$scope.items.length-1]['dateTime']+1 );
 						}
@@ -113,6 +117,7 @@ angular
 					$scope.setPage = function() {
 						$scope.currentPage = this.n;
 						if($scope.currentPage >=$scope.pagedItems.length-1){
+							$scope.dataLoad.dataLoading=true;
 							$scope.items.sort(function(a, b){return b.dateTime-a.dateTime});
 							getAlertData(SharedService.applicationselected,$scope.items[$scope.items.length-1]['dateTime']+1 );
 						}
@@ -131,6 +136,9 @@ angular
 						$scope.items = [];
 						$scope.filteredItems = [];
 						$scope.currentPage = 0;
+						$scope.dataLoad.dataLoading=true;
+						$scope.dataLoad.isEmpty=false;
+						$scope.applicatioName=SharedService.applicationselected;
 						getAlertData(SharedService.applicationselected,
 								new Date().getTime());
 					});
@@ -138,9 +146,21 @@ angular
 					var getAlertData = function(applicationname, offsetdate) {
 						ApplicationService.getAlertData(applicationname,
 								offsetdate, function(response) {
+							           $.each(response.raisedAlerts,function(index,value){
+							        	   response.raisedAlerts[index]['dateTimeString']=$filter('formatDate')(response.raisedAlerts[index]['dateTime']);
+							           });
 							    	   $scope.items=$scope.items.concat(response.raisedAlerts);
 									$scope.search();
+									$scope.dataLoad.dataLoading=false;
+									if($scope.items.length==0){
+										$scope.dataLoad.isEmpty=true;
+										$scope.dataLoad.itemCount=0;
+									}else{
+										$scope.dataLoad.isEmpty=false;
+										$scope.dataLoad.itemCount=$scope.items.length;
+									}
 								});
+						
 					};
 
 				});

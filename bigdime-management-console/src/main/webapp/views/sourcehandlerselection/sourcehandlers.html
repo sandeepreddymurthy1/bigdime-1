@@ -71,11 +71,14 @@
 							Handler</option>
 					</select>
 				</div>
-				<div class="col-xs-12 text-right bottom-align-next" ng-if="isFilled">
-						<a ui-sref="homepage.sinkhandlers" href="" class="btn btn-success"
-							type="button" ng-click="updateAdaptor()">Next</a>
-				</div>
-			</div>
+			
+			<div class="form-group row text-right bottom-align-next" style="clear: both;" ng-if="isFilled">
+	            <div class="col-xs-12" style="clear: both;">
+					<a ui-sref="homepage.sinkhandlers" href=""
+						class="btn btn-success" type="button" ng-click="updateAdaptor()">Next</a>
+	           </div>
+	       </div>
+	</div>
 		</form>
 	</div>
 </div>
