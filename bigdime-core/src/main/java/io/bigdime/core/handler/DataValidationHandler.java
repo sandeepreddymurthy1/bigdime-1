@@ -132,7 +132,7 @@ public class DataValidationHandler extends AbstractHandler {
 
 				if (validationResponse.getValidationResult() != ValidationResult.NOT_READY) {
 					validationPassed = validationResponse.getValidationResult() == ValidationResult.PASSED;
-					logger.info("DataValidationHandler processing event", "updating runtime info actionEvent={}",actionEvent);
+					logger.debug("DataValidationHandler processing event", "updating runtime info actionEvent={}",actionEvent);
 					updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
 					logger.debug("DataValidationHandler processing event", "updated runtime info");
 				} else {
