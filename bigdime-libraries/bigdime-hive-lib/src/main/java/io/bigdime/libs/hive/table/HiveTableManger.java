@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
  *
  */
 public class HiveTableManger extends HiveConfigManager {
+	boolean tableCreated = false;
 
 	private static final char defaultChar = '\u0000';
 
@@ -96,7 +97,6 @@ public class HiveTableManger extends HiveConfigManager {
 			HiveClientProvider.closeClient(client);
 		}
 	}
-	
 	/**
 	 * This method check table is created in hive metastroe
 	 * @param databaseName
@@ -106,8 +106,9 @@ public class HiveTableManger extends HiveConfigManager {
 	 */
 	public synchronized boolean isTableCreated(String databaseName, String tableName) throws HCatException{
 		HCatClient client = null;
-		boolean tableCreated = false;
 		try {
+			if(tableCreated)
+				return tableCreated;
 			client = HiveClientProvider.getHcatClient(hiveConf);
 			HCatTable hcatTable = client.getTable(databaseName, tableName);
 			Assert.hasText(hcatTable.getTableName(), "table is null");
@@ -165,7 +166,7 @@ public class HiveTableManger extends HiveConfigManager {
 	 * @return
 	 * @throws HCatException
 	 */
-	public synchronized ReaderContext readData(String databaseName,
+	public ReaderContext readData(String databaseName,
 			String tableName, String filter, Map<String, String> configuration)
 			throws HCatException {
 		ReadEntity.Builder builder = new ReadEntity.Builder();
