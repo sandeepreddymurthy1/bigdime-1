@@ -3,7 +3,7 @@
  */
 /**
  * @author Sandeep Reddy,Murthy
- * @description # Provides Custom CSS requirements for application
+ * @description # Defines Grunt Tasks for the application
  */
 
 
