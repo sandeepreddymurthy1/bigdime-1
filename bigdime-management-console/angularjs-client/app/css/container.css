@@ -183,37 +183,28 @@ footer >div
  }
 
 .bottom-align-next {
-    position: absolute;
     bottom: 1vh;
     right: 1vh;
   }
   
 .boxtopborder {
 	border: 1px solid grey;
-    padding-top: 10px;
     display:table-row;
 }
 .boxtopborder >div{
 	position: relative;
     border: 1px solid grey;
     padding-top: 2vh;
-    /* padding-bottom: 2vh; */
 }
 
 .boxbottomborder {
-	border: 1px solid grey;
-    padding-top: 10px;
     display: table-row;
     height:100%;
 }
 
 .boxbottomborder >div{
 	border: 1px solid grey;
-	height:100%;
-/*	position: relative;
-    padding-top: 2vh;
- 	padding-bottom: 2vh;
-	height:inherit; */
+    height:100%;
 }
 .defaulttopboxborder {
 	border: 1px solid grey;
@@ -232,7 +223,10 @@ footer >div
 }
 
 .padding-top{
-/* 	padding-top: 5vh; */
+	padding-top:10px;
+}
+.dropdown-padding-top{
+	padding-top: 2vh;
 }
 
 .ok{
@@ -257,15 +251,6 @@ footer >div
 	height:inherit;
     padding: 10px 0px 10px 20px;
 }
-
-/* .datasourcetext{
-   height: inherit;
-    margin: 0px;
-    padding: 0.5em;
-    min-height: inherit;
-    color: #FFFFFF !important;
-
-} */
 .dropdown{
 	padding: 10px;
     padding-right: 20px
@@ -294,4 +279,13 @@ footer >div
     left: 50%;
 }
 
+.adptform{
+	height:100%;
+	display: table-row;
+}
+.adptheader{ 
+    height: 100%;
+    display: table;
+    width: 100%;
+}
 

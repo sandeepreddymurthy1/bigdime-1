@@ -2,7 +2,9 @@
 	<div class="tablecontainer">
 		<form class="boxbottomborder">
 			<div>
-				<div class="form-group row">
+			<div class="adptheader">
+			    <div class="adptform">
+				<div class="form-group row" style="padding-top: 2vh;">
 					<label class="col-xs-4">Choose channels</label>
 				</div>
 				<div class="form-group row"
@@ -24,16 +26,16 @@
 						<ul class="dropdown-menu dropdown-menu-right">
 							<li>
 								<div ng-if="$parent.adaptor.selected=='Kafka'"
-									class="padding-top"
+									class="dropdown-padding-top"
 									ng-include="'views/channelselection/kafkachanneldropdown.html'"></div>
 							</li>
 							<li>
-								<div ng-if="$parent.adaptor.selected=='Sql'" class="padding-top"
+								<div ng-if="$parent.adaptor.selected=='Sql'" class="dropdown-padding-top"
 									ng-include="'views/channelselection/sqlchanneldropdown.html'"></div>
 							</li>
 							<li>
 								<div ng-if="$parent.adaptor.selected=='File'"
-									class="padding-top"
+									class="dropdown-padding-top"
 									ng-include="'views/channelselection/filechanneldropdown.html'"></div>
 							</li>
 						</ul>
@@ -48,10 +50,10 @@
 							channel</option>
 					</select>
 				</div>
-				<div class="form-group row text-right bottom-align-next" style="clear: both;" ng-if="isFilled">
-	                <div class="col-xs-12" style="clear: both;">
-					   <a ui-sref="homepage.sourcechannelsinkmapper" href=""
-						class="btn btn-success" type="button" ng-click="updateAdaptor()">Next</a>
+	           </div>
+	           <div class="form-group row text-right bottom-align-next" ng-if="isFilled">
+	                <div class="col-xs-12">
+					   <a ui-sref="homepage.sourcechannelsinkmapper" href="" class="btn btn-success" type="button" ng-click="updateAdaptor()">Next</a>
 	                </div>
 	           </div>
 			</div>

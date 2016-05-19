@@ -32,8 +32,9 @@ angular
 						$.each(AdaptorSharedService.getmandatoryfields(),function(index,value){
 				        	 $("[id^="+value+"]").addClass('required');
 				         });
+						$scope.shownext();
 					};
-					$scope.init();
+
 					$scope.updateRequiredTag=function(){
 						$.each(AdaptorSharedService.getmandatoryfields(),function(index,value){
 				        	 $("[id^="+value+"]").addClass('required');
@@ -168,4 +169,5 @@ angular
 						AdaptorSharedService.updateAdaptor('source', 'sink',
 								$scope.datahandlers);
 					};
+					$scope.init();
 				});

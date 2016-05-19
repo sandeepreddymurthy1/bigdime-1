@@ -1,6 +1,7 @@
-<form class="padding-top">
-	<div class="form-group row">
-		<label class="col-xs-4">Name</label> <label class="col-xs-4">Details</label>
+<form  class="adptform">
+	<div class="form-group row" style="padding-top: 2vh;">
+		<label class="col-xs-4">Name</label>
+		 <label class="col-xs-4">Details</label>
 	</div>
 	<div class="form-group row"
 		ng-repeat="selected in selectedAdaptorObjectArray track by $index"
@@ -32,10 +33,10 @@
 				ng-click="remove($index)"></a>
 		</div>
 	</div>
-	<div class="form-group row text-right bottom-align-next" style="clear: both;" ng-if="isFilled">
-	   <div class="col-xs-12" style="clear: both;">
-					<a ui-sref="homepage.sourcehandlers" href=""
-						class="btn btn-success" type="button" ng-click="updateAdaptor()">Next</a>
-	  </div>
-	</div>
 </form>
+<div class="form-group row text-right bottom-align-next" ng-if="isFilled">
+	   <div class="col-xs-12">
+					<a ui-sref="homepage.sourcehandlers" href=""
+						class="btn btn-success" type="button" ng-click="updateAdaptor();">Next</a>
+	  </div>
+</div>
