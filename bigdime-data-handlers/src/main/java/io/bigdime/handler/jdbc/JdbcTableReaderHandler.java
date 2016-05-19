@@ -141,30 +141,28 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 			logger.debug("Formatted Jdbc Table Reader Handler Query", "processTableSql={}", processTableSql);
 			// Get Source Metadata..
 			try {
-				if(metadataStore.getAdaptorEntity(AdaptorConfig.getInstance().getName(), JdbcConstants.METADATA_SCHEMA_TYPE, jdbcInputDescriptor.getEntityName())==null){
-					Metasegment metasegment = jdbcMetadataManagment.getSourceMetadata(
+				Metasegment metasegment = jdbcMetadataManagment.getSourceMetadata(
 							jdbcInputDescriptor, jdbcTemplate);
-					jdbcMetadataManagment.setColumnList(jdbcInputDescriptor,
+				jdbcMetadataManagment.setColumnList(jdbcInputDescriptor,
 							metasegment);
 
-					logger.debug("Jdbc Table Reader Handler source column list",
+				logger.debug("Jdbc Table Reader Handler source column list",
 							"ColumnList={}", jdbcInputDescriptor.getColumnList());
 				
-					if (jdbcInputDescriptor.getColumnList().size() == JdbcConstants.INTEGER_CONSTANT_ZERO)
-						throw new HandlerException(
-							"Unable to retrieve the column list for the table Name = "
+				if (jdbcInputDescriptor.getColumnList().size() == JdbcConstants.INTEGER_CONSTANT_ZERO)
+					throw new HandlerException(
+						"Unable to retrieve the column list for the table Name = "
 									+ jdbcInputDescriptor.getEntityName());
 				
-					// throw Exception:
-					// if the incrementedBy column doesn't exist in the table..
-					if (jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO
-							&& jdbcInputDescriptor.getIncrementedColumnType() == null) {
-						throw new HandlerException(
-						"IncrementedBy Value doesn't exist in the table column list");
-					}
-					// Put into Metadata...
-					metadataStore.put(metasegment);
+				// throw Exception:
+				// if the incrementedBy column doesn't exist in the table..
+				if (jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO
+						&& jdbcInputDescriptor.getIncrementedColumnType() == null) {
+					throw new HandlerException(
+							"IncrementedBy Value doesn't exist in the table column list");
 				}
+				// Put into Metadata...
+				metadataStore.put(metasegment);
 			} catch (MetadataAccessException e) {
 				throw new HandlerException(
 					"Unable to put metadata to Metastore for the table Name = "
@@ -332,7 +330,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						+ "";
 			}
 		}
-		for(int i = rows.size()-1; i>0; i--){
+		for(int i = rows.size()-1; i>=0; i--){
 			maxValue = rows.get(i).get(jdbcInputDescriptor
 					.getColumnList().get(
 							jdbcInputDescriptor.getColumnList().indexOf(
@@ -462,7 +460,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		}
 		long endTime = System.currentTimeMillis();
 	
-		logger.info("Data Cleansing Handler during processing records","Time taken to process action Events is ={} milliseconds",
+		logger.info("Data Cleansing during processing records","Time taken to process action Events is ={} milliseconds",
 										(endTime - startTime));
 	}
 	

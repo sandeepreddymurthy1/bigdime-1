@@ -31,7 +31,7 @@ import io.bigdime.core.config.AdaptorConfig;
  */
 
 @Component
-@Scope("singleton")
+@Scope("prototype")
 public class JdbcMetadataManagement {
 
 	private static final AdaptorLogger logger = new AdaptorLogger(LoggerFactory.getLogger(JdbcMetadataManagement.class));

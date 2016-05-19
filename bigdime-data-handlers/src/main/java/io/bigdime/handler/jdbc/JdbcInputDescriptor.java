@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
+@Scope("singleton")
 public class JdbcInputDescriptor implements InputDescriptor<String>{
 
 	private static final AdaptorLogger logger = new AdaptorLogger(LoggerFactory.getLogger(JdbcInputDescriptor.class));
