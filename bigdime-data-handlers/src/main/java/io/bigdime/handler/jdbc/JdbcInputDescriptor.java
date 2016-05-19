@@ -14,7 +14,6 @@ import org.apache.commons.lang.NotImplementedException;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Component;
  *
  */
 @Component
-@Scope("singleton")
 public class JdbcInputDescriptor implements InputDescriptor<String>{
 
 	private static final AdaptorLogger logger = new AdaptorLogger(LoggerFactory.getLogger(JdbcInputDescriptor.class));
