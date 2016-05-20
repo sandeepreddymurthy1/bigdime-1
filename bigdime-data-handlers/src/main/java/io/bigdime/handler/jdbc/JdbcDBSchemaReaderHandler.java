@@ -16,12 +16,14 @@ import io.bigdime.alert.LoggerFactory;
 import io.bigdime.alert.Logger.ALERT_CAUSE;
 import io.bigdime.alert.Logger.ALERT_SEVERITY;
 import io.bigdime.alert.Logger.ALERT_TYPE;
+import io.bigdime.core.ActionEvent;
 import io.bigdime.core.ActionEvent.Status;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.InvalidValueConfigurationException;
 import io.bigdime.core.commons.AdaptorLogger;
 import io.bigdime.core.config.AdaptorConfigConstants;
+import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.AbstractHandler;
 
 import org.apache.commons.lang.StringUtils;
@@ -184,6 +186,9 @@ public class JdbcDBSchemaReaderHandler extends AbstractHandler {
 		}
 		jdbcInputDescriptor.setEntityName(currentTableToProcess);
 		jdbcInputDescriptor.setTargetEntityName(currentTableToProcess);	
+		ActionEvent actionEvent = new ActionEvent();
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.TARGET_ENTITY_NAME, currentTableToProcess);
+		getHandlerContext().createSingleItemEventList(actionEvent);
 		return Status.READY;
 	}
 		

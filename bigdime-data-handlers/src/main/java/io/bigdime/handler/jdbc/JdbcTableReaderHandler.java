@@ -80,6 +80,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	private static String initialRuntimeDateEntry="1900-01-01 00:00:00";
 	private JdbcTemplate jdbcTemplate;
 	private String handlerPhase = null;
+	private String jsonStr = null;
 	private String columnValue;
 	private String highestIncrementalColumnValue;
 	private String processTableSql;
@@ -104,6 +105,15 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.info(handlerPhase,
 				"entity:fileNamePattern={} input_field_name={}",
 				srcDescInputs.getKey(), srcDescInputs.getValue());
+		jsonStr = srcDescInputs.getKey();
+
+		try {
+
+			jdbcInputDescriptor.parseDescriptor(jsonStr);
+		} catch (IllegalArgumentException ex) {
+			throw new InvalidValueConfigurationException(
+					"incorrect value specified in src-desc, value must be in json string format");
+		}
 	}
 	
 	@Override
@@ -135,6 +145,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	
 	public Status preProcess() throws HandlerException, RuntimeInfoStoreException, JdbcHandlerException {
 		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
+		List<ActionEvent> actionEvents = getHandlerContext().getEventList();
+		for(ActionEvent actionEvent : actionEvents){
+			String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.TARGET_ENTITY_NAME);
+			jdbcInputDescriptor.setTargetEntityName(entityName);
+			jdbcInputDescriptor.setEntityName(entityName);
+		}
 		jdbcInputDescriptor.setTargetDBName(hiveDBName);
 		processTableSql = jdbcInputDescriptor.formatProcessTableQuery(jdbcInputDescriptor.getDatabaseName(), jdbcInputDescriptor.getEntityName(), driverName);
 		if(!StringUtils.isEmpty(processTableSql)){

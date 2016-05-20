@@ -68,6 +68,7 @@ public final class ActionEventHeaderConstants {
 	
 	public static final String DATE = "DT";
 	public static final String SNAPSHOT = "SNAPSHOT";
+	public static final String TARGET_ENTITY_NAME = "targetEntityName";
 	public static final String HIVE_NON_PARTITION_NAMES = "hive_nonpartition_names";
 	public static final String HIVE_PARTITION_REQUIRED = "hivePartitionRequired";
 	
