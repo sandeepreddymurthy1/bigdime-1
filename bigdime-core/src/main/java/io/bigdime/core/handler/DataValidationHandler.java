@@ -56,7 +56,6 @@ public class DataValidationHandler extends AbstractHandler {
 	private String hivePort;
 	private String haEnabled;
 	private String hiveProxyProvider;
-	private String haServiceName;
 	private String dfsNameService;
 	private String dfsNameNode1;
 	private String dfsNameNode2;
@@ -89,8 +88,6 @@ public class DataValidationHandler extends AbstractHandler {
 				.get(ValidationHandlerConfigConstants.HA_ENABLED);
 		hiveProxyProvider = (String) getPropertyMap()
 				.get(ValidationHandlerConfigConstants.DFS_CLIENT_FAILOVER_PROVIDER);
-		haServiceName = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.HA_SERVICE_NAME);
 		dfsNameService = (String) getPropertyMap()
 				.get(ValidationHandlerConfigConstants.DFS_NAME_SERVICES);
 		dfsNameNode1 = (String) getPropertyMap()
@@ -112,7 +109,7 @@ public class DataValidationHandler extends AbstractHandler {
 			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, hivePort);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.HA_ENABLED, haEnabled);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_CLIENT_FAILOVER_PROVIDER, hiveProxyProvider);
-			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.HA_SERVICE_NAME, haServiceName);
+			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.HA_SERVICE_NAME, dfsNameService);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_SERVICES, dfsNameService);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1, dfsNameNode1);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2, dfsNameNode2);
@@ -135,7 +132,7 @@ public class DataValidationHandler extends AbstractHandler {
 
 				if (validationResponse.getValidationResult() != ValidationResult.NOT_READY) {
 					validationPassed = validationResponse.getValidationResult() == ValidationResult.PASSED;
-					logger.debug("DataValidationHandler processing event", "updating runtime info");
+					logger.debug("DataValidationHandler processing event", "updating runtime info actionEvent={}",actionEvent);
 					updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
 					logger.debug("DataValidationHandler processing event", "updated runtime info");
 				} else {

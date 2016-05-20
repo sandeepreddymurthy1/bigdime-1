@@ -65,6 +65,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	private HivePartitionManger hivePartitionManager = null;
 
 	private static String hdfsScheme = null;
+	private static String dfsHost = null;
 
 	@Autowired private MetadataStore metadataStore;
 	@Autowired private MetaDataJsonUtils metaDataJsonUtils;
@@ -73,6 +74,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	public void build() throws AdaptorConfigurationException {
 		props.putAll(getPropertyMap());
 		hdfsScheme = PropertyHelper.getStringProperty(getPropertyMap(), HiveClientConstants.HIVE_SCHEME,HiveClientConstants.HIVE_DEFAULT_SCHEME);
+		dfsHost = PropertyHelper.getStringProperty(getPropertyMap(), HiveClientConstants.DFS_HOST);
 	}
 	
 	@Override
@@ -108,6 +110,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
 			}
 			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
+			 getHandlerContext().createSingleItemEventList(actionEvent);
 		} catch (MetadataAccessException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.BLOCKER,
 					"\"hive metadata handler exception \" error={}", e.toString());			
@@ -129,12 +132,10 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_TABLE_NAME, tableName);
 		actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_METASTORE_URI, props.getProperty(HiveClientConstants.HIVE_METASTORE_URI));
 
-		String haEnabled = actionEvent.getHeaders().get(HiveClientConstants.HA_ENABLED);
+		String haEnabled = props.getProperty(HiveClientConstants.HA_ENABLED);//actionEvent.getHeaders().get(HiveClientConstants.HA_ENABLED);
 		if(haEnabled != null && Boolean.valueOf(haEnabled)){
 			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER),
 					HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER + " cannot be null when ha.enable is true");
-			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.HA_SERVICE_NAME),
-					HiveClientConstants.HA_SERVICE_NAME + " cannot be null when ha.enable is true");
 			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_NAME_SERVICES),
 					HiveClientConstants.DFS_NAME_SERVICES +" cannot be null when ha.enable is true");
 			Preconditions.checkNotNull(props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1),
@@ -143,10 +144,10 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2 +" cannot be null when ha.enable is true");			
 			
 			actionEvent.getHeaders().put(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER,props.getProperty(HiveClientConstants.DFS_CLIENT_FAILOVER_PROVIDER));
-			actionEvent.getHeaders().put(HiveClientConstants.HA_SERVICE_NAME,props.getProperty(HiveClientConstants.HA_SERVICE_NAME));
 			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_SERVICES,props.getProperty(HiveClientConstants.DFS_NAME_SERVICES));
 			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1,props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1));
 			actionEvent.getHeaders().put(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2,props.getProperty(HiveClientConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2));
+			actionEvent.getHeaders().put(HiveClientConstants.HA_ENABLED,props.getProperty(HiveClientConstants.HA_ENABLED));
 			
 		}
 	}
@@ -157,7 +158,8 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	private void createDatabase(Metasegment metasegment) throws HCatException {
 		hiveDBManager = HiveDBManger.getInstance(props);
 		DatabaseSpecification.Builder databaseSpecificationBuilder = new DatabaseSpecification.Builder(metasegment.getDatabaseName());
-		DatabaseSpecification  databaseSpecification = databaseSpecificationBuilder.location(metasegment.getDatabaseLocation()).scheme(hdfsScheme).build();
+		DatabaseSpecification  databaseSpecification = databaseSpecificationBuilder.location(metasegment.getDatabaseLocation())
+				.host(dfsHost).scheme(hdfsScheme).build();
 		try {
 			if(!hiveDBManager.isDatabaseCreated(metasegment.getDatabaseName())){
 				hiveDBManager.createDatabase(databaseSpecification);
@@ -197,6 +199,10 @@ public class HiveMetaDataHandler extends AbstractHandler {
 
 		if(linesTerminatedBy != null){
 			linesTerminated = linesTerminatedBy.toCharArray()[0];
+		}
+		
+		if(hiveTableLocation == null){
+			hiveTableLocation = entitee.getEntityLocation();
 		}
 
 		TableSpecification.Builder tableSpecBuilder = new TableSpecification.Builder(dbName, entitee.getEntityName());

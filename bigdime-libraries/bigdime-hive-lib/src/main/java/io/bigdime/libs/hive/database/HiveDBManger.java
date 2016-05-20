@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
  *
  */
 public class HiveDBManger extends HiveConfigManager {
+	boolean dbCreated = false;
 
 	public HiveDBManger(Properties properties) {
 		super(properties);
@@ -99,8 +100,9 @@ public class HiveDBManger extends HiveConfigManager {
 	 */
 	public synchronized boolean isDatabaseCreated(String dbName) throws HCatException{
 		HCatClient client = null;
-		boolean dbCreated = false;
 		try {
+			if(dbCreated)
+				return dbCreated;
 			client = HiveClientProvider.getHcatClient(hiveConf);
 			HCatDatabase hcatDatabase = client.getDatabase(dbName);
 			Assert.hasText(hcatDatabase.getName(), "DB is null");
