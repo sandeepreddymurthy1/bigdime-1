@@ -12,12 +12,18 @@
       <input type="text" class="form-control" id="sourcehandlerdescription{{$index}}" placeholder="description" ng-model="datahandler.description" ng-change="shownext()">
     </div>
   </div>
-  <div ng-if="datahandler.hasOwnProperty('handler-class')" class="form-group row">
-    <label for="sourcehandlerhandlerclass{{$index}}" class="col-xs-3 " id='handler-class'>Handler class</label>
-    <div class="col-xs-8">
-      <input type="text" class="form-control" id="sourcehandlerhandlerclass{{$index}}" placeholder="handler class" ng-model="datahandler['handler-class']" ng-change="shownext()" disabled>
+ <div ng-if="datahandler.hasOwnProperty('handler-class')" class="form-group row">
+    <label for="sourcehandlerhandlerclass{{$index}}" class="col-xs-3" id="handler-class">Handler class</label>
+    <div ng-if="datahandlers.indexOf(datahandler)<defaulthandlercount" class="col-xs-8">
+        <input type="text" class="form-control" id="sourcehandlerhandlerclass{{$index}}" placeholder="handler class" ng-model="datahandler['handler-class']" ng-change="shownext()" 
+       disabled>
     </div>
-  </div>
+        <div ng-if="datahandlers.indexOf(datahandler)>=defaulthandlercount" class="col-xs-8">
+          <select class="form-control" id="sourcehandlerhandlerclass{{$index}}" ng-model="datahandler['handler-class']" ng-options="option as option for option in handlerclassnames">
+           <option value="" disabled selected style="display: none;">Select your option</option>
+   </select>
+    </div>
+ </div> 
    <div ng-if="datahandler.properties.hasOwnProperty('buffer-size')" class="form-group row">
     <label for="buffersize" class="col-xs-3 " id="buffer-size">Buffer Size</label>
     <div class="col-xs-8">

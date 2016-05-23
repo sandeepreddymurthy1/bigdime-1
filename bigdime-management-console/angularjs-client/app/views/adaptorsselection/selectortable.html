@@ -79,17 +79,12 @@
 		</div>
 		<div class="boxbottomborder">
 			<div>
-				<div ng-if="adaptor.selected=='Kafka'"
-					ng-include="'views/adaptorsselection/kafkaadaptorselection.html'"
-					style="padding-bottom: 2vh;height:inherit;"></div>
-				<div ng-if="adaptor.selected=='File'" style="padding-bottom: 2vh;height:inherit;"
+				<div ng-if="adaptor.selected=='Kafka'" class="adptheader"
+					ng-include="'views/adaptorsselection/kafkaadaptorselection.html'"></div>
+				<div ng-if="adaptor.selected=='File'" class="adptheader"
 					ng-include="'views/adaptorsselection/fileadaptorselection.html'"></div>
-				<div ng-if="adaptor.selected=='Sql'" style="padding-bottom: 2vh;height:inherit;"
+				<div ng-if="adaptor.selected=='Sql'" class="adptheader"
 					ng-include="'views/adaptorsselection/sqladaptorselection.html'"></div>
-<!-- 				<div class="col-xs-12 text-right bottom-align-next" ng-if="isFilled">
-					<a ui-sref="homepage.sourcehandlers" href=""
-						class="btn btn-success" type="button" ng-click="updateAdaptor()">Next</a>
-				</div> -->
 			</div>
 		</div>
 	</div>
