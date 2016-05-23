@@ -107,7 +107,7 @@ public class HiveRecordCountValidator implements Validator {
 		int sourceRecordCount = 0;
 
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
-		commonCheckValidator.checkNullStrings(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
 		
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);
