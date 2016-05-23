@@ -62,7 +62,7 @@ angular
 									$scope.filteredItems, $scope.sortingOrder,
 									$scope.reverse);
 						}
-						if($scope.search.query !==""){
+						if($scope.search.query !=="" && $scope.search.query !==undefined){
 						$scope.currentPage = 0;
 						}
 						// now group by pages
