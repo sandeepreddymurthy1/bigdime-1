@@ -21,8 +21,9 @@ angular
 
 					$scope.init = function() {
 						AdaptorSharedService.highlightbreadcrumb();
+						$scope.showNext();
 					};
-					$scope.init();
+
 					$scope.initialize = function() {
 						for ( var property in jsonBuilderFactory
 								.getBuiltAdaptor()) {
@@ -149,5 +150,5 @@ angular
 						$thumbs.removeClass('highlight');
 						$(this).addClass('highlight');
 					});
-
+					$scope.init();
 				});
