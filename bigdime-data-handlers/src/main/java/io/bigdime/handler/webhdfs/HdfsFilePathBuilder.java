@@ -31,6 +31,7 @@ import io.bigdime.core.constants.ActionEventHeaderConstants;
  */
 public class HdfsFilePathBuilder {
 	private String hdfsPath;
+	private String backupPath;
 	private String basePath;
 	private String relativePath;
 	private Map<String, String> tokenToHeaderNameMap;
@@ -47,6 +48,11 @@ public class HdfsFilePathBuilder {
 
 	public HdfsFilePathBuilder withHdfsPath(String hdfsPath) {
 		this.hdfsPath = hdfsPath;
+		return this;
+	}
+
+	public HdfsFilePathBuilder withBackupPath(String backupPath) {
+		this.backupPath = backupPath;
 		return this;
 	}
 
@@ -104,6 +110,17 @@ public class HdfsFilePathBuilder {
 		setSourceFileRelativePath();
 
 		String path = addTrailingSlashToPath(hdfsPath);
+
+		if (!StringUtils.isBlank(backupPath)) {
+			int $Index = hdfsPath.indexOf("${");
+			if ($Index != -1) {
+				String baseHdfsPath = hdfsPath.substring(0, $Index);
+				path = addTrailingSlashToPath(baseHdfsPath) + addTrailingSlashToPath(backupPath)
+						+ addTrailingSlashToPath(hdfsPath.substring($Index));
+			} else {
+				path = addTrailingSlashToPath(hdfsPath) + addTrailingSlashToPath(backupPath);
+			}
+		}
 		if (!StringUtils.isBlank(basePath)) {
 			path += basePath;
 			path = addTrailingSlashToPath(path);
@@ -113,6 +130,7 @@ public class HdfsFilePathBuilder {
 			path += relativePath;
 			path = addTrailingSlashToPath(path);
 		}
+
 		return path;
 	}
 
