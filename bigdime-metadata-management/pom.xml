@@ -15,7 +15,9 @@
 		<artifactId>bigdime</artifactId>
 		<version>0.0.10-SNAPSHOT</version>
 	</parent>
-
+    <properties>
+		<powermock.version>1.6.2</powermock.version>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -95,7 +97,25 @@
 			<groupId>commons-dbcp</groupId>
 			<artifactId>commons-dbcp</artifactId>
 		</dependency>
-
+        <!-- power mockito -->
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-testng</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-module-testng-agent</artifactId>
+			<version>${powermock.version}</version>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 

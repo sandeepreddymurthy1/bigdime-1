@@ -29,6 +29,7 @@ import static org.mockito.Mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
 //import org.springframework.util.Assert;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 import org.testng.Assert;
 
@@ -94,13 +95,13 @@ public class MetadataRepositoryServiceTest {
 	 * @throws Exception
 	 */
 
-	@BeforeClass
+	@BeforeTest
 	public void init() {
 
 		initMocks(this);
 		repoService = new MetadataRepositoryService();
 		entity = new EntiteeDTO("testEntityName", "testEntityLocation", 1.0,
-				"Description", attributeSet);
+				"Description", new HashSet<AttributeDTO>());
 		entitySet.add(entity);
 
 	}

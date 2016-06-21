@@ -4,6 +4,8 @@
 package io.bigdime.adaptor.metadata.dto;
 
 
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -40,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 @Entity
 @Table(name = "ENTITY")
-public class EntiteeDTO {
+public class EntiteeDTO implements Cloneable{
 
 	private static final int PRECISIONNUMBER = 5;
 	private static final int SCALENUMBER = 1;
@@ -119,7 +121,10 @@ public class EntiteeDTO {
 		this.entityLocation = entityLocation;
 		this.version = version;
 		this.description = description;
-		this.attributes = attributes;
+	    Iterator<AttributeDTO> iterator =attributes.iterator();
+	    while(iterator.hasNext()){
+	    	this.attributes.add(iterator.next().clone());
+	    }
 
 	}
 
@@ -220,7 +225,12 @@ public class EntiteeDTO {
 	 * @return
 	 */
 	public Set<AttributeDTO> getAttributes() {
-		return attributes;
+		Set<AttributeDTO> attributeSet = new LinkedHashSet<AttributeDTO>();
+		Iterator<AttributeDTO> iterator =this.attributes.iterator();
+	    while(iterator.hasNext()){
+	    	attributeSet.add(iterator.next().clone());
+	    	}
+		return attributeSet;
 	}
 
 	/**
@@ -229,7 +239,10 @@ public class EntiteeDTO {
 	 * @param attributes
 	 */
 	public void setAttributes(Set<AttributeDTO> attributes) {
-		this.attributes = attributes;
+		 Iterator<AttributeDTO> iterator =attributes.iterator();
+		    while(iterator.hasNext()){
+		    	this.attributes.add(iterator.next().clone());
+		    	}
 	}
 
 	@Override
@@ -239,6 +252,17 @@ public class EntiteeDTO {
 				+ ", description=" + description + ", attributes=" + attributes
 				+ "]";
 	}
+	
+	@Override
+	public EntiteeDTO clone() {
+		EntiteeDTO clone=null;
+		try{ 
+			clone = (EntiteeDTO) super.clone(); 
+		}catch(CloneNotSupportedException e){
+			throw new RuntimeException(e); 
+			} 
+		return clone;
+		}
 
 }
 

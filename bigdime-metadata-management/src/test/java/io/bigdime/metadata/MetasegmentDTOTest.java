@@ -29,6 +29,8 @@ import io.bigdime.common.testutils.GetterSetterTestHelper;
  * 
  */
 public class MetasegmentDTOTest {
+	
+	private static String TEST="test";
 
 	MetasegmentDTO metasegment;
 
@@ -73,20 +75,25 @@ public class MetasegmentDTOTest {
 
 	}
 
+
+
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetEntity() {
-		
-		Set<EntiteeDTO> mockEntiteeSet = (Set<EntiteeDTO>) Mockito.mock(Set.class);
-		metasegment.setEntitees(mockEntiteeSet);
-		Iterator<EntiteeDTO> entiteeIterator = Mockito.mock(Iterator.class);
-		when(mockEntiteeSet.iterator()).thenReturn(entiteeIterator);
-		when(entiteeIterator.hasNext()).thenReturn(true, false);
-		when(entiteeIterator.next()).thenReturn(mockEntity);
-		when(mockEntity.getEntityName()).thenReturn("Test");
-		Assert.assertEquals(mockEntity, metasegment.getEntity("Test"));
+		MetasegmentDTO metasegmentDTO=new MetasegmentDTO();
+		Set<EntiteeDTO> entitees=new HashSet<EntiteeDTO>();
+		EntiteeDTO entiteeDTO=new EntiteeDTO();
+		entiteeDTO.setDescription(TEST);
+		entiteeDTO.setEntityLocation(TEST);
+		entiteeDTO.setEntityName(TEST);
+		entitees.add(entiteeDTO);
+		metasegmentDTO.setEntitees(entitees);
+		for(EntiteeDTO entity:metasegmentDTO.getEntitees()){
+			Assert.assertEquals(entity.getDescription(), TEST);
+			Assert.assertEquals(entity.getEntityLocation(), TEST);
+			Assert.assertEquals(entity.getEntityName(), TEST);
+		}
 	}
-
 	@Test
 	public void testNullGetEntity() {
 		Assert.assertNull(metasegment.getEntity("Test1"));

@@ -6,6 +6,7 @@ package io.bigdime.metadata;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -104,27 +105,26 @@ public class ObjectEntityMapperImplTest {
 	}
 
 	@Test
-	public void testMapMetasegmentEntity() {
-
-		Mockito.when(mockMetasegment.getId()).thenReturn(1);
-		Mockito.when(mockMetasegment.getAdaptorName()).thenReturn(
-				"testAdaptorName");
-		Mockito.when(mockMetasegment.getSchemaType()).thenReturn(
-				"testSchemaType");
-		Mockito.when(mockMetasegment.getDatabaseLocation()).thenReturn(
-				"testDatabaseLocation");
-		Mockito.when(mockMetasegment.getDatabaseName()).thenReturn(
-				"testDatabaseName");
-		Mockito.when(mockMetasegment.getDescription()).thenReturn(
-				"testDescription");
-		Mockito.when(mockMetasegment.getIsDataSource()).thenReturn("Y");
-		Mockito.when(mockMetasegment.getCreatedAt()).thenReturn(new Date());
-		Mockito.when(mockMetasegment.getCreatedBy()).thenReturn("testUser");
-		Mockito.when(mockMetasegment.getUpdatedAt()).thenReturn(new Date());
-		Mockito.when(mockMetasegment.getUpdatedBy()).thenReturn("testUser");
-		Mockito.when(mockMetasegment.getEntitees()).thenReturn(mockEntiteeSet);
-		Assert.assertNotNull(objectEntityMapper
-				.mapMetasegmentEntity(mockMetasegment));
+	public void testMapMetasegmentEntity() {		
+		Metasegment metasegment=new Metasegment();
+		metasegment.setAdaptorName("TEST");
+		Set<Entitee> entiteeSet=new HashSet<Entitee>();
+		Entitee entitee=new Entitee();
+		entitee.setDescription("TEST");
+		Attribute attribute=new Attribute();
+		attribute.setAttributeName("TEST");
+		Set<Attribute> attributeSet=new HashSet<Attribute>();
+		attributeSet.add(attribute);
+		entitee.setAttributes(attributeSet);
+		entiteeSet.add(entitee);
+		metasegment.setEntitees(entiteeSet);
+		Assert.assertEquals(objectEntityMapper.mapMetasegmentEntity(metasegment).getAdaptorName(),"TEST");
+		for(EntiteeDTO entiteeDTO:objectEntityMapper.mapMetasegmentEntity(metasegment).getEntitees()){
+			Assert.assertEquals(entiteeDTO.getDescription(), "TEST");
+			for(AttributeDTO attributesDTO:entiteeDTO.getAttributes()){
+				Assert.assertEquals(attributesDTO.getAttributeName(), "TEST");
+			}
+		}
 
 	}
 
@@ -156,15 +156,17 @@ public class ObjectEntityMapperImplTest {
 
 	@Test
 	public void testMapEntiteeSetEntity() {
-
-		Mockito.when(mockEntiteeSet.size()).thenReturn(1);
-		@SuppressWarnings("unchecked")
-		Iterator<Entitee> mockIterator = Mockito.mock(Iterator.class);
-		Mockito.when(mockEntiteeSet.iterator()).thenReturn(mockIterator);
-		Mockito.when(mockIterator.hasNext()).thenReturn(true, false);
-		Mockito.when(mockIterator.next()).thenReturn(mockEntitee);
-		Assert.assertNotNull(objectEntityMapper
-				.mapEntiteeSetEntity(mockEntiteeSet));
+         
+		Set<Entitee> entiteeSet=new HashSet<Entitee>();
+		Entitee entitee=new Entitee();
+		entitee.setDescription("TEST");
+		Set<Attribute> attributeSet =new HashSet<Attribute>();
+		attributeSet.add(new Attribute());
+		entitee.setAttributes(attributeSet);
+		entiteeSet.add(entitee);
+		for(EntiteeDTO entiteeDTO:objectEntityMapper.mapEntiteeSetEntity(entiteeSet)){
+			Assert.assertEquals(entiteeDTO.getDescription(), "TEST");
+		}
 
 	}
 

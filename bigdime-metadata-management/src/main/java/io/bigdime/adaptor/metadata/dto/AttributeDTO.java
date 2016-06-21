@@ -32,7 +32,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 @Entity
 @Table(name = "ATTRIBUTE")
-public class AttributeDTO {
+public class AttributeDTO implements Cloneable{
 
 	/**
 	 * Attribute's primary key
@@ -360,7 +360,16 @@ public class AttributeDTO {
 				+ mappedAttributeName + ", defaultValue=" + defaultValue + "]";
 	}
 
-	
+	@Override
+	public AttributeDTO clone() {
+		AttributeDTO clone=null;
+		try{ 
+			clone = (AttributeDTO) super.clone(); 
+		}catch(CloneNotSupportedException e){
+			throw new RuntimeException(e); 
+			} 
+		return clone;
+		}
 
 }
 

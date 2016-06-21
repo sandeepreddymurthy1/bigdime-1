@@ -5,6 +5,7 @@ package io.bigdime.adaptor.metadata.dto;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -172,11 +173,14 @@ public class MetasegmentDTO {
 		this.repositoryType = repositoryType;
 		this.isDataSource = isDataSource;
 		this.description = description;
-		this.entitees = entitees;
-		this.createdAt = new Date();
+        this.createdAt = new Date();
 		this.createdBy = createdBy;
 		this.updatedAt = new Date();
 		this.updatedBy = updatedBy;
+		Iterator<EntiteeDTO> iterator =entitees.iterator();
+	    while(iterator.hasNext()){
+	    	this.entitees.add(iterator.next().clone());
+	    }
 	}
 
 	/**
@@ -315,6 +319,11 @@ public class MetasegmentDTO {
 	 * @return
 	 */
 	public Set<EntiteeDTO> getEntitees() {
+		Set<EntiteeDTO> entitees=new HashSet<EntiteeDTO>();
+		Iterator<EntiteeDTO> iterator =this.entitees.iterator();
+	    while(iterator.hasNext()){
+	    	entitees.add(iterator.next().clone());
+	    }
 		return entitees;
 	}
 
@@ -324,7 +333,10 @@ public class MetasegmentDTO {
 	 * @param entities
 	 */
 	public void setEntitees(Set<EntiteeDTO> entitees) {
-		this.entitees = entitees;
+		Iterator<EntiteeDTO> iterator =entitees.iterator();
+	    while(iterator.hasNext()){
+	    	this.entitees.add(iterator.next().clone());
+	    }
 	}
 
 	/**
