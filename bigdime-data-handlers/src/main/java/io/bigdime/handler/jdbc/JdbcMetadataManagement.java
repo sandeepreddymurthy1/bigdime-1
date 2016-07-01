@@ -174,7 +174,7 @@ public class JdbcMetadataManagement {
 			}
 			
 		} catch (MetadataAccessException e) {
-			e.printStackTrace();
+			logger.warn("Unable to put into MetaStore for entity={}", tableName);
 		}
 
 	}

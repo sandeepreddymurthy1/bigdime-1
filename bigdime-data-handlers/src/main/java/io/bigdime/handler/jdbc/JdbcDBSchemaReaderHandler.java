@@ -27,7 +27,6 @@ import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.AbstractHandler;
 
 import org.apache.commons.lang.StringUtils;
-import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
@@ -63,7 +62,6 @@ public class JdbcDBSchemaReaderHandler extends AbstractHandler {
 	private static List<String> allTableNameList;
 	private List<String> processTable = null;
 	private String currentTableToProcess = null;
-	int index =0;
 	
 	@Override
 	public void build() throws AdaptorConfigurationException {
@@ -72,7 +70,7 @@ public class JdbcDBSchemaReaderHandler extends AbstractHandler {
 		logger.info(handlerPhase,
 				"handler_id={} handler_name={} properties={}", getId(),
 				getName(), getPropertyMap());
-
+		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
 		@SuppressWarnings("unchecked")
 		Entry<String, String> srcDescInputs = (Entry<String, String>) getPropertyMap()
 				.get(AdaptorConfigConstants.SourceConfigConstants.SRC_DESC);
@@ -107,66 +105,88 @@ public class JdbcDBSchemaReaderHandler extends AbstractHandler {
 				return status;
 			}
 			return doProcess();
-		} catch (JSONException e) {
-			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
-					ALERT_SEVERITY.BLOCKER,"\"jdbcAdaptor json formatter exception\" jsonString={} error={}",
-					jsonStr, e.toString());
-			throw new HandlerException("");
 		} catch (JdbcHandlerException e) {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
-					ALERT_SEVERITY.BLOCKER,"\"jdbcAdaptor jdbcHandler exception\" databaseName={} error={}",
-					jdbcInputDescriptor.getDatabaseName(), e.toString());
-			throw new HandlerException("");
+					ALERT_SEVERITY.BLOCKER,"\"jdbcAdaptor jdbcHandler exception\" databaseName={} table={} error={}",
+					jdbcInputDescriptor.getDatabaseName(), jdbcInputDescriptor.getEntityName(), e.toString());
+			throw new HandlerException("Unable to process sql database "+jdbcInputDescriptor.getDatabaseName()+" and table "+jdbcInputDescriptor.getEntityName());
 		}
 	}
 	
 	public void setDataSource(DataSource dataSource) {
-		this.lazyConnectionDataSourceProxy = dataSource;
+		this.lazyConnectionDataSourceProxy = dataSource;		
 	}
 	
 	private boolean isFirstRun() {
 		return getInvocationCount() == 1;
 	}
 	
+	/**
+	 * This method is get all tables from a source database based on sql query
+	 * @param sqlQuery
+	 * @return tableList
+	 */
 	private List<String> getTableNameList(String sqlQuery){
 		List<String> tableList = new ArrayList<String>();
 		tableList = jdbcTemplate.queryForList(sqlQuery, String.class);
 		return tableList;
 	}
-	public Status preProcess() throws JdbcHandlerException,
-			JSONException, HandlerException {
-		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
+	
+	/**
+	 * This preProcess() will get all table names from a database and filter out the required tables
+	 * 
+	 * @return Status, READY, CALLBACK, BACKOFF
+	 * @throws JdbcHandlerException
+	 * @throws HandlerException
+	 */
+	private Status preProcess() throws JdbcHandlerException, HandlerException {
+		
 		dbSql = jdbcInputDescriptor.formatQuery(jdbcInputDescriptor.getInputType(), jdbcInputDescriptor.getInputValue(), driverName);
 		logger.debug("Formatted Jdbc DB Reader Handler Query", "dbSql={}", dbSql);
 		if(isFirstRun()){
 			if (!StringUtils.isEmpty(dbSql)) {
 				allTableNameList = getTableNameList(dbSql);
 				allTableMap.put(jdbcInputDescriptor.getInputValue(), allTableNameList);
-			}
-			//includeFilter is not specified, process all tables in databases
-			if(jdbcInputDescriptor.getIncludeFilter().isEmpty()){
-				processTable = allTableNameList;
+				//includeFilter is not specified, process all tables in databases
+				if(jdbcInputDescriptor.getIncludeFilter().isEmpty()){
+					processTable = allTableNameList;
+				} else{
+					processTable = getFilteredTableList(allTableNameList);
+				}
 			} else{
-				processTable = getFilteredTableList(allTableNameList);
+				logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
+						ALERT_SEVERITY.BLOCKER,"\"db sql query is null\" database={} ",
+						jdbcInputDescriptor.getDatabaseName());
+				throw new JdbcHandlerException("Unable to process records from table "+jdbcInputDescriptor.getDatabaseName()+"");
 			}
 		}
 		if(!allTableMap.containsKey(jdbcInputDescriptor.getInputValue())){
 			if (!StringUtils.isEmpty(dbSql)) {
 				allTableNameList = getTableNameList(dbSql);
 				allTableMap.put(jdbcInputDescriptor.getInputValue(), allTableNameList);
-			}
-			//includeFilter is not specified, process all tables in databases
-			if(jdbcInputDescriptor.getIncludeFilter().isEmpty()){
-				processTable = allTableNameList;
+				//includeFilter is not specified, process all tables in databases
+				if(jdbcInputDescriptor.getIncludeFilter().isEmpty()){
+					processTable = allTableNameList;
+				} else{
+					processTable = getFilteredTableList(allTableNameList);
+				}
 			} else{
-				processTable = getFilteredTableList(allTableNameList);
+				logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
+						ALERT_SEVERITY.BLOCKER,"\"db sql query is null\" database={} ",
+						jdbcInputDescriptor.getDatabaseName());
+				throw new JdbcHandlerException("Unable to process records from table "+jdbcInputDescriptor.getDatabaseName()+"");
 			}
 		}
 		
 		return Status.READY;
 	}
 	
-	private List<String> getFilteredTableList(List<String> tableList) throws HandlerException{
+	/**
+	 * This method is filtering out the process table from the all table list
+	 * @param tableList
+	 * @return processTableList
+	 */
+	private List<String> getFilteredTableList(List<String> tableList) {
 		String regex = jdbcInputDescriptor.getIncludeFilter();
 		Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
 		List<String> processTableList = new ArrayList<String>();
@@ -178,20 +198,28 @@ public class JdbcDBSchemaReaderHandler extends AbstractHandler {
 		return processTableList;
 	}
 	
-	public Status doProcess() throws JdbcHandlerException, HandlerException {
+	/**
+	 * This doProcess() is sending one table from table list to next handler
+	 * if no table needs to process, return BACKOFF, else return READY
+	 * @return Status
+	 */
+	private Status doProcess() {
 		currentTableToProcess = getNextTableToProcess(processTable);
 		if(currentTableToProcess == null){
 			logger.info("no table need to process", "return BACKOFF");
 			return Status.BACKOFF;
 		}
-		jdbcInputDescriptor.setEntityName(currentTableToProcess);
-		jdbcInputDescriptor.setTargetEntityName(currentTableToProcess);	
 		ActionEvent actionEvent = new ActionEvent();
-		actionEvent.getHeaders().put(ActionEventHeaderConstants.TARGET_ENTITY_NAME, currentTableToProcess);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.TARGET_ENTITY_NAME, currentTableToProcess.toLowerCase());
 		getHandlerContext().createSingleItemEventList(actionEvent);
 		return Status.READY;
 	}
-		
+	
+	/**
+	 * This method is getting a table from table list
+	 * @param processTableList
+	 * @return currentTable if not null, else return null
+	 */
 	private String getNextTableToProcess(List<String> processTableList){
 		String currentTable = "";
 		if(processTableList.size()>0){

@@ -34,7 +34,7 @@ public class JdbcMetadata implements ResultSetExtractor<Metasegment> {
 			LoggerFactory.getLogger(JdbcMetadata.class));
 	@Autowired
 	private JdbcInputDescriptor jdbcInputDescriptor;
-
+	
 	private Metasegment metasegment;
 	private String tableName;
 
@@ -71,7 +71,7 @@ public class JdbcMetadata implements ResultSetExtractor<Metasegment> {
 			Set<Entitee> entitySet = new HashSet<Entitee>();
 			Entitee entities = new Entitee();
 			entities.setEntityName(tableName);
-			entities.setEntityLocation("/data/rdbms/all/stbcatalog");
+			entities.setEntityLocation(jdbcInputDescriptor.getEntityLocation());
 			entities.setDescription("HDFS LOCATION");
 			entities.setVersion(1.0);
 			entities.setAttributes(AttributesSet);

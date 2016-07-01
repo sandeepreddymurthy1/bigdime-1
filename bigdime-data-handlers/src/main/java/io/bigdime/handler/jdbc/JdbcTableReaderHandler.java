@@ -3,10 +3,12 @@
  */
 package io.bigdime.handler.jdbc;
 
-import java.io.Serializable;
+//import java.io.Serializable;
 import java.sql.Timestamp;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -40,12 +42,14 @@ import io.bigdime.core.runtimeinfo.RuntimeInfoStoreException;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.SerializationUtils;
+//import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Preconditions;
 
 
 /**
@@ -61,7 +65,7 @@ import org.springframework.stereotype.Component;
 public class JdbcTableReaderHandler extends AbstractHandler {
 	
 	private static final AdaptorLogger logger = new AdaptorLogger(
-			LoggerFactory.getLogger(JdbcDBSchemaReaderHandler.class));
+			LoggerFactory.getLogger(JdbcTableReaderHandler.class));
 	
 	@Autowired
 	private JdbcInputDescriptor jdbcInputDescriptor;
@@ -79,11 +83,13 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	private String splitSize;
 	private static String initialRuntimeDateEntry="1900-01-01 00:00:00";
 	private JdbcTemplate jdbcTemplate;
+	private RuntimeInfo runtimeInfo;
 	private String handlerPhase = null;
 	private String jsonStr = null;
 	private String columnValue;
 	private String highestIncrementalColumnValue;
 	private String processTableSql;
+	private Boolean processDirty = false;
 	@Autowired
 	private JdbcMetadataManagement jdbcMetadataManagment;
 	
@@ -94,7 +100,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.info(handlerPhase,
 				"handler_id={} handler_name={} properties={}", getId(),
 				getName(), getPropertyMap());
-
+		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
 		@SuppressWarnings("unchecked")
 		Entry<String, String> srcDescInputs = (Entry<String, String>) getPropertyMap()
 				.get(AdaptorConfigConstants.SourceConfigConstants.SRC_DESC);
@@ -106,9 +112,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 				"entity:fileNamePattern={} input_field_name={}",
 				srcDescInputs.getKey(), srcDescInputs.getValue());
 		jsonStr = srcDescInputs.getKey();
-
 		try {
-
 			jdbcInputDescriptor.parseDescriptor(jsonStr);
 		} catch (IllegalArgumentException ex) {
 			throw new InvalidValueConfigurationException(
@@ -118,10 +122,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	
 	@Override
 	public Status process() throws HandlerException {
+		handlerPhase = "processing Jdbc Table Reader Handler";
 		logger.info(handlerPhase,
 				"handler_id={} handler_name={} properties={}", getId(),
 				getName(), getPropertyMap());
 		Status adaptorThreadStatus = null;
+		incrementInvocationCount();
 		try {
 			adaptorThreadStatus = preProcess();
 			return adaptorThreadStatus;
@@ -130,12 +136,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 					ALERT_SEVERITY.BLOCKER,
 					"\"jdbcAdaptor RuntimeInfoStore exception\"  TableName = {} error={}",
 					jdbcInputDescriptor.getEntityName(), e.toString());
-			throw new HandlerException("Unable to process records from table", e);
+			throw new HandlerException("Unable to process records from table "+jdbcInputDescriptor.getEntityName()+"", e);
 		} catch (JdbcHandlerException e) {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
 					ALERT_SEVERITY.BLOCKER,"\"jdbcAdaptor jdbcHandler exception\" TableName={} error={}",
 					jdbcInputDescriptor.getEntityName(), e.toString());
-			throw new HandlerException("Unable to process records from table", e);
+			throw new HandlerException("Unable to process records from table "+jdbcInputDescriptor.getEntityName()+"", e);
 		}
 	}
 	
@@ -143,13 +149,25 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		this.lazyConnectionDataSourceProxy = dataSource;
 	}
 	
-	public Status preProcess() throws HandlerException, RuntimeInfoStoreException, JdbcHandlerException {
-		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
-		List<ActionEvent> actionEvents = getHandlerContext().getEventList();
-		for(ActionEvent actionEvent : actionEvents){
-			String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.TARGET_ENTITY_NAME);
-			jdbcInputDescriptor.setTargetEntityName(entityName);
-			jdbcInputDescriptor.setEntityName(entityName);
+	private boolean isFirstRun() {
+		return getInvocationCount() == 1;
+	}
+	
+	private Status preProcess() throws RuntimeInfoStoreException, JdbcHandlerException {
+		List<ActionEvent> actionEvents = null;
+		if(jdbcInputDescriptor.getEntityName() == null && jdbcInputDescriptor.getTargetEntityName() == null){
+			try{
+				actionEvents = getHandlerContext().getEventList();
+				Preconditions.checkNotNull(actionEvents, "ActionEvents can't be null");
+				Preconditions.checkArgument(!actionEvents.isEmpty(), "ActionEvents can't be empty");
+			} catch(Exception e) {
+				throw new JdbcHandlerException("ActionEvents cannot be null or empty");
+			}
+			for(ActionEvent actionEvent : actionEvents){
+				String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.TARGET_ENTITY_NAME);
+				jdbcInputDescriptor.setTargetEntityName(entityName);
+				jdbcInputDescriptor.setEntityName(entityName);
+			}
 		}
 		jdbcInputDescriptor.setTargetDBName(hiveDBName);
 		processTableSql = jdbcInputDescriptor.formatProcessTableQuery(jdbcInputDescriptor.getDatabaseName(), jdbcInputDescriptor.getEntityName(), driverName);
@@ -166,7 +184,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 							"ColumnList={}", jdbcInputDescriptor.getColumnList());
 				
 				if (jdbcInputDescriptor.getColumnList().size() == JdbcConstants.INTEGER_CONSTANT_ZERO)
-					throw new HandlerException(
+					throw new JdbcHandlerException(
 						"Unable to retrieve the column list for the table Name = "
 									+ jdbcInputDescriptor.getEntityName());
 				
@@ -174,31 +192,33 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 				// if the incrementedBy column doesn't exist in the table..
 				if (jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO
 						&& jdbcInputDescriptor.getIncrementedColumnType() == null) {
-					throw new HandlerException(
+					throw new JdbcHandlerException(
 							"IncrementedBy Value doesn't exist in the table column list");
 				}
 				// Put into Metadata...
 				metadataStore.put(metasegment);
 			} catch (MetadataAccessException e) {
-				throw new HandlerException(
+				throw new JdbcHandlerException(
 					"Unable to put metadata to Metastore for the table Name = "
 								+ jdbcInputDescriptor.getEntityName());
 			}
+		} else{
+			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
+					ALERT_SEVERITY.BLOCKER,"\"processed table query is null\" TableName={} ",
+					jdbcInputDescriptor.getEntityName());
+			throw new JdbcHandlerException("Unable to process records from table "+jdbcInputDescriptor.getEntityName());
 		}
 		boolean processFlag = false;
 		// Check if Runtime details Exists..
-		if (getOneQueuedRuntimeInfo(runTimeInfoStore,
-				jdbcInputDescriptor.getEntityName()) == null) {
+		if (getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName()) == null) {
 			// Insert into Runtime Data...
-			if (jdbcInputDescriptor.getIncrementedBy() != null
-					&& jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO) {
+			if (jdbcInputDescriptor.getIncrementedBy() != null && driverName
+					.equalsIgnoreCase(JdbcConstants.ORACLE_DRIVER_NAME)) {
 				HashMap<String, String> properties = new HashMap<String, String>();
-				if (driverName
-						.equalsIgnoreCase(JdbcConstants.ORACLE_DRIVER_NAME)
-						&& (jdbcInputDescriptor.getIncrementedColumnType()
+				if (jdbcInputDescriptor.getIncrementedColumnType()
 								.equalsIgnoreCase("DATE") || jdbcInputDescriptor
 								.getIncrementedColumnType().equalsIgnoreCase(
-										"TIMESTAMP"))) {
+										"TIMESTAMP")) {
 					properties.put(jdbcInputDescriptor.getIncrementedBy(),
 							initialRuntimeDateEntry);
 				} else {
@@ -217,12 +237,13 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						jdbcInputDescriptor.getIncrementedBy(), columnValue,
 						runtimeInsertionFlag);
 			}
-			processFlag = processRecords();
+			runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
+			processFlag = processRecords(runtimeInfo);
 		} else {
 			logger.debug(
 					"Jdbc Table Reader Handler processing an existing table ",
 					"tableName={}", jdbcInputDescriptor.getEntityName());
-			processFlag = processRecords();
+			processFlag = processRecords(runtimeInfo);
 		}
 		if (processFlag) {
 			return Status.CALLBACK;
@@ -236,10 +257,9 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 * 
 	 * @return
 	 */
-	public boolean processRecords() {
+	private boolean processRecords(RuntimeInfo rti) {
 		boolean moreRecordsExists = true;
-		jdbcTemplate = new JdbcTemplate(lazyConnectionDataSourceProxy);
-		String repoColumnValue = getCurrentColumnValue();
+		String repoColumnValue = getCurrentColumnValue(rti);
 		logger.debug("Jdbc Table Reader Handler in process records",
 				"Latest Incremented Repository Value= {}", repoColumnValue);
 		if (repoColumnValue != null)
@@ -247,7 +267,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.info("Jdbc Table Reader Handler in processing ",
 				"actual processTableSql={} latestIncrementalValue={}", processTableSql, columnValue);
 		List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
-		jdbcTemplate.setQueryTimeout(120);
+		jdbcTemplate.setQueryTimeout(180);
 		long startTime = System.currentTimeMillis();
 		if (processTableSql.contains(JdbcConstants.QUERY_PARAMETER)) {
 			if (columnValue != null) {
@@ -282,6 +302,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.debug("Jdbc Table Reader Handler during processing records","columns in the tableName={} are {}",
 				jdbcInputDescriptor.getEntityName(),jdbcInputDescriptor.getColumnList());
 
+		long processStartTime = System.currentTimeMillis();
 		// Process each row to HDFS...
 		if (rows.size() > 0)
 			processEachRecord(rows);
@@ -311,13 +332,18 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						"\"jdbcAdaptor RuntimeInfo Update exception\" TableName={} error={}",
 						jdbcInputDescriptor.getEntityName(), e.toString());
 			}
-			logger.info("Jdbc Table Reader Handler saved highest incremental value",
+			logger.info("Jdbc Table Reader Handler saved highest incremental value ="+highestIncrementalColumnValue+"",
 					"incremental column saved status(true/false)? {}", highestValueStatus);
 			columnValue = highestIncrementalColumnValue;
 		}
 		if (jdbcInputDescriptor.getIncrementedBy().length() == JdbcConstants.INTEGER_CONSTANT_ZERO
-				|| jdbcInputDescriptor.getIncrementedBy() == null)
+				|| jdbcInputDescriptor.getIncrementedBy() == null){
 			moreRecordsExists = false;
+		}
+		
+		long processEndTime = System.currentTimeMillis();
+		logger.info("Total time taken for data processing" , "for columnValue = {} finished in {} milliseconds", columnValue, (processEndTime-processStartTime));
+		
 		return moreRecordsExists;
 	}
 
@@ -329,23 +355,9 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	private void processEachRecord(List<Map<String, Object>> rows) {
         String maxValue = null;
         List<Map<String, Object>> maxList = new ArrayList<Map<String, Object>>();
-		List<ActionEvent> actionEvents = new ArrayList<ActionEvent>();
-		for (Map<String, Object> row : rows) {
-			// Preparing data to hand over to DataCleansing Handler
-			byte[] body = SerializationUtils.serialize((Serializable) row);
-			if (body != null) {
-				
-				ActionEvent actionEvent = new ActionEvent();
-				actionEvent.setBody(body);
-				actionEvents.add(actionEvent);
-
-				highestIncrementalColumnValue = row.get(jdbcInputDescriptor
-						.getColumnList().get(
-								jdbcInputDescriptor.getColumnList().indexOf(
-										jdbcInputDescriptor.getColumnName())))
-						+ "";
-			}
-		}
+		long startTime = System.currentTimeMillis();
+		highestIncrementalColumnValue = rows.get(rows.size()-1).get(jdbcInputDescriptor.getColumnList()
+					.get(jdbcInputDescriptor.getColumnList().indexOf(jdbcInputDescriptor.getColumnName())))+ "";
 		for(int i = rows.size()-1; i>=0; i--){
 			maxValue = rows.get(i).get(jdbcInputDescriptor
 					.getColumnList().get(
@@ -354,16 +366,23 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 					+ "";
 			if(maxValue.equals(highestIncrementalColumnValue)){
 				maxList.add(rows.get(i));
+			} else{ 
+				break;
 			}
 		}
-		List<ActionEvent> ignoredActionEventList = getIgnoredBatchRecords(processTableSql.replaceAll(">","="),maxList,highestIncrementalColumnValue);
-		if(ignoredActionEventList!=null && ignoredActionEventList.size() > 0){
-  		  actionEvents.addAll(ignoredActionEventList);
-  	  	}
-		if (actionEvents.size() > 0){
-			getHandlerContext().setEventList(actionEvents);
-			processIt(actionEvents);
+		System.out.println("h: " + highestIncrementalColumnValue);
+		List<Map<String, Object>> ignoredRowsList = getIgnoredBatchRecords(processTableSql.replaceAll(">","="), maxList, highestIncrementalColumnValue);
+		if(ignoredRowsList != null && ignoredRowsList.size() > 0){
+			rows.addAll(ignoredRowsList);
 		}
+		if(rows.size() > 0){
+			logger.info("Processing event list each time" , "rows.size ={} for highestIncrementalColumnValue={}", 
+					rows.size(), highestIncrementalColumnValue);
+			processIt(rows);
+		}
+		long endTime = System.currentTimeMillis();
+		logger.info("Total time taken for data cleansing", "for highestIncrementalColumnValue={} finished in {} milliseconds", highestIncrementalColumnValue, (endTime-startTime));
+		
 	}
 	
 	/**
@@ -373,111 +392,101 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 * @return
 	 * @throws HandlerException
 	 */
-	@SuppressWarnings("unchecked")
-	private void processIt(List<ActionEvent> actionEvents){
+	private void processIt(List<Map<String, Object>> rowsToClean){
 		long startTime = System.currentTimeMillis();
-		while (!actionEvents.isEmpty()) {
-			ActionEvent actionEvent = actionEvents.remove(0);
-			
-			byte[] data = actionEvent.getBody();
-			StringBuffer sbFormattedRowContent = new StringBuffer();
-			StringBuffer sbHiveNonPartitionColumns = new StringBuffer();
+		logger.info("processIt start processing action events", "highestIncrementalColumnValue = {}, actionEvents.size ={}", highestIncrementalColumnValue, rowsToClean.size());
+		Pattern p = Pattern.compile(JdbcConstants.FIELD_CHARACTERS_TO_REPLACE);
+		while (!rowsToClean.isEmpty()) {
+			Map<String, Object> row = rowsToClean.remove(0);
+			StringBuilder sbFormattedRowContent = new StringBuilder();
+			StringBuilder sbHiveNonPartitionColumns = new StringBuilder();
 			String datePartition = null;
-			if(data.length>0){
-				Map<String, Object> row = (Map<String, Object>) SerializationUtils
-					.deserialize(data);
-	
-				if (row != null) {
-					for (int columnNamesListCount = 0; columnNamesListCount < jdbcInputDescriptor
-						.getColumnList().size(); columnNamesListCount++) {
-						// Ensure each field doesn't have rowlineDelimeter
-						Pattern p = Pattern.compile(JdbcConstants.FIELD_CHARACTERS_TO_REPLACE);
-						StringBuffer sbfMatcher = new StringBuffer();
-					
-						Matcher m = p.matcher(sbfMatcher.append(row.get(jdbcInputDescriptor.getColumnList().
-										get(columnNamesListCount))));
-						StringBuffer sbFormattedField = new StringBuffer();
-						while (m.find()) {
-							m.appendReplacement(sbFormattedField, JdbcConstants.FIELD_CHARACTERS_REPLACE_BY);
-						}
-						m.appendTail(sbFormattedField);
-						sbFormattedRowContent.append(sbFormattedField);
-						if (columnNamesListCount != jdbcInputDescriptor.getColumnList().size() - 1)
+			if (row != null) {		
+				for (int columnNamesListCount = 0; columnNamesListCount < jdbcInputDescriptor
+					.getColumnList().size(); columnNamesListCount++) {
+					// Ensure each field doesn't have rowlineDelimeter
+					StringBuffer sbfMatcher = new StringBuffer();					
+					Matcher m = p.matcher(sbfMatcher.append(row.get(jdbcInputDescriptor.getColumnList().
+									get(columnNamesListCount))));
+					StringBuffer sbFormattedField = new StringBuffer();
+					while (m.find()) {
+						m.appendReplacement(sbFormattedField, JdbcConstants.FIELD_CHARACTERS_REPLACE_BY);
+					}
+					m.appendTail(sbFormattedField);
+					sbFormattedRowContent.append(sbFormattedField);
+					if (columnNamesListCount != jdbcInputDescriptor.getColumnList().size() - 1)
 							sbFormattedRowContent.append(jdbcInputDescriptor.getFieldDelimeter());
 	
-						if (jdbcInputDescriptor.getIncrementedColumnType().indexOf("DATE") >= JdbcConstants.INTEGER_CONSTANT_ZERO
+					if (jdbcInputDescriptor.getIncrementedColumnType().indexOf("DATE") >= JdbcConstants.INTEGER_CONSTANT_ZERO
 							    || jdbcInputDescriptor.getIncrementedColumnType().indexOf("TIMESTAMP") >= JdbcConstants.INTEGER_CONSTANT_ZERO) {
 	
-							if (jdbcInputDescriptor.getColumnList().get(columnNamesListCount)
+						if (jdbcInputDescriptor.getColumnList().get(columnNamesListCount)
 								.equalsIgnoreCase(jdbcInputDescriptor.getIncrementedBy())) {
 							
-								datePartition = Timestamp.valueOf(row
-										.get(jdbcInputDescriptor.getColumnList().get(columnNamesListCount))
-										.toString()).toString().substring(0,10).replaceAll("-","");
-							}
+							datePartition = Timestamp.valueOf(row
+									.get(jdbcInputDescriptor.getColumnList().get(columnNamesListCount))
+									.toString()).toString().substring(0,10).replaceAll("-","");
 						}
 					}
+				}
+				//Each Row is delimited by "\n"
+				sbFormattedRowContent.append(jdbcInputDescriptor.getRowDelimeter());
+				ActionEvent actionEvent = new ActionEvent();
+				actionEvent.setBody(sbFormattedRowContent.toString().getBytes());
 	
-					//Each Row is delimited by "\n"
 				
-					sbFormattedRowContent.append(jdbcInputDescriptor.getRowDelimeter());
-					actionEvent.setBody(sbFormattedRowContent.toString().getBytes());
-	
-				
-					sbHiveNonPartitionColumns.append(ActionEventHeaderConstants.ENTITY_NAME);
-					actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME.toUpperCase(),
+				sbHiveNonPartitionColumns.append(ActionEventHeaderConstants.ENTITY_NAME);
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME,
 						             jdbcInputDescriptor.getTargetEntityName());
 				
-					actionEvent.getHeaders().put(ActionEventHeaderConstants.LINES_TERMINATED_BY,
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.LINES_TERMINATED_BY,
 									 jdbcInputDescriptor.getRowDelimeter());
 				
-					actionEvent.getHeaders().put(ActionEventHeaderConstants.FIELDS_TERMINATED_BY,
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.FIELDS_TERMINATED_BY,
 									 jdbcInputDescriptor.getFieldDelimeter());
 	
-					// Partition Dates logic..
-					if (jdbcInputDescriptor.getSnapshot() != null
+				// Partition Dates logic..
+				if (jdbcInputDescriptor.getSnapshot() != null
 									  && jdbcInputDescriptor.getSnapshot().equalsIgnoreCase("YES")) {
-						// get current date and format it to string
-						actionEvent.getHeaders().put(ActionEventHeaderConstants.DATE, 
+					// get current date and format it to string
+					actionEvent.getHeaders().put(ActionEventHeaderConstants.DATE, 
 										 dateFormatHolder.get().format(new Date()));
-					} else {
-						if (datePartition != null) {
+				} else {
+					if (datePartition != null) {
 							actionEvent.getHeaders().put(ActionEventHeaderConstants.DATE, datePartition);
-						} else
+					} else
 							actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PARTITION_REQUIRED, "false");
 					
-					}
+				}
 				
-				
-					if (actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME.toUpperCase()) != null)
-						actionEvent.getHeaders().put(ActionEventHeaderConstants.ENTITY_NAME,
-										 actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME.toUpperCase()));
-				
-				
-					if (actionEvent.getHeaders().get(ActionEventHeaderConstants.DATE) != null){
+				if (actionEvent.getHeaders().get(ActionEventHeaderConstants.DATE) != null){
 						actionEvent.getHeaders().put(ActionEventHeaderConstants.INPUT_DESCRIPTOR, 
 										 actionEvent.getHeaders().get(ActionEventHeaderConstants.DATE));
-					} else
-						actionEvent.getHeaders().put(ActionEventHeaderConstants.INPUT_DESCRIPTOR, 
-										 actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME) + JdbcConstants.WITH_NO_PARTITION);
-				    
-					actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_NON_PARTITION_NAMES, 
-						    		 sbHiveNonPartitionColumns.toString());
-					/*
-					 * Check for outputChannel map. get the eventList of channels.
-					 * check the criteria and put the message.
-					 */
-					if (getOutputChannel() != null) {
-						getOutputChannel().put(actionEvent);
-					}
-	
+				} else{
+					actionEvent.getHeaders().put(ActionEventHeaderConstants.INPUT_DESCRIPTOR, 
+										 actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME) +" "+ JdbcConstants.WITH_NO_PARTITION);
+				}  
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_NON_PARTITION_NAMES, 
+					    		 sbHiveNonPartitionColumns.toString());
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.SOURCE_FILE_NAME, jdbcInputDescriptor.getEntityName().toLowerCase());
+				if(processDirty){
+					actionEvent.getHeaders().put(ActionEventHeaderConstants.CLEANUP_REQUIRED, Boolean.toString(processDirty));	
+				}
+				processDirty = false;
+				/*
+				 * Check for outputChannel map. get the eventList of channels.
+				 * check the criteria and put the message.
+				 */
+				if (getOutputChannel() != null) {
+					getOutputChannel().put(actionEvent);
 				}
 			}
+			
 		}
 		long endTime = System.currentTimeMillis();
 	
-		logger.info("Data Cleansing during processing records","Time taken to process action Events is ={} milliseconds",
-										(endTime - startTime));
+		logger.info("Data Cleansing during processing records","Time taken to process action Events for highestIncrementalColumnValue ={} is ={} milliseconds",
+				highestIncrementalColumnValue, (endTime - startTime));
 	}
 	
 	
@@ -491,27 +500,62 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		}
 	};
 	
-	private String getCurrentColumnValue() {
+	private String getCurrentColumnValue(RuntimeInfo runtimeInfo) {
 		String currentIncrementalColumnValue = null;
+			if (runtimeInfo != null){
+				currentIncrementalColumnValue = runtimeInfo.getProperties().get(
+						jdbcInputDescriptor.getIncrementedBy());
+			} else{
+				logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
+						ALERT_SEVERITY.BLOCKER,
+						"\"jdbcAdaptor RuntimeInfo is null\" TableName:{}",
+						jdbcInputDescriptor.getEntityName());
+			}
+		return handleDirtyRecordsConditions(currentIncrementalColumnValue);
+	}
+	
+	private String handleDirtyRecordsConditions(String columnValue) {
 		RuntimeInfo runtimeInfo = null;
-		try {
-			runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
-		} catch (RuntimeInfoStoreException e) {
-			
-			logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
-					ALERT_SEVERITY.BLOCKER,
-					"\"jdbcAdaptor RuntimeInfoStore exception while getting current value\" TableName:{} error={}",
-					jdbcInputDescriptor.getEntityName(),e.toString());
+		String updateColumnValue = null;
+		if(isFirstRun() && !columnValue.equalsIgnoreCase(initialRuntimeDateEntry)){
+			try {
+				runtimeInfo = runTimeInfoStore.get(AdaptorConfig.getInstance().getName(), jdbcInputDescriptor.getEntityName(), columnValue.replaceAll("-", ""));
+				if(runtimeInfo == null){
+					RuntimeInfo rti = runTimeInfoStore.getLatest(AdaptorConfig.getInstance().getName(), jdbcInputDescriptor.getEntityName());
+					if(!rti.getInputDescriptor().equalsIgnoreCase("DATE")){
+						updateColumnValue = rti.getInputDescriptor();
+						Date d = new SimpleDateFormat("yyyyMMdd").parse(updateColumnValue);
+						updateColumnValue = new SimpleDateFormat("yyyy-MM-dd").format(d);
+						columnValue = updateColumnValue;
+					} else{
+						columnValue = initialRuntimeDateEntry;
+						processDirty = true;
+						return columnValue;
+					}
+				} 
+				Date date = new SimpleDateFormat("yyyy-MM-dd").parse(columnValue);
+				logger.info("processing dirty records", "dirty record column value={}", columnValue);
+				processDirty = true;
+				Calendar calendar = Calendar.getInstance();
+				calendar.setTime(date);
+				calendar.add(Calendar.SECOND, -1);
+				columnValue = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.s").format(calendar.getTime());	
+			} 
+			catch (ParseException e) {
+				logger.warn("ParseException, cannot parse the value= " +columnValue, "error={}", e.toString());
+			} catch (RuntimeInfoStoreException e) {
+				logger.warn("RuntimeInfoStoreException for = " +columnValue, "error={}", e.toString());
+			}
+		} else {
+			logger.info("processing a clean record", "no dirty record found for table {}", jdbcInputDescriptor.getEntityName());
+			processDirty = false;
 		}
-		if (runtimeInfo != null)
-			currentIncrementalColumnValue = runtimeInfo.getProperties().get(
-					jdbcInputDescriptor.getIncrementedBy());
-		return currentIncrementalColumnValue;
+		return columnValue;
 	}
 	
 	@SuppressWarnings("unchecked")
-	public List<ActionEvent> getIgnoredBatchRecords(String ignoredRowsSql,List<Map<String,Object>> list, String conditionValue){
-		List<ActionEvent> ignoredActionEvents = new ArrayList<ActionEvent>();
+	private List<Map<String, Object>> getIgnoredBatchRecords(String ignoredRowsSql,List<Map<String,Object>> list, String conditionValue){
+		List<Map<String, Object>> ignoredRowsList = new ArrayList<Map<String, Object>>();
 		List<Map<String, Object>> ignoredRows = new ArrayList<Map<String, Object>>();
 		if (ignoredRowsSql.contains(JdbcConstants.QUERY_PARAMETER)) {
 			if (conditionValue != null) {
@@ -539,19 +583,18 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 			List<Map<String, Object>> diffList = (List<Map<String, Object>>) CollectionUtils.disjunction(list, ignoredRows);
 			if(diffList.size() > JdbcConstants.INTEGER_CONSTANT_ZERO){
 				for(Map<String, Object> ignoredRow: diffList){
-					byte[] body = SerializationUtils.serialize((Serializable) ignoredRow);
-					if (body != null) {
-						ActionEvent actionEvent = new ActionEvent();
-						actionEvent.setBody(body);
-						ignoredActionEvents.add(actionEvent);
-					}
+					ignoredRowsList.add(ignoredRow);
 				}
 			}
+			logger.info("Jdbc Table Reader Handler during Ignored processing records", "Found {} ignored records", ignoredRowsList.size());
 		}else {
 			logger.info("Jdbc Table Reader Handler during Ignored processing records",
 					"No more rows found for query={}", ignoredRowsSql);
 		}
-		if(ignoredActionEvents.size() > 0) return ignoredActionEvents;
-		return null;
+		if(ignoredRowsList.size() > 0) {
+			return ignoredRowsList;
+		} else{
+			return ignoredRowsList;
+		}
 	}
 }

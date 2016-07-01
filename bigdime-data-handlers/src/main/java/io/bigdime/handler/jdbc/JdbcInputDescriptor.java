@@ -35,7 +35,6 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 	private String query;
 	private String inputType;
 	private String inputValue;
-//	private int instances;
 	private String includeFilter;
 	private String excludeFilter;
 	private String entityName;
@@ -49,6 +48,8 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 	private String fieldDelimeter;
 	private String rowDelimeter;
 	private String snapshot;
+	@Value("${hdfs_base}")
+	private String entityLocation;
 	
 	private List<String> columnList = new ArrayList<String>();
 	
@@ -74,39 +75,38 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 		try {
 			JSONObject jsonObject = new JSONObject(jsonStr);
 		
-		inputType = jsonObject.getString("inputType");
-		inputValue = jsonObject.getString("inputValue");
-		incrementedBy = jsonObject.getString("incrementedBy");
-//		instances = jsonObject.getInt("instances");
-		if(inputType.equalsIgnoreCase("database")){
+		inputType = jsonObject.getString(JdbcConstants.INPUT_TYPE);
+		inputValue = jsonObject.getString(JdbcConstants.INPUT_VALUE);
+		incrementedBy = jsonObject.getString(JdbcConstants.INCREMENTED_BY);
+		if(inputType.equalsIgnoreCase(JdbcConstants.DB_FLAG)){
 			databaseName = inputValue;
-			if(!jsonObject.isNull("include"))
-				includeFilter = jsonObject.getString("include");
-			if(!jsonObject.isNull("exclude"))
-				excludeFilter = jsonObject.getString("exclude");
+			if(!jsonObject.isNull(JdbcConstants.INCLUDE_FILTER))
+				includeFilter = jsonObject.getString(JdbcConstants.INCLUDE_FILTER);
+			if(!jsonObject.isNull(JdbcConstants.EXCLUDE_FILTER))
+				excludeFilter = jsonObject.getString(JdbcConstants.EXCLUDE_FILTER);
 		}
-		if (!jsonObject.isNull("partitionedColumns"))
-			partition = jsonObject.getString("partitionedColumns");
+		if (!jsonObject.isNull(JdbcConstants.PARTITIONED_COLUMNS))
+			partition = jsonObject.getString(JdbcConstants.PARTITIONED_COLUMNS);
 		if(partition == null || partition.length() ==0)
 			partition = incrementedBy;
-		if (!jsonObject.isNull("fieldDelimeter"))
-			fieldDelimeter = jsonObject.getString("rowDelimeter");
+		if (!jsonObject.isNull(JdbcConstants.FIELD_DELIMETER))
+			fieldDelimeter = jsonObject.getString(JdbcConstants.FIELD_DELIMETER);
 		if (fieldDelimeter == null || fieldDelimeter.length() == 0)
 			fieldDelimeter = JdbcConstants.CONTROL_A_DELIMETER;
-		if (!jsonObject.isNull("rowDelimeter"))
-			rowDelimeter = jsonObject.getString("rowDelimeter");
+		if (!jsonObject.isNull(JdbcConstants.ROW_DELIMETER))
+			rowDelimeter = jsonObject.getString(JdbcConstants.ROW_DELIMETER);
 		if (rowDelimeter == null || rowDelimeter.length() == 0)
 			rowDelimeter = JdbcConstants.NEW_LINE_DELIMETER;
-		if(inputType.equalsIgnoreCase("table")){
+		if(inputType.equalsIgnoreCase(JdbcConstants.TABLE_FLAG)){
 			entityName = inputValue;
-			if (!jsonObject.isNull("targetTableName"))
-				targetEntityName = jsonObject.getString("targetTableName");
+			if (!jsonObject.isNull(JdbcConstants.TARGET_TABLE_NAME))
+				targetEntityName = jsonObject.getString(JdbcConstants.TARGET_TABLE_NAME);
 			if (targetEntityName == null || targetEntityName.length() == 0)
 				targetEntityName = entityName;
-			databaseName = jsonObject.getString("databaseName");
+			databaseName = jsonObject.getString(JdbcConstants.DB_FLAG);
 		}
-		if (!jsonObject.isNull("snapshot"))
-			snapshot = jsonObject.getString("snapshot");
+		if (!jsonObject.isNull(JdbcConstants.SNAPSHOT_FLAG))
+			snapshot = jsonObject.getString(JdbcConstants.SNAPSHOT_FLAG);
 		} catch (JSONException e) {
 			logger.warn("Json Exception", "unable to parse descriptor jsonStr={}", jsonStr);
 		}
@@ -116,52 +116,48 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 	}
 	
 	public String formatQuery(String inputType, String inputValue, String driverName) throws JdbcHandlerException {
-
-		if(inputType.equalsIgnoreCase("database")){
-			if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER)> JdbcConstants.INTEGER_CONSTANT_ZERO){
-				if(!inputValue.isEmpty()){
-					query = "SELECT table_name FROM all_tables WHERE owner ='"+inputValue+"'";
-				} else {
-					query = "SELECT table_name FROM all_tables";
-				}
+		if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER)> JdbcConstants.INTEGER_CONSTANT_ZERO){
+			if(!inputValue.isEmpty()){
+				query = JdbcConstants.SELECT_SCHEMA_QUERY +" WHERE owner ='"+inputValue+"'";
+			} else {
+				query = JdbcConstants.SELECT_SCHEMA_QUERY;
 			}
 		}
-		if(inputType.equalsIgnoreCase("table")){
-			if(!incrementedBy.isEmpty()){
-				if(!databaseName.isEmpty()){
-					query = "SELECT * FROM "+databaseName+"."+inputValue+" WHERE "+incrementedBy+" > "+ JdbcConstants.QUERY_PARAMETER +" ORDER BY "+incrementedBy+" ASC";
-				} else{
-					query = "SELECT * FROM "+inputValue+" WHERE "+incrementedBy+" > "+ JdbcConstants.QUERY_PARAMETER +" ORDER BY "+incrementedBy+" ASC";
-				}
-			} else{
-				throw new JdbcHandlerException("incrementedBy value cannot be null");
-			}
-			if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
-				query = "SELECT t.* FROM ("+query+") t WHERE ROWNUM <"+splitSize;
-			}
-		}
-		if(inputType.equalsIgnoreCase("sqlQuery")){
-			query = inputValue;
-			if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
-				query = "SELECT t.* FROM ("+query+") t WHERE ROWNUM <"+splitSize;
-			}
-		}
+		
 		return query;
 
 	}
 	
 	public String formatProcessTableQuery(String dbname, String tableName, String driverName) throws JdbcHandlerException{
 		if(!incrementedBy.isEmpty()){
-			if(!dbname.isEmpty()){
-				query = "SELECT * FROM "+dbname+"."+tableName+" WHERE "+incrementedBy+" > "+ JdbcConstants.QUERY_PARAMETER +" ORDER BY "+incrementedBy+" ASC";
-			} else{
-				query = "SELECT * FROM "+tableName+" WHERE "+incrementedBy+" > "+ JdbcConstants.QUERY_PARAMETER +" ORDER BY "+incrementedBy+" ASC";
+			if(inputType.equalsIgnoreCase(JdbcConstants.DB_FLAG)){
+				if(!dbname.isEmpty()){
+					query = JdbcConstants.SELECT_FROM + dbname+"."+ tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;
+				} else{
+					query = JdbcConstants.SELECT_FROM + tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;
+				}
+				if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
+					query = JdbcConstants.SELECT_T_FROM + query + JdbcConstants.WHERE_ROWNUM + splitSize;
+				}
+			}
+			if(inputType.equalsIgnoreCase(JdbcConstants.TABLE_FLAG)){
+				if(!databaseName.isEmpty()){
+					query = JdbcConstants.SELECT_FROM + dbname + "." + tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;
+				} else{
+					query = JdbcConstants.SELECT_FROM + tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;
+				}
+				if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
+					query = JdbcConstants.SELECT_T_FROM + query + JdbcConstants.WHERE_ROWNUM + splitSize;
+				}
+			}
+			if(inputType.equalsIgnoreCase(JdbcConstants.QUERY_FLAG)){
+				query = inputValue;
+				if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
+					query = JdbcConstants.SELECT_T_FROM + query + JdbcConstants.WHERE_ROWNUM + splitSize;
+				}
 			}
 		} else{
 			throw new JdbcHandlerException("incrementedBy value cannot be null");
-		}
-		if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER) > JdbcConstants.INTEGER_CONSTANT_ZERO && Integer.parseInt(splitSize) > JdbcConstants.INTEGER_CONSTANT_ZERO) {
-			query = "SELECT t.* FROM ("+query+") t WHERE ROWNUM <"+splitSize;
 		}
 		return query;
 	}
@@ -189,14 +185,6 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 	public void setInputValue(String inputValue) {
 		this.inputValue = inputValue;
 	}
-
-//	public int getInstances() {
-//		return instances;
-//	}
-//
-//	public void setInstances(int instances) {
-//		this.instances = instances;
-//	}
 
 	public String getIncludeFilter() {
 		return includeFilter;
@@ -302,6 +290,14 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 	public void setSnapshot(String snapshot) {
 		this.snapshot = snapshot;
 	}
+
+	public String getEntityLocation() {
+		if(entityLocation.startsWith("/webhdfs")){
+			entityLocation = entityLocation.substring(entityLocation.indexOf("v1")+2);
+		}
+		return entityLocation;
+	}
+
 
 	
 
