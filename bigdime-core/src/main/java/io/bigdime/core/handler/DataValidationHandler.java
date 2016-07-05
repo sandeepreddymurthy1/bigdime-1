@@ -59,7 +59,7 @@ public class DataValidationHandler extends AbstractHandler {
 	private String dfsNameService;
 	private String dfsNameNode1;
 	private String dfsNameNode2;
-	
+
 	@Autowired
 	private RuntimeInfoStore<RuntimeInfo> runtimeInfoStore;
 
@@ -80,20 +80,14 @@ public class DataValidationHandler extends AbstractHandler {
 			logger.debug("building validation handler", "validation_type=\"{}\"", type);
 			validators.add(validatorFactory.getValidator(type.trim()));
 		}
-		hiveHostName = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.HIVE_HOST);
-		hivePort = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.HIVE_PORT);
-		haEnabled = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.HA_ENABLED);
+		hiveHostName = (String) getPropertyMap().get(ValidationHandlerConfigConstants.HIVE_HOST);
+		hivePort = (String) getPropertyMap().get(ValidationHandlerConfigConstants.HIVE_PORT);
+		haEnabled = (String) getPropertyMap().get(ValidationHandlerConfigConstants.HA_ENABLED);
 		hiveProxyProvider = (String) getPropertyMap()
 				.get(ValidationHandlerConfigConstants.DFS_CLIENT_FAILOVER_PROVIDER);
-		dfsNameService = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.DFS_NAME_SERVICES);
-		dfsNameNode1 = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1);
-		dfsNameNode2 = (String) getPropertyMap()
-				.get(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2);
+		dfsNameService = (String) getPropertyMap().get(ValidationHandlerConfigConstants.DFS_NAME_SERVICES);
+		dfsNameNode1 = (String) getPropertyMap().get(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1);
+		dfsNameNode2 = (String) getPropertyMap().get(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2);
 	}
 
 	@Override
@@ -104,15 +98,18 @@ public class DataValidationHandler extends AbstractHandler {
 		logger.debug("DataValidationHandler processing event", "actionEvents.size=\"{}\"", actionEvents.size());
 		Preconditions.checkArgument(!actionEvents.isEmpty(), "eventList in HandlerContext can't be empty");
 		ActionEvent actionEvent = actionEvents.get(0);
-		if(actionEvent!=null){
+		if (actionEvent != null) {
 			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_HOST_NAME, hiveHostName);
 			actionEvent.getHeaders().put(ActionEventHeaderConstants.HIVE_PORT, hivePort);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.HA_ENABLED, haEnabled);
-			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_CLIENT_FAILOVER_PROVIDER, hiveProxyProvider);
+			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_CLIENT_FAILOVER_PROVIDER,
+					hiveProxyProvider);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.HA_SERVICE_NAME, dfsNameService);
 			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_SERVICES, dfsNameService);
-			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1, dfsNameNode1);
-			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2, dfsNameNode2);
+			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE1,
+					dfsNameNode1);
+			actionEvent.getHeaders().put(ValidationHandlerConfigConstants.DFS_NAME_NODE_RPC_ADDRESS_NODE2,
+					dfsNameNode2);
 		}
 		process0(actionEvent);
 		return Status.READY;
@@ -120,23 +117,26 @@ public class DataValidationHandler extends AbstractHandler {
 
 	private void process0(ActionEvent actionEvent) throws HandlerException {
 		logger.debug("DataValidationHandler processing event", "actionEvent==null=\"{}\"", actionEvent == null);
-		boolean validationPassed = false;
+		boolean validationPassed = true;
+		ValidationResult validationReady = ValidationResult.NOT_READY;
 		if (actionEvent == null) {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.VALIDATION_ERROR, ALERT_SEVERITY.BLOCKER,
 					"_message=\"validation failed, null ActionEvent found in HandlerContext\"");
 			throw new ValidationHandlerException("validation failed, null ActionEvent found in HandlerContext");
 		}
 		for (final Validator validator : validators) {
+
 			try {
 				ValidationResponse validationResponse = validator.validate(actionEvent);
+				validationReady = validationResponse.getValidationResult();
+				if (validationReady != ValidationResult.NOT_READY) {
+					validationPassed = validationPassed
+							& (validationResponse.getValidationResult() == ValidationResult.PASSED);
 
-				if (validationResponse.getValidationResult() != ValidationResult.NOT_READY) {
-					validationPassed = validationResponse.getValidationResult() == ValidationResult.PASSED;
-					logger.debug("DataValidationHandler processing event", "updating runtime info actionEvent={}",actionEvent);
-					updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
-					logger.debug("DataValidationHandler processing event", "updated runtime info");
+					logger.debug("DataValidationHandler processing event", "received validation results", actionEvent);
 				} else {
 					logger.debug("DataValidationHandler processing event", "validation was skipped");
+					break;
 				}
 			} catch (DataValidationException e) {
 				logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.VALIDATION_ERROR, ALERT_SEVERITY.BLOCKER,
@@ -148,5 +148,16 @@ public class DataValidationHandler extends AbstractHandler {
 				throw new HandlerException(e.getMessage(), e);
 			}
 		}
+		try {
+			if (validationReady != ValidationResult.NOT_READY) {
+				logger.debug("DataValidationHandler processing event", "updating runtime info actionEvent={}",
+						actionEvent);
+				updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
+			}
+		} catch (Exception e) {
+			logger.debug("exception during validation", "src_desc=\"{}\"", actionEvent.getHeaders().get("src-desc"));
+			throw new HandlerException(e.getMessage(), e);
+		}
+		logger.debug("DataValidationHandler processing event", "updated runtime info");
 	}
 }
