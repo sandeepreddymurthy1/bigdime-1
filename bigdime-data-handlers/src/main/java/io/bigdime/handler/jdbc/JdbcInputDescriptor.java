@@ -92,7 +92,7 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 		if (!jsonObject.isNull(JdbcConstants.FIELD_DELIMETER))
 			fieldDelimeter = jsonObject.getString(JdbcConstants.FIELD_DELIMETER);
 		if (fieldDelimeter == null || fieldDelimeter.length() == 0)
-			fieldDelimeter = JdbcConstants.CONTROL_A_DELIMETER;
+			fieldDelimeter = JdbcConstants.DEFAULT_CONTROL_A_DELIMETER;
 		if (!jsonObject.isNull(JdbcConstants.ROW_DELIMETER))
 			rowDelimeter = jsonObject.getString(JdbcConstants.ROW_DELIMETER);
 		if (rowDelimeter == null || rowDelimeter.length() == 0)
