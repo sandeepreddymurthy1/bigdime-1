@@ -144,4 +144,19 @@ public class JdbcDBSchemaReaderHandlerTest extends PowerMockTestCase {
 		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList2);	
 		Assert.assertEquals(jdbcDBHandler.process(), Status.BACKOFF); //no table matches the regex filter, return BACKOFF
 	}
+	
+	@Test
+	public void NoTableNeedProcess() throws Exception {
+		jdbcDBHandler.setDataSource(dataSource);
+		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
+		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
+		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn("dbSql");
+		when(jdbcInputDescriptor.getInputValue()).thenReturn("key5");
+		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("filter");
+		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
+		List<String> tableList = new ArrayList<String>();
+		tableList.add("");
+		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList);	
+		Assert.assertEquals(jdbcDBHandler.process(), Status.BACKOFF); //no table matches the regex filter, return BACKOFF
+	}
 }

@@ -120,6 +120,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		}
 	}
 	
+	/**
+	 * Process method is process data from table and return status to handler manager
+	 * 
+	 * @return Status READY, BACKOFF, CALLBACK
+	 * @throws HandlerException
+	 */
 	@Override
 	public Status process() throws HandlerException {
 		handlerPhase = "processing Jdbc Table Reader Handler";
@@ -153,6 +159,16 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		return getInvocationCount() == 1;
 	}
 	
+	/**
+	 * This preProcess method is get table from previous handler or from inputs, format sql query.
+	 * get source metadata from source database, and put into bigdime metastore
+	 * check runtimeInfoStore if table already exists or not, if so, call processRecords(), 
+	 * else inserting runtimeInfoStore, call processRecords().
+	 * 
+	 * @return Status READY, CALLBACK
+	 * @throws RuntimeInfoStoreException
+	 * @throws JdbcHandlerException
+	 */
 	private Status preProcess() throws RuntimeInfoStoreException, JdbcHandlerException {
 		List<ActionEvent> actionEvents = null;
 		if(jdbcInputDescriptor.getEntityName() == null && jdbcInputDescriptor.getTargetEntityName() == null){
@@ -171,6 +187,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		}
 		jdbcInputDescriptor.setTargetDBName(hiveDBName);
 		processTableSql = jdbcInputDescriptor.formatProcessTableQuery(jdbcInputDescriptor.getDatabaseName(), jdbcInputDescriptor.getEntityName(), driverName);
+		//format sql query to get source metadata from source db
 		if(!StringUtils.isEmpty(processTableSql)){
 			logger.debug("Formatted Jdbc Table Reader Handler Query", "processTableSql={}", processTableSql);
 			// Get Source Metadata..
@@ -225,6 +242,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 					properties.put(jdbcInputDescriptor.getIncrementedBy(),
 							JdbcConstants.INTEGER_CONSTANT_ZERO + "");
 				}
+				//update to runtimeInfoStore
 				boolean runtimeInsertionFlag = updateRuntimeInfo(
 						runTimeInfoStore, jdbcInputDescriptor.getEntityName(),
 						jdbcInputDescriptor.getIncrementedColumnType(),
@@ -236,13 +254,17 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						jdbcInputDescriptor.getEntityName(),
 						jdbcInputDescriptor.getIncrementedBy(), columnValue,
 						runtimeInsertionFlag);
+				if(runtimeInsertionFlag) {
+					runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
+				}
 			}
-			runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
+			//call processRecords() to get status READY, CALLBACK
 			processFlag = processRecords(runtimeInfo);
 		} else {
 			logger.debug(
 					"Jdbc Table Reader Handler processing an existing table ",
 					"tableName={}", jdbcInputDescriptor.getEntityName());
+			//call processRecords() to get status READY, CALLBACK
 			processFlag = processRecords(runtimeInfo);
 		}
 		if (processFlag) {
@@ -259,6 +281,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 */
 	private boolean processRecords(RuntimeInfo rti) {
 		boolean moreRecordsExists = true;
+		//get column value or index value that needs to fetch records from source
 		String repoColumnValue = getCurrentColumnValue(rti);
 		logger.debug("Jdbc Table Reader Handler in process records",
 				"Latest Incremented Repository Value= {}", repoColumnValue);
@@ -269,6 +292,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
 		jdbcTemplate.setQueryTimeout(180);
 		long startTime = System.currentTimeMillis();
+		//get record rows from source based on query split size
 		if (processTableSql.contains(JdbcConstants.QUERY_PARAMETER)) {
 			if (columnValue != null) {
 				
@@ -348,7 +372,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	}
 
 	/**
-	 * This method sets each record in Action Event for further Data cleansing
+	 * This method sets each record in rows for further Data cleansing
 	 * 
 	 * @param rows
 	 */
@@ -356,6 +380,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
         String maxValue = null;
         List<Map<String, Object>> maxList = new ArrayList<Map<String, Object>>();
 		long startTime = System.currentTimeMillis();
+		//get highest column value
 		highestIncrementalColumnValue = rows.get(rows.size()-1).get(jdbcInputDescriptor.getColumnList()
 					.get(jdbcInputDescriptor.getColumnList().indexOf(jdbcInputDescriptor.getColumnName())))+ "";
 		for(int i = rows.size()-1; i>=0; i--){
@@ -370,7 +395,6 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 				break;
 			}
 		}
-		System.out.println("h: " + highestIncrementalColumnValue);
 		List<Map<String, Object>> ignoredRowsList = getIgnoredBatchRecords(processTableSql.replaceAll(">","="), maxList, highestIncrementalColumnValue);
 		if(ignoredRowsList != null && ignoredRowsList.size() > 0){
 			rows.addAll(ignoredRowsList);
@@ -500,6 +524,11 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		}
 	};
 	
+	/**
+	 * get current column value from runtime info
+	 * @param runtimeInfo
+	 * @return column value
+	 */
 	private String getCurrentColumnValue(RuntimeInfo runtimeInfo) {
 		String currentIncrementalColumnValue = null;
 			if (runtimeInfo != null){
@@ -514,6 +543,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		return handleDirtyRecordsConditions(currentIncrementalColumnValue);
 	}
 	
+	/**
+	 * handle the stop/restart adaptor case
+	 * 
+	 * @param columnValue
+	 * @return column value
+	 */
 	private String handleDirtyRecordsConditions(String columnValue) {
 		RuntimeInfo runtimeInfo = null;
 		String updateColumnValue = null;
@@ -553,6 +588,13 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		return columnValue;
 	}
 	
+	/**
+	 * get records based on sql query replaced > to =
+	 * @param ignoredRowsSql
+	 * @param list
+	 * @param conditionValue
+	 * @return list of ignored records
+	 */
 	@SuppressWarnings("unchecked")
 	private List<Map<String, Object>> getIgnoredBatchRecords(String ignoredRowsSql,List<Map<String,Object>> list, String conditionValue){
 		List<Map<String, Object>> ignoredRowsList = new ArrayList<Map<String, Object>>();

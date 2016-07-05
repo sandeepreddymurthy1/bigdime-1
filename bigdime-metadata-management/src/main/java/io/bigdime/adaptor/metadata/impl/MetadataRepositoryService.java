@@ -407,9 +407,9 @@ public class MetadataRepositoryService {
 			logger.debug(SOURCENAME, "Get Schema",
 					"metasegment details found and trying to find entity details");
 			for (EntiteeDTO entity : repoSegment.getEntitees())
-//				repositoryEntity = entityRepository.findByIdAndEntityName(
-//						entity.getId(), entityName);
-				repositoryEntity = entityRepository.findByEntityName(entityName);
+				repositoryEntity = entityRepository.findByIdAndEntityName(
+						entity.getId(), entityName);
+//				repositoryEntity = entityRepository.findByAdaptorNameAndEntityName(adaptorName, entityName);
 			if (repositoryEntity == null) {
 
 				logger.debug(SOURCENAME, "Get schema ",

@@ -161,6 +161,12 @@ public class JdbcInputDescriptorTest {
 	}
 	
 	@Test
+	public void testEntityLocationFieldGettersAndSetters() {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "entityLocation", "/webhdfs/v1/testEntityLocationPath");
+		Assert.assertEquals(jdbcInputDescriptor.getEntityLocation(), "/testEntityLocationPath");
+	}
+	
+	@Test
 	public void testColumnListGettersAndSetters() {
 		List<String> columnList = new ArrayList<String>();
 		columnList.add("col1");
@@ -172,60 +178,19 @@ public class JdbcInputDescriptorTest {
 	
 	@Test
 	public void testFormatQueryWithoutDBName() throws JdbcHandlerException{
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "");
 		String query = jdbcInputDescriptor.formatQuery("database", "", "testOracleDriver");
 		Assert.assertNotNull(query);
 	}
 	
 	@Test
 	public void testFormatQueryWithDBName() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "test");
 		String query = jdbcInputDescriptor.formatQuery("database", "test", "testOracleDriver");
 		Assert.assertNotNull(query);
 	}
 	
 	@Test
-	public void testFormatQueryWithIncrColumnAndEmptyDB() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "test");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "databaseName", "");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
-		String query = jdbcInputDescriptor.formatQuery("table", "test", "testOracleDriver");
-		Assert.assertNotNull(query);
-	}
-	
-	@Test(expectedExceptions=JdbcHandlerException.class)
-	public void testFormatQueryWithoutIncrColumn() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "");
-		jdbcInputDescriptor.formatQuery("table", "", "");
-	}
-	
-	@Test
-	public void testFormatQueryWithIncrColumnAndDB() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "test");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "databaseName", "testDB");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
-		String query = jdbcInputDescriptor.formatQuery("table", "test", "testOracleDriver");
-		Assert.assertNotNull(query);
-	}
-
-	@Test
-	public void testFormatQuerySQLQuery() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "sqlQuery");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "testQuery");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
-		String query = jdbcInputDescriptor.formatQuery("sqlQuery", "testQuery", "testOracleDriver");
-		Assert.assertNotNull(query);
-	}
-	
-	@Test
-	public void testProcessedQueryWithIncrColumnAndNullDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithEmptyDB() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
 		String query = jdbcInputDescriptor.formatProcessTableQuery("", "test", "testOracleDriver");
@@ -233,43 +198,82 @@ public class JdbcInputDescriptorTest {
 	}
 	
 	@Test
-	public void testProcessedQueryWithIncrColumnAndDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithDB() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
-		String query = jdbcInputDescriptor.formatProcessTableQuery("testDB", "test", "testOracleDriver");
+		String query = jdbcInputDescriptor.formatProcessTableQuery("db", "test", "testOracleDriver");
+		Assert.assertNotNull(query);
+	}
+	
+	@Test
+	public void testProcessedQueryWithIncrColumnAndEmptyDB() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
+		String query = jdbcInputDescriptor.formatProcessTableQuery("", "test", "testOracleDriver");
 		Assert.assertNotNull(query);
 	}
 	
 	@Test(expectedExceptions=JdbcHandlerException.class)
 	public void testProcessedQueryWithoutIncrColumn() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "");
-		jdbcInputDescriptor.formatProcessTableQuery("", "", "testOracleDriver");
+		jdbcInputDescriptor.formatProcessTableQuery("", "test", "testOracleDriver");
+	}
+	
+	@Test
+	public void testProcessedQueryWithIncrColumnAndDB() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
+		String query = jdbcInputDescriptor.formatProcessTableQuery("db", "test", "testOracleDriver");
+		Assert.assertNotNull(query);
+	}
+
+	@Test
+	public void testProcessedQuerySQLQuery() throws JdbcHandlerException {
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "sqlQuery");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "testQuery");
+		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
+		String query = jdbcInputDescriptor.formatProcessTableQuery("db", "test", "testOracleDriver");
+		Assert.assertNotNull(query);
 	}
 	
 	@Test
 	public void testParseDescriptorWithDB(){
-		jdbcInputDescriptor.parseDescriptor("{\"inputType\":\"database\",\"inputValue\":\"testDB\", \"incrementedBy\":\"testIncrementedByColumn\", \"include\":\"^regex\"}");
+		jdbcInputDescriptor.parseDescriptor("{\"inputType\":\"database\",\"inputValue\":\"testDB\", \"incrementedBy\":\"testIncrementedByColumn\", \"include\":\"^regex\", \"exclude\":\"^regex\"}");
 		Assert.assertNotNull(jdbcInputDescriptor.getInputType());
 		Assert.assertNotNull(jdbcInputDescriptor.getInputValue());
 		Assert.assertNotNull(jdbcInputDescriptor.getIncrementedBy());
 		Assert.assertNotNull(jdbcInputDescriptor.getDatabaseName());
 		Assert.assertNotNull(jdbcInputDescriptor.getIncludeFilter());
 		Assert.assertNotNull(jdbcInputDescriptor.getExcludeFilter());
-		Assert.assertNotNull(jdbcInputDescriptor.getPartition());
 		Assert.assertNotNull(jdbcInputDescriptor.getFieldDelimeter());
 		Assert.assertNotNull(jdbcInputDescriptor.getRowDelimeter());
 	}
 	
 	@Test
 	public void testParseDescriptorWithTable(){
-		jdbcInputDescriptor.parseDescriptor("{\"inputType\":\"table\",\"inputValue\":\"testTable\", \"databaseName\":\"testDB\", \"incrementedBy\":\"testIncrementedByColumn\", \"targetTableName\":\"hiveTable\", \"rowDelimeter\":\"|\", \"fieldDelimeter\":\",\"}");
+		jdbcInputDescriptor.parseDescriptor("{\"inputType\":\"table\",\"inputValue\":\"testTable\", \"databaseName\":\"testDB\", \"incrementedBy\":\"testIncrementedByColumn\", \"targetTableName\":\"hiveTable\", \"partitionedColumns\":\"partitionedCol\", \"rowDelimeter\":\"|\", \"fieldDelimeter\":\",\"}");
 		Assert.assertNotNull(jdbcInputDescriptor.getInputType());
 		Assert.assertNotNull(jdbcInputDescriptor.getInputValue());
 		Assert.assertNotNull(jdbcInputDescriptor.getIncrementedBy());
 		Assert.assertNotNull(jdbcInputDescriptor.getDatabaseName());
 		Assert.assertNotNull(jdbcInputDescriptor.getIncludeFilter());
-		Assert.assertNotNull(jdbcInputDescriptor.getExcludeFilter());
 		Assert.assertNotNull(jdbcInputDescriptor.getPartition());
+		Assert.assertNotNull(jdbcInputDescriptor.getFieldDelimeter());
+		Assert.assertNotNull(jdbcInputDescriptor.getRowDelimeter());
+		Assert.assertNotNull(jdbcInputDescriptor.getTargetEntityName());
+	}
+	
+	@Test
+	public void testParseDescriptor(){
+		jdbcInputDescriptor.parseDescriptor("{\"inputType\":\"table\",\"inputValue\":\"test\", \"incrementedBy\":\"testIncrementedByColumn\", \"targetTableName\":\"\", \"rowDelimeter\":\"\", \"fieldDelimeter\":\"\"}");
+		Assert.assertNotNull(jdbcInputDescriptor.getInputType());
+		Assert.assertNotNull(jdbcInputDescriptor.getInputValue());
+		Assert.assertNotNull(jdbcInputDescriptor.getIncrementedBy());
+		Assert.assertNotNull(jdbcInputDescriptor.getEntityName());
 		Assert.assertNotNull(jdbcInputDescriptor.getFieldDelimeter());
 		Assert.assertNotNull(jdbcInputDescriptor.getRowDelimeter());
 		Assert.assertNotNull(jdbcInputDescriptor.getTargetEntityName());

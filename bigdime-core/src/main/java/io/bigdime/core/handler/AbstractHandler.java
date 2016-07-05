@@ -247,13 +247,13 @@ public abstract class AbstractHandler implements Handler {
 			boolean validationPassed, ActionEvent actionEvent) throws RuntimeInfoStoreException {
 		
 		String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME);
-		if(entityName == null)
-			entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME.toUpperCase());
+//		if(entityName == null)
+//			entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME.toUpperCase());
 			
 		String inputDescriptor = actionEvent.getHeaders().get(ActionEventHeaderConstants.INPUT_DESCRIPTOR);
-		if(inputDescriptor == null){
-			inputDescriptor = actionEvent.getHeaders().get(ActionEventHeaderConstants.DATE);
-		}
+//		if(inputDescriptor == null){
+//			inputDescriptor = actionEvent.getHeaders().get(ActionEventHeaderConstants.DATE);
+//		}
 		Map<String, String> properties = actionEvent.getHeaders();
 		if (validationPassed) {
 			return updateRuntimeInfo(runtimeInfoStore, entityName, inputDescriptor, Status.VALIDATED, properties);

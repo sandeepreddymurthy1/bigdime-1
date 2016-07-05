@@ -141,7 +141,7 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 				}
 			}
 			if(inputType.equalsIgnoreCase(JdbcConstants.TABLE_FLAG)){
-				if(!databaseName.isEmpty()){
+				if(!dbname.isEmpty()){
 					query = JdbcConstants.SELECT_FROM + dbname + "." + tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;
 				} else{
 					query = JdbcConstants.SELECT_FROM + tableName + JdbcConstants.WHERE_CLAUSE + incrementedBy + JdbcConstants.GREATER_THAN + JdbcConstants.QUERY_PARAMETER + JdbcConstants.ORDER_BY_CLAUSE + incrementedBy + JdbcConstants.ASC_ORDER;

@@ -49,22 +49,19 @@ public class JdbcMetadataManagementTest {
 	
 	@Test
 	public void testGetSourceMetadataNotNull(){
-//		init();
 		when(jdbcTemplate.query(anyString(), Mockito.any(JdbcMetadata.class))).thenReturn(metasegment);
 		when(jdbcInputDescriptor.getDatabaseName()).thenReturn("testDB");
 		Assert.assertNotNull(jdbcMetadataManagement.getSourceMetadata(jdbcInputDescriptor, jdbcTemplate));
 	}
 	
 	@Test
-	public void testCheckSourceMetadataNull(){
-//		init();
+	public void testCheckSourceMetadataNull(){//		init();
 		when(jdbcInputDescriptor.getDatabaseName()).thenReturn("");
 		Assert.assertNull(jdbcMetadataManagement.getSourceMetadata(jdbcInputDescriptor, jdbcTemplate));
 	}
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void testGetColumnListException() {
-//		init();
 		jdbcMetadataManagement.getColumnList(jdbcInputDescriptor, null);
 	}
 	
@@ -118,7 +115,7 @@ public class JdbcMetadataManagementTest {
 		jdbcMetadataManagement.checkAndUpdateMetadata(metasegment, "testTableName", columnNamesList, metadataStore,"testdbName");
 	}
 
-	@Test//(expectedExceptions = MetadataAccessException.class)
+	@Test
 	public void testCheckAndUpdatedMetadataWithException() throws Throwable {
 		MetadataStore metadataStore = Mockito.mock(MetadataStore.class);
 		when(metadataStore.getAdaptorMetasegment(anyString(), anyString(), anyString())).thenThrow(new MetadataAccessException(""));
@@ -127,14 +124,12 @@ public class JdbcMetadataManagementTest {
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void testSetNullColumnList() {
-//		init();
 		jdbcMetadataManagement.setColumnList(jdbcInputDescriptor, null);
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testSetColumnList() {
-//		init();
 		Attribute attribute = new Attribute();
 		attribute.setAttributeName("testAttributeName");
 		attribute.setAttributeType("testAttributeType");
@@ -167,7 +162,6 @@ public class JdbcMetadataManagementTest {
 	
 	@Test(expectedExceptions=IllegalArgumentException.class)
 	public void testSetColumnListWithNullEntitees() {
-//		init();
 		when(metasegment.getEntitees()).thenReturn(null);
 		jdbcMetadataManagement.setColumnList(jdbcInputDescriptor, metasegment);	
 	}
