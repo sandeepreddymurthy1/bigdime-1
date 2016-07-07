@@ -19,6 +19,7 @@ public class JdbcConstants {
 	public static int INTEGER_CONSTANT_NONZERO = 1;
 	public static int INTEGER_CONSTANT_ZERO = 0;
 	public static String HIVE_DB_NAME="hiveDBName";
+	public static String SOURCE_DB_NAME = "databaseName";
 	public static String WITH_NO_PARTITION = "withNoPartition";
 	public static String INPUT_TYPE = "inputType";
 	public static String INPUT_VALUE = "inputValue";

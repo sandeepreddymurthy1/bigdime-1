@@ -103,7 +103,7 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 				targetEntityName = jsonObject.getString(JdbcConstants.TARGET_TABLE_NAME);
 			if (targetEntityName == null || targetEntityName.length() == 0)
 				targetEntityName = entityName;
-			databaseName = jsonObject.getString(JdbcConstants.DB_FLAG);
+			databaseName = jsonObject.getString(JdbcConstants.SOURCE_DB_NAME);
 		}
 		if (!jsonObject.isNull(JdbcConstants.SNAPSHOT_FLAG))
 			snapshot = jsonObject.getString(JdbcConstants.SNAPSHOT_FLAG);
@@ -115,7 +115,7 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 				inputType, inputValue, incrementedBy, includeFilter, excludeFilter, partition, fieldDelimeter, rowDelimeter);		
 	}
 	
-	public String formatQuery(String inputType, String inputValue, String driverName) throws JdbcHandlerException {
+	public String formatQuery(String inputType, String inputValue, String driverName){
 		if(driverName.indexOf(JdbcConstants.ORACLE_DRIVER)> JdbcConstants.INTEGER_CONSTANT_ZERO){
 			if(!inputValue.isEmpty()){
 				query = JdbcConstants.SELECT_SCHEMA_QUERY +" WHERE owner ='"+inputValue+"'";
@@ -123,12 +123,11 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 				query = JdbcConstants.SELECT_SCHEMA_QUERY;
 			}
 		}
-		
 		return query;
 
 	}
 	
-	public String formatProcessTableQuery(String dbname, String tableName, String driverName) throws JdbcHandlerException{
+	public String formatProcessTableQuery(String dbname, String tableName, String driverName) {
 		if(!incrementedBy.isEmpty()){
 			if(inputType.equalsIgnoreCase(JdbcConstants.DB_FLAG)){
 				if(!dbname.isEmpty()){
@@ -156,9 +155,7 @@ public class JdbcInputDescriptor implements InputDescriptor<String>{
 					query = JdbcConstants.SELECT_T_FROM + query + JdbcConstants.WHERE_ROWNUM + splitSize;
 				}
 			}
-		} else{
-			throw new JdbcHandlerException("incrementedBy value cannot be null");
-		}
+		} 
 		return query;
 	}
 

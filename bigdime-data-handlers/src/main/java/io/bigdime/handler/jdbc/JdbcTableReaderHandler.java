@@ -116,7 +116,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 			jdbcInputDescriptor.parseDescriptor(jsonStr);
 		} catch (IllegalArgumentException ex) {
 			throw new InvalidValueConfigurationException(
-					"incorrect value specified in src-desc, value must be in json string format");
+					"incorrect value specified in src-desc, value must be in json string format, wrong json: " + jsonStr);
 		}
 	}
 	
@@ -132,11 +132,9 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.info(handlerPhase,
 				"handler_id={} handler_name={} properties={}", getId(),
 				getName(), getPropertyMap());
-		Status adaptorThreadStatus = null;
 		incrementInvocationCount();
 		try {
-			adaptorThreadStatus = preProcess();
-			return adaptorThreadStatus;
+			return preProcess();
 		} catch (RuntimeInfoStoreException e) {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
 					ALERT_SEVERITY.BLOCKER,
@@ -171,11 +169,11 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 */
 	private Status preProcess() throws RuntimeInfoStoreException, JdbcHandlerException {
 		List<ActionEvent> actionEvents = null;
+		//this is for database level, process tables from a database, check table name, if null, get from event list
 		if(jdbcInputDescriptor.getEntityName() == null && jdbcInputDescriptor.getTargetEntityName() == null){
 			try{
 				actionEvents = getHandlerContext().getEventList();
 				Preconditions.checkNotNull(actionEvents, "ActionEvents can't be null");
-				Preconditions.checkArgument(!actionEvents.isEmpty(), "ActionEvents can't be empty");
 			} catch(Exception e) {
 				throw new JdbcHandlerException("ActionEvents cannot be null or empty");
 			}
@@ -212,7 +210,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 					throw new JdbcHandlerException(
 							"IncrementedBy Value doesn't exist in the table column list");
 				}
-				// Put into Metadata...
+				// Put into bigdime Metadata...
 				metadataStore.put(metasegment);
 			} catch (MetadataAccessException e) {
 				throw new JdbcHandlerException(
@@ -223,7 +221,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED,ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
 					ALERT_SEVERITY.BLOCKER,"\"processed table query is null\" TableName={} ",
 					jdbcInputDescriptor.getEntityName());
-			throw new JdbcHandlerException("Unable to process records from table "+jdbcInputDescriptor.getEntityName());
+			throw new JdbcHandlerException("Table query is null, unable to process records from table "+jdbcInputDescriptor.getEntityName());
 		}
 		boolean processFlag = false;
 		// Check if Runtime details Exists..
@@ -290,7 +288,7 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		logger.info("Jdbc Table Reader Handler in processing ",
 				"actual processTableSql={} latestIncrementalValue={}", processTableSql, columnValue);
 		List<Map<String, Object>> rows = new ArrayList<Map<String, Object>>();
-		jdbcTemplate.setQueryTimeout(180);
+		jdbcTemplate.setQueryTimeout(120);
 		long startTime = System.currentTimeMillis();
 		//get record rows from source based on query split size
 		if (processTableSql.contains(JdbcConstants.QUERY_PARAMETER)) {
@@ -307,9 +305,10 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 										new Object[] { Timestamp.valueOf(columnValue)});
 						;
 												
-					} else
+					} else {
 						rows = jdbcTemplate.queryForList(processTableSql,
 								new Object[] { columnValue });
+					}
 				
 			} else
 				rows = jdbcTemplate.queryForList(processTableSql,
@@ -328,9 +327,9 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 
 		long processStartTime = System.currentTimeMillis();
 		// Process each row to HDFS...
-		if (rows.size() > 0)
+		if (rows.size() > 0) {
 			processEachRecord(rows);
-		else {
+		} else {
 			logger.info("Jdbc Table Reader Handler during processing records",
 					"No more rows found for query={}", processTableSql);
 			moreRecordsExists = false;
@@ -338,7 +337,6 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 		// Assigning the current incremental value..
 		if (jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO
 				&& highestIncrementalColumnValue != null) {
-			
 			HashMap<String, String> properties = new HashMap<String, String>();
 			properties.put(jdbcInputDescriptor.getIncrementedBy(), highestIncrementalColumnValue);
 			boolean highestValueStatus=false;
@@ -359,10 +357,6 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 			logger.info("Jdbc Table Reader Handler saved highest incremental value ="+highestIncrementalColumnValue+"",
 					"incremental column saved status(true/false)? {}", highestValueStatus);
 			columnValue = highestIncrementalColumnValue;
-		}
-		if (jdbcInputDescriptor.getIncrementedBy().length() == JdbcConstants.INTEGER_CONSTANT_ZERO
-				|| jdbcInputDescriptor.getIncrementedBy() == null){
-			moreRecordsExists = false;
 		}
 		
 		long processEndTime = System.currentTimeMillis();
@@ -550,15 +544,13 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 * @return column value
 	 */
 	private String handleDirtyRecordsConditions(String columnValue) {
-		RuntimeInfo runtimeInfo = null;
-		String updateColumnValue = null;
 		if(isFirstRun() && !columnValue.equalsIgnoreCase(initialRuntimeDateEntry)){
 			try {
-				runtimeInfo = runTimeInfoStore.get(AdaptorConfig.getInstance().getName(), jdbcInputDescriptor.getEntityName(), columnValue.replaceAll("-", ""));
+				RuntimeInfo runtimeInfo = runTimeInfoStore.get(AdaptorConfig.getInstance().getName(), jdbcInputDescriptor.getEntityName(), columnValue.replaceAll("-", ""));
 				if(runtimeInfo == null){
 					RuntimeInfo rti = runTimeInfoStore.getLatest(AdaptorConfig.getInstance().getName(), jdbcInputDescriptor.getEntityName());
 					if(!rti.getInputDescriptor().equalsIgnoreCase("DATE")){
-						updateColumnValue = rti.getInputDescriptor();
+						String updateColumnValue = rti.getInputDescriptor();
 						Date d = new SimpleDateFormat("yyyyMMdd").parse(updateColumnValue);
 						updateColumnValue = new SimpleDateFormat("yyyy-MM-dd").format(d);
 						columnValue = updateColumnValue;

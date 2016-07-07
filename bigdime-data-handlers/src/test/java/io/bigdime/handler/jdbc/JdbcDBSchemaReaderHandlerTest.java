@@ -44,11 +44,11 @@ public class JdbcDBSchemaReaderHandlerTest extends PowerMockTestCase {
 	@BeforeClass
 	public void init() {
 		initMocks(this);
-		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 	}
 	
 	@Test
 	public void testBuild() throws Exception {
+		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
 		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
@@ -70,6 +70,7 @@ public class JdbcDBSchemaReaderHandlerTest extends PowerMockTestCase {
 	
 	@Test(expectedExceptions = InvalidValueConfigurationException.class)
 	public void testBuildWithoutSrcDesc() throws Exception {
+		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
 		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
@@ -83,79 +84,56 @@ public class JdbcDBSchemaReaderHandlerTest extends PowerMockTestCase {
 	}
 	
 	@Test(expectedExceptions = HandlerException.class)
-	public void testProcessFirstRunWithNullDbSqlQuery() throws HandlerException, JdbcHandlerException {
+	public void testProcessWithNullDbSqlQuery() throws HandlerException, JdbcHandlerException {
+		JdbcDBSchemaReaderHandler jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
 		when(jdbcInputDescriptor.getDatabaseName()).thenReturn("testDB");
-		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn(null);
-		jdbcDBHandler.process();
-	}
-	
-	@Test(expectedExceptions = HandlerException.class)
-	public void testProcessWithNullDBsqlQuery() throws HandlerException, JdbcHandlerException {
-		jdbcDBHandler.setDataSource(dataSource);
-		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
-		when(jdbcInputDescriptor.getDatabaseName()).thenReturn("testDB");
-		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn(null);
-		jdbcDBHandler.incrementInvocationCount();
+		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn("");
 		jdbcDBHandler.process();
 	}
 	
 	@Test
 	public void testProcessWithoutIncludeFilter() throws Exception {
+		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
 		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn("dbSql");
-		when(jdbcInputDescriptor.getInputValue()).thenReturn("key1");
 		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("");
-		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
 		List<String> tableList = new ArrayList<String>();
 		tableList.add("table1");
+		tableList.add("filterTable");
 		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList);	
-		Assert.assertEquals(jdbcDBHandler.process(), Status.READY);
-		jdbcDBHandler.incrementInvocationCount();
-		when(jdbcInputDescriptor.getInputValue()).thenReturn("key2");
-		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("");
-		List<String> tableList2 = new ArrayList<String>();
-		tableList2.add("table2");
-		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList2);	
-		Assert.assertEquals(jdbcDBHandler.process(), Status.READY);
+		Assert.assertEquals(jdbcDBHandler.process(), Status.READY);	
 	}
 	
 	@Test
 	public void testProcessWithIncludeFilter() throws Exception {
+		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
 		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn("dbSql");
-		when(jdbcInputDescriptor.getInputValue()).thenReturn("key3");
 		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("filter");
-		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
 		List<String> tableList = new ArrayList<String>();
+		tableList.add("table1");
 		tableList.add("filterTable");
 		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList);	
 		Assert.assertEquals(jdbcDBHandler.process(), Status.READY);
-		jdbcDBHandler.incrementInvocationCount();
-		when(jdbcInputDescriptor.getInputValue()).thenReturn("key4");
-		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("filter");
-		List<String> tableList2 = new ArrayList<String>();
-		tableList2.add("table2");
-		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList2);	
-		Assert.assertEquals(jdbcDBHandler.process(), Status.BACKOFF); //no table matches the regex filter, return BACKOFF
 	}
 	
 	@Test
 	public void NoTableNeedProcess() throws Exception {
+		jdbcDBHandler = new JdbcDBSchemaReaderHandler();
 		jdbcDBHandler.setDataSource(dataSource);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcInputDescriptor", jdbcInputDescriptor);
 		ReflectionTestUtils.setField(jdbcDBHandler, "jdbcTemplate", jdbcTemplate);
 		when(jdbcInputDescriptor.formatQuery(anyString(), anyString(), anyString())).thenReturn("dbSql");
-		when(jdbcInputDescriptor.getInputValue()).thenReturn("key5");
-		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("filter");
-		PowerMockito.whenNew(JdbcTemplate.class).withArguments((DataSource)any()).thenReturn(jdbcTemplate);
-		List<String> tableList = new ArrayList<String>();
-		tableList.add("");
+		when(jdbcInputDescriptor.getIncludeFilter()).thenReturn("");
+		@SuppressWarnings("unchecked")
+		List<String> tableList = mock(List.class);
+		when(tableList.size()).thenReturn(0);
 		when(jdbcTemplate.queryForList(anyString(),eq(String.class))).thenReturn(tableList);	
 		Assert.assertEquals(jdbcDBHandler.process(), Status.BACKOFF); //no table matches the regex filter, return BACKOFF
 	}

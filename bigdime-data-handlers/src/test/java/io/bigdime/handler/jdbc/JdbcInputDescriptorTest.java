@@ -177,19 +177,19 @@ public class JdbcInputDescriptorTest {
 	}
 	
 	@Test
-	public void testFormatQueryWithoutDBName() throws JdbcHandlerException{
+	public void testFormatQueryWithoutDBName() {
 		String query = jdbcInputDescriptor.formatQuery("database", "", "testOracleDriver");
 		Assert.assertNotNull(query);
 	}
 	
 	@Test
-	public void testFormatQueryWithDBName() throws JdbcHandlerException {
+	public void testFormatQueryWithDBName() {
 		String query = jdbcInputDescriptor.formatQuery("database", "test", "testOracleDriver");
 		Assert.assertNotNull(query);
 	}
 	
 	@Test
-	public void testProcessedQueryWithEmptyDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithEmptyDB() {
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
@@ -198,7 +198,7 @@ public class JdbcInputDescriptorTest {
 	}
 	
 	@Test
-	public void testProcessedQueryWithDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithDB() {
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "database");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
@@ -207,7 +207,7 @@ public class JdbcInputDescriptorTest {
 	}
 	
 	@Test
-	public void testProcessedQueryWithIncrColumnAndEmptyDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithIncrColumnAndEmptyDB() {
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
@@ -215,15 +215,8 @@ public class JdbcInputDescriptorTest {
 		Assert.assertNotNull(query);
 	}
 	
-	@Test(expectedExceptions=JdbcHandlerException.class)
-	public void testProcessedQueryWithoutIncrColumn() throws JdbcHandlerException {
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
-		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "");
-		jdbcInputDescriptor.formatProcessTableQuery("", "test", "testOracleDriver");
-	}
-	
 	@Test
-	public void testProcessedQueryWithIncrColumnAndDB() throws JdbcHandlerException {
+	public void testProcessedQueryWithIncrColumnAndDB() {
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "table");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "incrementedBy", "testIncrementedBy");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
@@ -232,7 +225,7 @@ public class JdbcInputDescriptorTest {
 	}
 
 	@Test
-	public void testProcessedQuerySQLQuery() throws JdbcHandlerException {
+	public void testProcessedQuerySQLQuery() {
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputType", "sqlQuery");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "inputValue", "testQuery");
 		ReflectionTestUtils.setField(jdbcInputDescriptor, "splitSize", "12");
