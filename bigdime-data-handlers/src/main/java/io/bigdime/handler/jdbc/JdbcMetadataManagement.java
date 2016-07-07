@@ -95,17 +95,17 @@ public class JdbcMetadataManagement {
 		if (metasegment != null) {
 			logger.debug("JDBC Handler Reader setting column list",
 					"tableName={}", jdbcInputDescriptor.getEntityName());
-			if (metasegment.getEntitees() == null)
+			if (metasegment.getEntitees() == null) {
 				throw new IllegalArgumentException(
 						"Metasegment should contain atleast one entity");
-
+			}
 			Set<Entitee> entitySet = metasegment.getEntitees();
 			for (Entitee entity : entitySet) {
-				if (entity.getAttributes() != null)
+				if (entity.getAttributes() != null) {
 					for (Attribute attribute : entity.getAttributes()) {
-						if (!columnNames.contains(attribute.getAttributeName()))
+						if (!columnNames.contains(attribute.getAttributeName())) {
 							columnNames.add(attribute.getAttributeName());
-
+						}
 						if (jdbcInputDescriptor.getIncrementedBy().length() > JdbcConstants.INTEGER_CONSTANT_ZERO
 								&& attribute.getAttributeName()
 										.equalsIgnoreCase(
@@ -123,10 +123,12 @@ public class JdbcMetadataManagement {
 									.getAttributeName());
 						}
 					}
+				}
 			}
 
-			if (jdbcInputDescriptor.getColumnList().size() > 0)
+			if (jdbcInputDescriptor.getColumnList().size() > 0){
 				jdbcInputDescriptor.getColumnList().clear();
+			}
 			jdbcInputDescriptor.setColumnList(columnNames);
 
 		} else
@@ -156,7 +158,9 @@ public class JdbcMetadataManagement {
 					metasegment.setDatabaseName(databaseName);
 				}
 			}
-			if(databaseName!=null) metasegment.setDatabaseName(databaseName);
+			if(databaseName!=null) {
+				metasegment.setDatabaseName(databaseName);
+			}
 			Metasegment metaseg = metadataStore.getAdaptorMetasegment(
 					AdaptorConfig.getInstance().getName(),
 					JdbcConstants.METADATA_SCHEMA_TYPE, tableName);
