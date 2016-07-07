@@ -393,9 +393,10 @@ public class HBaseManagedAlertService implements ManagedAlertService {
 
 			if (!alertDateTime.isEmpty()) {
 				try {
-					Date date = dateFormatHolder.get().parse(alertDateTime);
+//					Date date = dateFormatHolder.get().parse(alertDateTime);
+					Date date = new Date(alertDateTime);
 					managedAlert.setDateTime(date);
-				} catch (ParseException e) {
+				} catch (Exception e) {
 					logger.info(SOURCE_NAME, "Creating Managed Alert",
 							"Unable to parse the date " + e.getMessage());
 

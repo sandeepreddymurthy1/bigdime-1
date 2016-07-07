@@ -25,8 +25,8 @@ angular
 						$.each(AdaptorSharedService.getmandatoryfields(),function(index,value){
 				        	 $("[id^="+value+"]").addClass('required');
 				         });
+						$scope.shownext();
 					};
-					$scope.init();
 					$scope.updateRequiredTag=function(){
 						$.each(AdaptorSharedService.getmandatoryfields(),function(index,value){
 				        	 $("[id^="+value+"]").addClass('required');
@@ -197,4 +197,5 @@ angular
 						$thumbs.removeClass('highlight');
 						$(this).addClass('highlight');
 					});
+					$scope.init();
 				});

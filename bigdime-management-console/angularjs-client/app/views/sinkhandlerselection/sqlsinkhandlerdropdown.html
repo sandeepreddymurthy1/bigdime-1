@@ -11,13 +11,19 @@
         <div class="col-xs-8">
             <input type="text" class="form-control" id="sinkhandlerdescription{{$index}}" placeholder="Description" ng-model="datahandler.description" ng-change="shownext()">
         </div>
+    </div>   
+  <div ng-if="datahandler.hasOwnProperty('handler-class')" class="form-group row">
+    <label for="sinkhandlerhandlerclass{{$index}}" class="col-xs-3" id="handler-class">Handler class</label>
+    <div ng-if="datahandlers.indexOf(datahandler)<defaulthandlercount" class="col-xs-8">
+        <input type="text" class="form-control" id="sinkhandlerhandlerclass{{$index}}" placeholder="handler class" ng-model="datahandler['handler-class']" ng-change="shownext()" 
+       disabled>
     </div>
-    <div ng-if="datahandler.hasOwnProperty('handler-class')" class="form-group row">
-        <label for="sinkhandlerhandlerclass{{$index}}" class="col-xs-3" id="handler-class">Handler class</label>
-        <div class="col-xs-8">
-            <input type="text" class="form-control" id="sinkhandlerhandlerclass{{$index}}" placeholder="Handler Class" ng-model="datahandler['handler-class']" ng-change="shownext()" disabled>
-        </div>
+        <div ng-if="datahandlers.indexOf(datahandler)>=defaulthandlercount" class="col-xs-8">
+          <select class="form-control" id="sourcehandlerhandlerclass{{$index}}" ng-model="datahandler['handler-class']" ng-options="option as option for option in handlerclassnames">
+           <option value="" disabled selected style="display: none;">Select your option</option>
+   </select>
     </div>
+  </div>
     <div ng-if="datahandler.properties.hasOwnProperty('batchSize')" class="form-group row">
         <label for="sinkhandlerbatchsize{{$index}}" class="col-xs-3" id="batchSize">Batch size</label>
         <div class="col-xs-8">
