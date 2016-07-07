@@ -245,7 +245,8 @@ public abstract class AbstractHandler implements Handler {
 
 	protected <T> boolean updateRuntimeInfoToStoreAfterValidation(final RuntimeInfoStore<RuntimeInfo> runtimeInfoStore,
 			boolean validationPassed, ActionEvent actionEvent) throws RuntimeInfoStoreException {
-		String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME);
+		
+		String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME);	
 		String inputDescriptor = actionEvent.getHeaders().get(ActionEventHeaderConstants.INPUT_DESCRIPTOR);
 		Map<String, String> properties = actionEvent.getHeaders();
 		if (validationPassed) {
