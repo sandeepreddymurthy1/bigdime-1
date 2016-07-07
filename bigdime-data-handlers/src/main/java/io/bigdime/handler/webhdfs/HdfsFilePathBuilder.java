@@ -110,7 +110,7 @@ public class HdfsFilePathBuilder {
 		setSourceFileRelativePath();
 
 		String path = addTrailingSlashToPath(hdfsPath);
-
+		
 		if (!StringUtils.isBlank(backupPath)) {
 			int $Index = hdfsPath.indexOf("${");
 			if ($Index != -1) {
@@ -130,7 +130,7 @@ public class HdfsFilePathBuilder {
 			path += relativePath;
 			path = addTrailingSlashToPath(path);
 		}
-
+		
 		return path;
 	}
 
@@ -195,16 +195,22 @@ public class HdfsFilePathBuilder {
 		int $Index = path.indexOf("${");
 		if ($Index != -1) {
 			for (final Entry<String, String> tokenHeaderNameEntry : tokenToHeaderNameMap.entrySet()) {
-				String headerValue = actionEvent.getHeaders().get(tokenHeaderNameEntry.getValue().toUpperCase());
+				String headerValue = actionEvent.getHeaders().get(tokenHeaderNameEntry.getValue());
 				if (headerValue == null) {
-					throw new InvalidDataException("no header with name=" + tokenHeaderNameEntry.getValue()
+					String isPartitionPathRequired = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_REQUIRED);
+					if (isPartitionPathRequired != null && isPartitionPathRequired.equalsIgnoreCase("false")){
+						detokenizedHdfsPath = detokenizedHdfsPath.replace(tokenHeaderNameEntry.getKey(), "");
+						detokenizedHdfsPath = addTrailingSlashToPath(detokenizedHdfsPath);
+					} else{
+						throw new InvalidDataException("no header with name=" + tokenHeaderNameEntry.getValue()
 							+ " found in ActionEvent. This is needed to compute the filepath on hdfs. src="
 							+ actionEvent.getHeaders().get("src-desc"));
+					}
+				} else{
+					headerValue = formatField(headerValue);
+					hivePartitionNameValueMap.put(tokenHeaderNameEntry.getValue(), headerValue);
+					detokenizedHdfsPath = detokenizedHdfsPath.replace(tokenHeaderNameEntry.getKey(), headerValue);
 				}
-				headerValue = formatField(headerValue);
-				hivePartitionNameValueMap.put(tokenHeaderNameEntry.getValue(), headerValue);
-
-				detokenizedHdfsPath = detokenizedHdfsPath.replace(tokenHeaderNameEntry.getKey(), headerValue);
 			}
 		}
 		return detokenizedHdfsPath;

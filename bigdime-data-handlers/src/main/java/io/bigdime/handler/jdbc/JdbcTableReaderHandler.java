@@ -83,7 +83,6 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	private String splitSize;
 	private static String initialRuntimeDateEntry="1900-01-01 00:00:00";
 	private JdbcTemplate jdbcTemplate;
-	private RuntimeInfo runtimeInfo;
 	private String handlerPhase = null;
 	private String jsonStr = null;
 	private String columnValue;
@@ -252,18 +251,15 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						jdbcInputDescriptor.getEntityName(),
 						jdbcInputDescriptor.getIncrementedBy(), columnValue,
 						runtimeInsertionFlag);
-				if(runtimeInsertionFlag) {
-					runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
-				}
-			}
+			} 
 			//call processRecords() to get status READY, CALLBACK
-			processFlag = processRecords(runtimeInfo);
+			processFlag = processRecords();
 		} else {
 			logger.debug(
 					"Jdbc Table Reader Handler processing an existing table ",
 					"tableName={}", jdbcInputDescriptor.getEntityName());
 			//call processRecords() to get status READY, CALLBACK
-			processFlag = processRecords(runtimeInfo);
+			processFlag = processRecords();
 		}
 		if (processFlag) {
 			return Status.CALLBACK;
@@ -277,10 +273,10 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 * 
 	 * @return
 	 */
-	private boolean processRecords(RuntimeInfo rti) {
+	private boolean processRecords() {
 		boolean moreRecordsExists = true;
 		//get column value or index value that needs to fetch records from source
-		String repoColumnValue = getCurrentColumnValue(rti);
+		String repoColumnValue = getCurrentColumnValue();
 		logger.debug("Jdbc Table Reader Handler in process records",
 				"Latest Incremented Repository Value= {}", repoColumnValue);
 		if (repoColumnValue != null)
@@ -523,8 +519,10 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 	 * @param runtimeInfo
 	 * @return column value
 	 */
-	private String getCurrentColumnValue(RuntimeInfo runtimeInfo) {
+	private String getCurrentColumnValue() {
 		String currentIncrementalColumnValue = null;
+		try{
+			 RuntimeInfo runtimeInfo = getOneQueuedRuntimeInfo(runTimeInfoStore,jdbcInputDescriptor.getEntityName());
 			if (runtimeInfo != null){
 				currentIncrementalColumnValue = runtimeInfo.getProperties().get(
 						jdbcInputDescriptor.getIncrementedBy());
@@ -534,6 +532,12 @@ public class JdbcTableReaderHandler extends AbstractHandler {
 						"\"jdbcAdaptor RuntimeInfo is null\" TableName:{}",
 						jdbcInputDescriptor.getEntityName());
 			}
+		} catch (RuntimeInfoStoreException e) {
+			logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR,
+					ALERT_SEVERITY.BLOCKER,
+					"\"jdbcAdaptor RuntimeInfoStore exception while getting current value\" TableName:{} error={}",
+					jdbcInputDescriptor.getEntityName(),e.toString());
+		}
 		return handleDirtyRecordsConditions(currentIncrementalColumnValue);
 	}
 	
