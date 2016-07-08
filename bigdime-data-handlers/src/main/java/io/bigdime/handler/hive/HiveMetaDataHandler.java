@@ -288,7 +288,6 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					throw e;			
 		}	
 	}
-	
 	/**
 	 * 
 	 * @param partitionKeys
