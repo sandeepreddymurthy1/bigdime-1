@@ -66,7 +66,7 @@ public final class ActionEventHeaderConstants {
 	public static final String CLEANUP_REQUIRED = "cleanupRequired";
 	public static final String READ_COMPLETE = "readComplete";	
 	
-	public static final String DATE = "DT";
+	public static final String DATE = "dt";
 	public static final String SNAPSHOT = "SNAPSHOT";
 	public static final String TARGET_ENTITY_NAME = "targetEntityName";
 	public static final String HIVE_NON_PARTITION_NAMES = "hive_nonpartition_names";

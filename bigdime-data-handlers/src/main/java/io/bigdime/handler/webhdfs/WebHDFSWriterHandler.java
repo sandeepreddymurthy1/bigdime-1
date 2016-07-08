@@ -241,6 +241,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		logger.debug(handlerPhase, "previousHdfsPath={}", getPreviousHdfsPath(journal));
 		ByteArrayOutputStream payload = new ByteArrayOutputStream();
 		Status statusToReturn = Status.READY;
+		long startTime = System.currentTimeMillis();
 		try {
 			Iterator<ActionEvent> actionEventIter = actionEvents.iterator();
 			boolean payloadEmpty = true;
@@ -256,7 +257,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 				hdfsFilePathBuilder = new HdfsFilePathBuilder();
 				detokenizedHdfsPath = hdfsFilePathBuilder.withActionEvent(actionEvent).withHdfsPath(hdfsPath)
 						.withTokenHeaderMap(tokenToHeaderNameMap).withCase(hdfsPathCaseEnum).build();
-
+				
 				actionEvent.getHeaders().put(ActionEventHeaderConstants.HDFS_PATH,
 						hdfsFilePathBuilder.getBaseHdfsPath());// needed
 				boolean cleanupRequired = actionEvent.getHeaders()
@@ -307,7 +308,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 					logger.debug(handlerPhase, "new hdfspath, payloadEmpty={} hdfsFileName={} previousHdfsFileName={}",
 							payloadEmpty, hdfsFileName, getPreviousHdfsFileName(journal));
 					if (!payloadEmpty) {
-						logger.info(handlerPhase,
+						logger.info(handlerPhase, 
 								"writing to hdfs, validation should be performed hdfsFile={} recordCount={}",
 								detokenizedHdfsPathWithName, journal.getRecordCount());
 						ActionEvent returnEvent = writeToHdfs(getPreviousHdfsPath(journal), payload.toByteArray(),
@@ -337,7 +338,7 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 					logger.info(handlerPhase,
 							"writing to hdfs. previousHdfsPath={} detokenizedHdfsPath={} previousHdfsPathWithName={} detokenizedHdfsPathWithName={} hdfsFile={} recordCount={}",
 							getPreviousHdfsPath(journal), detokenizedHdfsPath, getPreviousHdfsPathWithName(journal),
-							detokenizedHdfsPathWithName, journal.getRecordCount());
+							detokenizedHdfsPathWithName, hdfsFileName, journal.getRecordCount());
 					ActionEvent returnEvent = writeToHdfs(detokenizedHdfsPath, payload.toByteArray(), hdfsFileName,
 							hdfsFilePathBuilder, actionEvent);
 					getHandlerContext().createSingleItemEventList(returnEvent);
@@ -353,7 +354,9 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		} catch (Exception e) {
 			throw new HandlerException(e.getMessage(), e);
 		}
+		long endTime = System.currentTimeMillis();
 		logger.debug(handlerPhase, "statusToReturn={}", statusToReturn);
+		logger.info("Webhdfs wrote to HDFS for hdfsFile =" +journal.getCurrentHdfsPathWithName(), "finished in {} milliseconds",(endTime-startTime));
 		return statusToReturn;
 	}
 
@@ -379,12 +382,14 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		String partitionNames = null;
 		String partitionValues = null;
 		for (Entry<String, String> hivePartitionNameValue : hdfsFilePathBuilder.getPartitionNameValueMap().entrySet()) {
-			if (partitionValues == null) {
-				partitionValues = hivePartitionNameValue.getValue();
-				partitionNames = hivePartitionNameValue.getKey();
-			} else {
-				partitionValues += "," + hivePartitionNameValue.getValue();
-				partitionNames += "," + hivePartitionNameValue.getKey();
+			if(!isNonPartitionKey(inputEvent,hivePartitionNameValue.getKey())){
+				if (partitionValues == null) {
+					partitionValues = hivePartitionNameValue.getValue();
+					partitionNames = hivePartitionNameValue.getKey();
+				} else {
+					partitionValues += "," + hivePartitionNameValue.getValue();
+					partitionNames += "," + hivePartitionNameValue.getKey();
+				}
 			}
 		}
 		logger.debug(handlerPhase, "partitionNames={} partitionValues={} hdfsFileName={}", partitionNames,
@@ -405,6 +410,24 @@ public class WebHDFSWriterHandler extends AbstractHandler {
 		headers.put(ActionEventHeaderConstants.USER_NAME, hdfsUser);
 		return actionEvent;
 
+	}
+	
+	private boolean isNonPartitionKey(ActionEvent inputEvent, String hivePartitionName){
+		
+		boolean isNonPartition = false;
+		String hiveNonPartitionNames = inputEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_NON_PARTITION_NAMES);
+		if(hiveNonPartitionNames == null)
+			return isNonPartition;
+		
+		if(hiveNonPartitionNames != null){
+			String[] hiveNonPartitionStNames = hiveNonPartitionNames.split(",");
+			for(String hiveNonPartitionName: hiveNonPartitionStNames)
+				if(hivePartitionName.equalsIgnoreCase(hiveNonPartitionName))
+					isNonPartition = true;
+			
+		}	
+		return isNonPartition;
+		
 	}
 
 	private void initializeRecordCountInJournal(final ActionEvent actionEvent,
