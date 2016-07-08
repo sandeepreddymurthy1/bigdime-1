@@ -34,6 +34,7 @@ import io.bigdime.core.ActionEvent;
 import io.bigdime.core.AdaptorConfigurationException;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.commons.AdaptorLogger;
+import io.bigdime.core.commons.DataConstants;
 import io.bigdime.core.commons.PropertyHelper;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
@@ -93,6 +94,11 @@ public class HiveMetaDataHandler extends AbstractHandler {
 			ActionEvent actionEvent = actionEvents.get(0);
 			String entityName = actionEvent.getHeaders().get(ActionEventHeaderConstants.ENTITY_NAME);
 			Preconditions.checkNotNull(entityName,"EntityName cannot be null");
+			String partitionKeys = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES);
+			String partitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
+			String partitionLocation = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_LOCATION);
+			String hdfsBasePath = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_PATH);
+			
 			do{
 				metasegment = metadataStore.getAdaptorMetasegment(AdaptorConfig.getInstance().getName(), "HIVE", entityName);
 				entitee = metasegment.getEntity(entityName);
@@ -105,11 +111,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					isExisted = true;
 				}
 			}while(!isExisted && retryCount<=3);
-			String partitionKeys = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES);
-			String partitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
-			String partitionLocation = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_LOCATION);
-			String hdfsBasePath = actionEvent.getHeaders().get(ActionEventHeaderConstants.HDFS_PATH);
-
+			
 			createDatabase(metasegment);
 			createTable(metasegment.getDatabaseName(),entitee,actionEvent);
 
@@ -143,12 +145,12 @@ public class HiveMetaDataHandler extends AbstractHandler {
 
 	private String getHiveNonPartitionValues(ActionEvent actionEvent){
 		String hiveNonPartitionNames = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_NON_PARTITION_NAMES);
-		StringBuffer hiveNonPartitionValuessb = new StringBuffer();
+		StringBuilder hiveNonPartitionValuessb = new StringBuilder();
 		if(hiveNonPartitionNames != null){
-			String[] hiveNonPartitionStNames = hiveNonPartitionNames.split(",");
+			String[] hiveNonPartitionStNames = hiveNonPartitionNames.split(DataConstants.COMMA);
 	        for(String hiveNonPartitionName: hiveNonPartitionStNames){	
 	        	hiveNonPartitionValuessb.append(actionEvent.getHeaders().get(hiveNonPartitionName));
-	        	hiveNonPartitionValuessb.append("/");
+	        	hiveNonPartitionValuessb.append(DataConstants.SLASH);
 	        }
 	    }
 		if(hiveNonPartitionValuessb.length() > 1)
