@@ -11,7 +11,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hive.hcatalog.api.ObjectNotFoundException;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -208,10 +207,10 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	 * @throws HCatException
 	 */
 	private void createTable(String dbName,Entitee entitee,ActionEvent actionEvent) throws HCatException {
-		if(isTableCreated(dbName,entitee.getEntityName())){
+		hiveTableManager = HiveTableManger.getInstance(props);
+		if(hiveTableManager.isTableCreated(dbName,entitee.getEntityName())){
 			return;
 		}
-		hiveTableManager = HiveTableManger.getInstance(props);
 		List<Column> columns = new ArrayList<Column>();
 		
 		Column column = null;
@@ -266,27 +265,6 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	
 	/**
 	 * 
-	 * @param databaseName
-	 * @param tableName
-	 * @return
-	 */
-	private boolean isTableCreated(String databaseName,String tableName) {
-		boolean isCreated = false;
-		hiveTableManager = HiveTableManger.getInstance(props);
-
-		try {
-			hiveTableManager.getTableMetaData(databaseName, tableName);
-			isCreated = true;
-		} catch (HCatException e) {
-			if (ObjectNotFoundException.class == e.getClass()) {
-				isCreated = false;
-			}
-		}
-		return isCreated;
-	
-	}
-	/**
-	 * 
 	 * @param dbName
 	 * @param tableName
 	 * @param partitionMap
@@ -310,6 +288,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					throw e;			
 		}	
 	}
+	
 	/**
 	 * 
 	 * @param partitionKeys
