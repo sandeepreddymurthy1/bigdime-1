@@ -11,6 +11,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.hive.hcatalog.api.ObjectNotFoundException;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -113,7 +114,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 			
 			createDatabase(metasegment);
 			createTable(metasegment.getDatabaseName(),entitee,actionEvent);
-
+			long parStart = System.currentTimeMillis();
 			if(partitionKeys != null){
 				HashMap<String,String> partitionMap = getPartitionsMap(partitionKeys, partitionValues);
 				Preconditions.checkNotNull(partitionValues,"Partition Values cannot be null");
@@ -122,6 +123,8 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
 				createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
 			}
+			long parEnd = System.currentTimeMillis();
+			logger.info("HiveMetaDataHandler create partition for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, " finished in {} milliseconds", (parEnd-parStart));
 			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
 			getHandlerContext().createSingleItemEventList(actionEvent);
 			long endTime = System.currentTimeMillis();
@@ -207,10 +210,10 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	 * @throws HCatException
 	 */
 	private void createTable(String dbName,Entitee entitee,ActionEvent actionEvent) throws HCatException {
-		hiveTableManager = HiveTableManger.getInstance(props);
-		if(hiveTableManager.isTableCreated(dbName,entitee.getEntityName())){
+		if(isTableCreated(dbName,entitee.getEntityName())){
 			return;
 		}
+		hiveTableManager = HiveTableManger.getInstance(props);
 		List<Column> columns = new ArrayList<Column>();
 		
 		Column column = null;
@@ -261,6 +264,28 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					"\"hive table creation failed \" database ={} tableName={} columnsSize = {} error={}", dbName,entitee.getEntityName(),columns.size(), e.toString());
 					throw e;
 		}
+	}
+	
+	/**
+	 * 
+	 * @param databaseName
+	 * @param tableName
+	 * @return
+	 */
+	private boolean isTableCreated(String databaseName,String tableName) {
+		boolean isCreated = false;
+		hiveTableManager = HiveTableManger.getInstance(props);
+
+		try {
+			hiveTableManager.getTableMetaData(databaseName, tableName);
+			isCreated = true;
+		} catch (HCatException e) {
+			if (ObjectNotFoundException.class == e.getClass()) {
+				isCreated = false;
+			}
+		}
+		return isCreated;
+	
 	}
 	
 	/**
