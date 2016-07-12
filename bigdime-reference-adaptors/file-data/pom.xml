@@ -12,6 +12,6 @@
 	<parent>
 		<groupId>io.bigdime</groupId>
 		<artifactId>bigdime-reference-adaptors</artifactId>
-		<version>0.9.2</version>
+		<version>0.9.3-SNAPSHOT</version>
 	</parent>
 </project>
