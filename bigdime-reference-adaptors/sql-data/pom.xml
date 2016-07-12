@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>io.bigdime</groupId>
 			<artifactId>bigdime-runtimeinfo-management</artifactId>
-			<version>0.0.10-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
 	
