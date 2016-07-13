@@ -10,7 +10,7 @@
 		"description": "source description",
 		"source-type": "HIVE",
 		"src-desc": {
-			"input1": "{\"inputType\":\"database\",\"inputValue\":\"STUB_CAT_USER\", \"incrementedBy\":\"LAST_UPDATED_DATE\", \"include\":\"\"}"
+			"input1": "{\"inputType\":\"database\",\"inputValue\":\"sourceDatabase\", \"incrementedBy\":\"incrementedColumn\", \"include\":\"\"}"
 		},
 		"data-handlers": [{
 			"name": "jdbc-db-reader",
