@@ -18,7 +18,7 @@
 	<modules>
 		<module>bigdime-adaptor</module>
 		<module>click-stream</module>
-	<!--	<module>sql-data</module>  -->
+		<module>sql-data</module> 
 		<module>file-data</module>
 	</modules>
 	<build>

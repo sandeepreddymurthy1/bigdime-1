@@ -31,3 +31,7 @@ hs_err_pid*
 
 #Spring
 .springBeans
+database
+.clover
+derby.log
+metastore_db

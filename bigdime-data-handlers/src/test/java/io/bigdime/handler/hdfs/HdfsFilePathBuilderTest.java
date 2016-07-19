@@ -231,8 +231,8 @@ public class HdfsFilePathBuilderTest {
 		String hdfsPath = "unithdfs/${partition1}/${partition2}/partition3";
 		ActionEvent actionEvent = new ActionEvent();
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("PARTITION1", "partition1-value");
-		headers.put("PARTITION2", "partition2-value");
+		headers.put("partition1", "partition1-value");
+		headers.put("partition2", "partition2-value");
 		actionEvent.setHeaders(headers);
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
 				.withTokenHeaderMap(tokenToHeaderNameMap).build();
@@ -258,8 +258,8 @@ public class HdfsFilePathBuilderTest {
 		String hdfsPath = "UNIThdfs/${partition1}/${partition2}/partition3";
 		ActionEvent actionEvent = new ActionEvent();
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("PARTITION1", "partiTIon1-value");
-		headers.put("PARTITION2", "partitiON2-value");
+		headers.put("partition1", "partiTIon1-value");
+		headers.put("partition2", "partitiON2-value");
 		actionEvent.setHeaders(headers);
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
 				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.LOWER).build();
@@ -285,8 +285,8 @@ public class HdfsFilePathBuilderTest {
 		String hdfsPath = "unithdfs/${partition1}/${partition2}/partition3";
 		ActionEvent actionEvent = new ActionEvent();
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("PARTITION1", "partiTIon1-value");
-		headers.put("PARTITION2", "partitiON2-value");
+		headers.put("partition1", "partiTIon1-value");
+		headers.put("partition2", "partitiON2-value");
 		actionEvent.setHeaders(headers);
 		String path = hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent)
 				.withTokenHeaderMap(tokenToHeaderNameMap).withCase(StringCase.UPPER).build();
@@ -327,7 +327,7 @@ public class HdfsFilePathBuilderTest {
 		String hdfsPath = "unithdfs/${partition1}/${partition2}/partition3";
 		ActionEvent actionEvent = new ActionEvent();
 		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("PARTITION1", "partition1-value");
+		headers.put("partition1", "partition1-value");
 		actionEvent.setHeaders(headers);
 		hdfsFilePathBuilder.withHdfsPath(hdfsPath).withActionEvent(actionEvent).withTokenHeaderMap(tokenToHeaderNameMap)
 				.build();

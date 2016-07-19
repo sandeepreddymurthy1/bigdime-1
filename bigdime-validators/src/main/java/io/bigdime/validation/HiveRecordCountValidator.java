@@ -103,11 +103,10 @@ public class HiveRecordCountValidator implements Validator {
 		String hivePartitionNames = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_NAMES);
 		String hivePartitionValues = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_PARTITION_VALUES);
 		String hiveMetaStoreURL = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_METASTORE_URI);
-		
 		int sourceRecordCount = 0;
 
 		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.SOURCE_RECORD_COUNT, srcRCString);
-		commonCheckValidator.checkNullStrings(HiveClientConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
+		commonCheckValidator.checkNullStrings(ActionEventHeaderConstants.HIVE_METASTORE_URI, hiveMetaStoreURL);
 		
 		try {
 			sourceRecordCount = Integer.parseInt(srcRCString);
@@ -129,6 +128,7 @@ public class HiveRecordCountValidator implements Validator {
 		int hdfsRecordCount = 0;
 		Properties props = new Properties();
 		props.put(HiveConf.ConfVars.METASTOREURIS, hiveMetaStoreURL);
+		long startTime = System.currentTimeMillis();
 		try {
 			hdfsRecordCount = getHdfsRecordCountFromHive(props, hiveDBName, hiveTableName, partitionColumnsMap, 
 								getHAProperties(actionEvent));
@@ -140,8 +140,8 @@ public class HiveRecordCountValidator implements Validator {
 			throw new DataValidationException(
 					"Exception during getting record count from hive for table " +hiveTableName+ " in " +hiveDBName+ " database");
 		}
-
-		if (sourceRecordCount == hdfsRecordCount) {
+		long endTime = System.currentTimeMillis();
+		if (sourceRecordCount == hdfsRecordCount) {			
 			logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), "Record count matches",
 					"Hdfs record count({}) is same as source record count({}), hiveDBName: {}, hiveTableName: {}, partitionMap: {}", hdfsRecordCount, 
 					sourceRecordCount, hiveDBName, hiveTableName, partitionColumnsMap);
@@ -153,7 +153,9 @@ public class HiveRecordCountValidator implements Validator {
 					sourceRecordCount, hiveDBName, hiveTableName, partitionColumnsMap);
 			validationPassed.setValidationResult(ValidationResult.FAILED);
 		}
-
+		logger.info(AdaptorConfig.getInstance().getAdaptorContext().getAdaptorName(), 
+				"Hive record count validation for table = "+ hiveTableName+" and partitionMap = "+ partitionColumnsMap, " finished in {} milliseconds", 
+				 (endTime-startTime));
 		return validationPassed;
 	}
 
