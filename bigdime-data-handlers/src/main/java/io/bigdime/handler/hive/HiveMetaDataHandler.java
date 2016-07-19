@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.hive.hcatalog.api.ObjectNotFoundException;
+//import org.apache.hive.hcatalog.api.ObjectNotFoundException;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -39,6 +39,9 @@ import io.bigdime.core.commons.PropertyHelper;
 import io.bigdime.core.config.AdaptorConfig;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.AbstractHandler;
+import io.bigdime.core.runtimeinfo.RuntimeInfo;
+import io.bigdime.core.runtimeinfo.RuntimeInfoStore;
+import io.bigdime.core.runtimeinfo.RuntimeInfoStoreException;
 import io.bigdime.libs.hive.common.Column;
 import io.bigdime.libs.hive.constants.HiveClientConstants;
 import io.bigdime.libs.hive.database.DatabaseSpecification;
@@ -70,6 +73,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 
 	@Autowired private MetadataStore metadataStore;
 	@Autowired private MetaDataJsonUtils metaDataJsonUtils;
+	@Autowired private RuntimeInfoStore<RuntimeInfo> runtimeInfoStore;
 	
 	@Override
 	public void build() throws AdaptorConfigurationException {
@@ -112,23 +116,50 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				}
 			}while(!isExisted && retryCount<=3);
 			
-			createDatabase(metasegment);
-			createTable(metasegment.getDatabaseName(),entitee,actionEvent);
-			long parStart = System.currentTimeMillis();
-			if(partitionKeys != null){
-				HashMap<String,String> partitionMap = getPartitionsMap(partitionKeys, partitionValues);
-				Preconditions.checkNotNull(partitionValues,"Partition Values cannot be null");
-				if(partitionLocation == null)
-					partitionLocation  = getCompletePartitionPath(hdfsBasePath + getHiveNonPartitionValues(actionEvent),partitionValues);
-				Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
-				createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
+			RuntimeInfo runtimeInfoPart = runtimeInfoStore.get(AdaptorConfig.getInstance().getName(), entityName, 
+							actionEvent.getHeaders().get(ActionEventHeaderConstants.INPUT_DESCRIPTOR));
+			if(runtimeInfoPart == null){
+				RuntimeInfo runtimeInfo = runtimeInfoStore.getLatest(AdaptorConfig.getInstance().getName(), entityName);
+				if(runtimeInfo != null) {	
+					String dbFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.DATABASE_FLAG);
+					String tableFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.TABLE_FLAG);
+					if(dbFlag != null && dbFlag.equalsIgnoreCase("true")){
+						logger.info("Hive database already exists", metasegment.getDatabaseName());
+						actionEvent.getHeaders().put(ActionEventHeaderConstants.DATABASE_FLAG, "true");
+					} else{
+						createDatabase(metasegment, actionEvent);
+					}
+					if (tableFlag != null && tableFlag.equalsIgnoreCase("true")){
+						logger.info("Hive table already exists", entityName);
+						actionEvent.getHeaders().put(ActionEventHeaderConstants.TABLE_FLAG, "true");
+					} else {
+						createTable(metasegment.getDatabaseName(),entitee,actionEvent);
+					}
+				}
+				long parStart = System.currentTimeMillis();
+				if(partitionKeys != null){
+					HashMap<String,String> partitionMap = getPartitionsMap(partitionKeys, partitionValues);
+					Preconditions.checkNotNull(partitionValues,"Partition Values cannot be null");
+					if(partitionLocation == null){
+						partitionLocation  = getCompletePartitionPath(hdfsBasePath + getHiveNonPartitionValues(actionEvent),partitionValues);
+					}
+					Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
+					createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
+				}
+				long parEnd = System.currentTimeMillis();
+				logger.info("HiveMetaDataHandler create partition for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, 
+						"finished in {} milliseconds", (parEnd-parStart));
+			} else{
+				logger.info("Hive partition already exists", "partitionValue = {}", partitionValues);
 			}
-			long parEnd = System.currentTimeMillis();
-			logger.info("HiveMetaDataHandler create partition for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, " finished in {} milliseconds", (parEnd-parStart));
 			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
 			getHandlerContext().createSingleItemEventList(actionEvent);
 			long endTime = System.currentTimeMillis();
 			logger.info("HiveMetaDataHandler for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, " finished in {} milliseconds", (endTime-startTime));
+		} catch(RuntimeInfoStoreException e){
+			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.BLOCKER,
+					"\"hive metadata handler exception, runtime info store exception \" error={}", e.toString());			
+			throw new HandlerException(e);
 		} catch (MetadataAccessException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.BLOCKER,
 					"\"hive metadata handler exception \" error={}", e.toString());			
@@ -187,15 +218,16 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	 * @throws HCatException 
 	 * 
 	 */
-	private void createDatabase(Metasegment metasegment) throws HCatException {
+	private void createDatabase(Metasegment metasegment, ActionEvent actionEvent) throws HCatException {
 		hiveDBManager = HiveDBManger.getInstance(props);
 		DatabaseSpecification.Builder databaseSpecificationBuilder = new DatabaseSpecification.Builder(metasegment.getDatabaseName());
 		DatabaseSpecification  databaseSpecification = databaseSpecificationBuilder.location(metasegment.getDatabaseLocation())
 				.host(dfsHost).scheme(hdfsScheme).build();
 		try {
-			if(!hiveDBManager.isDatabaseCreated(metasegment.getDatabaseName())){
+//			if(!hiveDBManager.isDatabaseCreated(metasegment.getDatabaseName())){
 				hiveDBManager.createDatabase(databaseSpecification);
-			}
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.DATABASE_FLAG, "true");
+//			}
 		} catch (HCatException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.MAJOR,
 					"\"hive db creation failed \" database ={} error={}", metasegment.getDatabaseName(),e.toString());
@@ -210,9 +242,9 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	 * @throws HCatException
 	 */
 	private void createTable(String dbName,Entitee entitee,ActionEvent actionEvent) throws HCatException {
-		if(isTableCreated(dbName,entitee.getEntityName())){
-			return;
-		}
+//		if(isTableCreated(dbName,entitee.getEntityName())){
+//			return;
+//		}
 		hiveTableManager = HiveTableManger.getInstance(props);
 		List<Column> columns = new ArrayList<Column>();
 		
@@ -258,7 +290,8 @@ public class HiveMetaDataHandler extends AbstractHandler {
 				.partitionColumns(getPartitionsColumns(partitionKeys))
 				.build();
 		try {
-			hiveTableManager.createTable(tableSpec);
+				hiveTableManager.createTable(tableSpec);
+				actionEvent.getHeaders().put(ActionEventHeaderConstants.TABLE_FLAG, "true");
 		} catch (HCatException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.MAJOR,
 					"\"hive table creation failed \" database ={} tableName={} columnsSize = {} error={}", dbName,entitee.getEntityName(),columns.size(), e.toString());
@@ -266,27 +299,27 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		}
 	}
 	
-	/**
-	 * 
-	 * @param databaseName
-	 * @param tableName
-	 * @return
-	 */
-	private boolean isTableCreated(String databaseName,String tableName) {
-		boolean isCreated = false;
-		hiveTableManager = HiveTableManger.getInstance(props);
-
-		try {
-			hiveTableManager.getTableMetaData(databaseName, tableName);
-			isCreated = true;
-		} catch (HCatException e) {
-			if (ObjectNotFoundException.class == e.getClass()) {
-				isCreated = false;
-			}
-		}
-		return isCreated;
-	
-	}
+//	/**
+//	 * 
+//	 * @param databaseName
+//	 * @param tableName
+//	 * @return
+//	 */
+//	private boolean isTableCreated(String databaseName,String tableName) {
+//		boolean isCreated = false;
+//		hiveTableManager = HiveTableManger.getInstance(props);
+//
+//		try {
+//			hiveTableManager.getTableMetaData(databaseName, tableName);
+//			isCreated = true;
+//		} catch (HCatException e) {
+//			if (ObjectNotFoundException.class == e.getClass()) {
+//				isCreated = false;
+//			}
+//		}
+//		return isCreated;
+//	
+//	}
 	
 	/**
 	 * 

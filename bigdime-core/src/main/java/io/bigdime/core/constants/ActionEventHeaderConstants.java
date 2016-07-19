@@ -71,6 +71,8 @@ public final class ActionEventHeaderConstants {
 	public static final String TARGET_ENTITY_NAME = "targetEntityName";
 	public static final String HIVE_NON_PARTITION_NAMES = "hive_nonpartition_names";
 	public static final String HIVE_PARTITION_REQUIRED = "hivePartitionRequired";
+	public static final String DATABASE_FLAG = "database_flag";
+	public static final String TABLE_FLAG = "table_flag";
 	
 	public static final String SCHEMA_TYPE_HIVE = "HIVE";
 	public static final String HIVE_HOST_NAME = "hiveHostName";
