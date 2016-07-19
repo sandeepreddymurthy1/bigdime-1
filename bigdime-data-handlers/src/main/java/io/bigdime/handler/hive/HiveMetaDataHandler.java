@@ -11,7 +11,6 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-//import org.apache.hive.hcatalog.api.ObjectNotFoundException;
 import org.apache.hive.hcatalog.common.HCatException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -224,10 +223,8 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		DatabaseSpecification  databaseSpecification = databaseSpecificationBuilder.location(metasegment.getDatabaseLocation())
 				.host(dfsHost).scheme(hdfsScheme).build();
 		try {
-//			if(!hiveDBManager.isDatabaseCreated(metasegment.getDatabaseName())){
 				hiveDBManager.createDatabase(databaseSpecification);
 				actionEvent.getHeaders().put(ActionEventHeaderConstants.DATABASE_FLAG, "true");
-//			}
 		} catch (HCatException e) {
 			logger.alert(ALERT_TYPE.OTHER_ERROR, ALERT_CAUSE.APPLICATION_INTERNAL_ERROR, ALERT_SEVERITY.MAJOR,
 					"\"hive db creation failed \" database ={} error={}", metasegment.getDatabaseName(),e.toString());
@@ -242,9 +239,6 @@ public class HiveMetaDataHandler extends AbstractHandler {
 	 * @throws HCatException
 	 */
 	private void createTable(String dbName,Entitee entitee,ActionEvent actionEvent) throws HCatException {
-//		if(isTableCreated(dbName,entitee.getEntityName())){
-//			return;
-//		}
 		hiveTableManager = HiveTableManger.getInstance(props);
 		List<Column> columns = new ArrayList<Column>();
 		
@@ -268,9 +262,7 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		}
 		
 		if(hiveTableLocation == null){
-//			hiveTableLocation = entitee.getEntityLocation();
 			hiveTableLocation = StringUtils.remove(hdfsPath, webhdfs_scheme) + hiveNonPartitionValues;
-
 		}
 
 		TableSpecification.Builder tableSpecBuilder = new TableSpecification.Builder(dbName, entitee.getEntityName());
@@ -298,28 +290,6 @@ public class HiveMetaDataHandler extends AbstractHandler {
 					throw e;
 		}
 	}
-	
-//	/**
-//	 * 
-//	 * @param databaseName
-//	 * @param tableName
-//	 * @return
-//	 */
-//	private boolean isTableCreated(String databaseName,String tableName) {
-//		boolean isCreated = false;
-//		hiveTableManager = HiveTableManger.getInstance(props);
-//
-//		try {
-//			hiveTableManager.getTableMetaData(databaseName, tableName);
-//			isCreated = true;
-//		} catch (HCatException e) {
-//			if (ObjectNotFoundException.class == e.getClass()) {
-//				isCreated = false;
-//			}
-//		}
-//		return isCreated;
-//	
-//	}
 	
 	/**
 	 * 
