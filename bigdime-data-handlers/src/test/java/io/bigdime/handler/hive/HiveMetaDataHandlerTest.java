@@ -83,9 +83,9 @@ public class HiveMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
 		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "testaccount,20150101");
 		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_LOCATION, FileUtils.getTempDirectoryPath()+File.separator
 				+headers.get(ActionEventHeaderConstants.ENTITY_NAME)+File.separator+"20150101");
-		headers.put(ActionEventHeaderConstants.DATABASE_FLAG, "false");
-		headers.put(ActionEventHeaderConstants.TABLE_FLAG, "false");
-		headers.put(ActionEventHeaderConstants.PARTITION_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.DATABASE_CREATED_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.TABLE_CREATED_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.PARTITION_CREATED_FLAG, "false");
 		headers.put(ActionEventHeaderConstants.INPUT_DESCRIPTOR, "testaccount,20150101");
 		actionEvent.setHeaders(headers);
 		actionEvents.add(actionEvent);
