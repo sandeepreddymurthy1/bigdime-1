@@ -119,37 +119,33 @@ public class HiveMetaDataHandler extends AbstractHandler {
 							actionEvent.getHeaders().get(ActionEventHeaderConstants.INPUT_DESCRIPTOR));
 			if(runtimeInfoPart == null){
 				RuntimeInfo runtimeInfo = runtimeInfoStore.getLatest(AdaptorConfig.getInstance().getName(), entityName);
-				if(runtimeInfo != null) {	
-					String dbFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.DATABASE_FLAG);
-					String tableFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.TABLE_FLAG);
-					if(dbFlag != null && dbFlag.equalsIgnoreCase("true")){
-						logger.info("Hive database already exists", metasegment.getDatabaseName());
-						actionEvent.getHeaders().put(ActionEventHeaderConstants.DATABASE_FLAG, "true");
-					} else{
-						createDatabase(metasegment, actionEvent);
-					}
-					if (tableFlag != null && tableFlag.equalsIgnoreCase("true")){
-						logger.info("Hive table already exists", entityName);
-						actionEvent.getHeaders().put(ActionEventHeaderConstants.TABLE_FLAG, "true");
-					} else {
-						createTable(metasegment.getDatabaseName(),entitee,actionEvent);
-					}
+				String dbFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.DATABASE_FLAG);
+				String tableFlag = runtimeInfo.getProperties().get(ActionEventHeaderConstants.TABLE_FLAG);
+				if(dbFlag != null && dbFlag.equalsIgnoreCase(Boolean.TRUE.toString())){
+					logger.info("Hive database already exists", metasegment.getDatabaseName());
+					actionEvent.getHeaders().put(ActionEventHeaderConstants.DATABASE_FLAG, Boolean.TRUE.toString());
+				} else{
+					createDatabase(metasegment, actionEvent);
 				}
-				long parStart = System.currentTimeMillis();
+				if (tableFlag != null && tableFlag.equalsIgnoreCase(Boolean.TRUE.toString())){
+					logger.info("Hive table already exists", entityName);
+					actionEvent.getHeaders().put(ActionEventHeaderConstants.TABLE_FLAG, Boolean.TRUE.toString());
+				} else {
+					createTable(metasegment.getDatabaseName(),entitee,actionEvent);
+				}
 				if(partitionKeys != null){
-					HashMap<String,String> partitionMap = getPartitionsMap(partitionKeys, partitionValues);
-					Preconditions.checkNotNull(partitionValues,"Partition Values cannot be null");
-					if(partitionLocation == null){
-						partitionLocation  = getCompletePartitionPath(hdfsBasePath + getHiveNonPartitionValues(actionEvent),partitionValues);
-					}
-					Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
-					createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
+					callToCreatePartitions(partitionValues, partitionKeys, partitionLocation, metasegment, entitee, hdfsBasePath, actionEvent);
 				}
-				long parEnd = System.currentTimeMillis();
-				logger.info("HiveMetaDataHandler create partition for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, 
-						"finished in {} milliseconds", (parEnd-parStart));
+				
 			} else{
-				logger.info("Hive partition already exists", "partitionValue = {}", partitionValues);
+				if(runtimeInfoPart.getProperties().get(ActionEventHeaderConstants.PARTITION_FLAG).equalsIgnoreCase(Boolean.TRUE.toString())){
+					logger.info("Hive partition already exists", "partitionValue = {}", partitionValues);
+				} else{
+					if(partitionKeys != null){
+						callToCreatePartitions(partitionValues, partitionKeys, partitionLocation, metasegment, entitee, hdfsBasePath, actionEvent);
+						actionEvent.getHeaders().put(ActionEventHeaderConstants.PARTITION_FLAG, Boolean.TRUE.toString());
+					}
+				}
 			}
 			setMetaDataProperties(metasegment.getDatabaseName(),entitee.getEntityName(),actionEvent);
 			getHandlerContext().createSingleItemEventList(actionEvent);
@@ -175,6 +171,21 @@ public class HiveMetaDataHandler extends AbstractHandler {
 		return Status.READY;
 	}
 
+	private void callToCreatePartitions(String partitionValues, String partitionKeys, String partitionLocation, Metasegment metasegment, Entitee entitee, String hdfsBasePath, ActionEvent actionEvent) throws HCatException{
+		long parStart = System.currentTimeMillis();
+		HashMap<String,String> partitionMap = getPartitionsMap(partitionKeys, partitionValues);
+		Preconditions.checkNotNull(partitionValues,"Partition Values cannot be null");
+		if(partitionLocation == null){
+			partitionLocation  = getCompletePartitionPath(hdfsBasePath + getHiveNonPartitionValues(actionEvent),partitionValues);
+		}
+		Preconditions.checkNotNull(partitionLocation,"Partition Location cannot be null");
+		createPartition(metasegment.getDatabaseName(), entitee.getEntityName(),partitionMap,partitionLocation);
+		actionEvent.getHeaders().put(ActionEventHeaderConstants.PARTITION_FLAG, Boolean.TRUE.toString());
+		long parEnd = System.currentTimeMillis();
+		logger.info("HiveMetaDataHandler create partition for table = "+entitee.getEntityName()+" and partitionValues = "+partitionValues, 
+				"finished in {} milliseconds", (parEnd-parStart));
+
+	}
 	private String getHiveNonPartitionValues(ActionEvent actionEvent){
 		String hiveNonPartitionNames = actionEvent.getHeaders().get(ActionEventHeaderConstants.HIVE_NON_PARTITION_NAMES);
 		StringBuilder hiveNonPartitionValuessb = new StringBuilder();
