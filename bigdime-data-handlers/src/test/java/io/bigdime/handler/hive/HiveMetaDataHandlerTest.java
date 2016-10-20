@@ -3,7 +3,9 @@
  */
 package io.bigdime.handler.hive;
 
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -22,6 +24,9 @@ import io.bigdime.core.ActionEvent;
 import io.bigdime.core.HandlerException;
 import io.bigdime.core.constants.ActionEventHeaderConstants;
 import io.bigdime.core.handler.HandlerContext;
+import io.bigdime.core.runtimeinfo.RuntimeInfo;
+import io.bigdime.core.runtimeinfo.RuntimeInfoStore;
+import io.bigdime.core.runtimeinfo.RuntimeInfoStoreException;
 import io.bigdime.libs.hive.database.HiveDBManger;
 
 import org.apache.commons.io.FileUtils;
@@ -36,20 +41,25 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 @ContextConfiguration(classes = { MetaDataJsonUtils.class})
 public class HiveMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
-	@Mock
-	MetadataStore metadataStore;
-	@Autowired
-	MetaDataJsonUtils metaDataJsonUtils;
-	ObjectMapper objectMapper1 = new ObjectMapper();
-	String trackingSchema = "{ \"name\": \"MetaInformation\", \"version\": \"1.1.0\", \"type\": \"map\", \"entityProperties\": { \"hiveDatabase\": { \"name\": \"clickstream\", \"location\": \"/tmp/data\", \"external\": \"true\" }, \"hiveTable\": { \"name\": \"clickStreamEvents\", \"type\": \"external\", \"location\": \"/data/clickstream/raw\" }, \"hivePartitions\": { \"feed\": { \"name\": \"feed\", \"type\": \"string\", \"comments\": \"The account or feed for a data stream.\" }, \"dt\": { \"name\": \"dt\", \"type\": \"string\", \"comments\": \"The date partition for a data stream.\" } }, \"properties\": { \"account\": { \"name\": \"account\", \"type\": \"string\", \"comments\": \"The identifier for the data feed.\" }, \"prop1\": { \"name\": \"prop1\", \"type\": \"string\", \"comments\": \"The identifier for the prop1\" }, \"prop2\": { \"name\": \"prop2\", \"type\": \"string\", \"comments\": \"The identifier for the prop2\" }, \"context1\": { \"name\": \"context1\", \"type\": \"string\", \"comments\": \"The identifier for the context1\" }, \"context2\": { \"name\": \"context2\", \"type\": \"string\", \"comments\": \"The identifier for the context2\" } } } }";
+	@Mock MetadataStore metadataStore;
+	@Autowired MetaDataJsonUtils metaDataJsonUtils;
 	EmbeddedHiveServer embeddedHiveServer = null;
-
+	
+	ObjectMapper objectMapper = new ObjectMapper();
+	String trackingSchema = null;
 	Properties props = new Properties();
 
+	@BeforeTest
+	public void loadSchemaFile() throws IOException{
+		File resourcesDir = new File (System.getProperty("user.dir") + "/src/test/resources/click-stream-hive-schema.json");
+		trackingSchema = FileUtils.readFileToString(resourcesDir);
+	}
+	
 	@BeforeClass
 	public void before() throws InterruptedException, IOException{
 		embeddedHiveServer = EmbeddedHiveServer.getInstance();
@@ -61,10 +71,9 @@ public class HiveMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
 	}
 	
 	@Test
-	public void testProcess() throws ClientProtocolException, IOException, InterruptedException, MetadataAccessException, HandlerException{
+	public void testProcess() throws ClientProtocolException, IOException, InterruptedException, MetadataAccessException, HandlerException, RuntimeInfoStoreException{
 		cleanUp();
 		HiveMetaDataHandler hiveMetaDataHandler = mockHiveMetaDataHandler();
-		
 		HandlerContext handlerContext = HandlerContext.get();
 		List<ActionEvent> actionEvents = new ArrayList<>();
 		ActionEvent actionEvent = new ActionEvent();
@@ -74,12 +83,23 @@ public class HiveMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
 		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_VALUES, "testaccount,20150101");
 		headers.put(ActionEventHeaderConstants.HIVE_PARTITION_LOCATION, FileUtils.getTempDirectoryPath()+File.separator
 				+headers.get(ActionEventHeaderConstants.ENTITY_NAME)+File.separator+"20150101");
-		
+		headers.put(ActionEventHeaderConstants.DATABASE_CREATED_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.TABLE_CREATED_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.PARTITION_CREATED_FLAG, "false");
+		headers.put(ActionEventHeaderConstants.INPUT_DESCRIPTOR, "testaccount,20150101");
 		actionEvent.setHeaders(headers);
 		actionEvents.add(actionEvent);
 		handlerContext.setEventList(actionEvents);
+		@SuppressWarnings("unchecked")
+		RuntimeInfoStore<RuntimeInfo> runtimeInfoStore = mock(RuntimeInfoStore.class);
+		RuntimeInfo runtimeInfo = mock(RuntimeInfo.class);
+		when(runtimeInfoStore.get(anyString(), anyString(), anyString())).thenReturn(null);
+		ReflectionTestUtils.setField(hiveMetaDataHandler, "runtimeInfoStore", runtimeInfoStore);
+		when(runtimeInfoStore.getLatest(anyString(), anyString())).thenReturn(runtimeInfo);
+		when(runtimeInfoStore.put(any(RuntimeInfo.class))).thenReturn(true);
 		hiveMetaDataHandler.process();
 	}
+	
 	public void cleanUp() throws HCatException{
 		HiveDBManger hiveDBManager = HiveDBManger.getInstance(props);
 		hiveDBManager.dropDatabase("clickstream");
@@ -89,16 +109,13 @@ public class HiveMetaDataHandlerTest extends AbstractTestNGSpringContextTests{
 		HiveMetaDataHandler hiveMetaDataHandler = new HiveMetaDataHandler();
 		metadataStore = Mockito.mock(MetadataStore.class);
 		Metasegment metaSegment = metaDataJsonUtils.convertJsonToMetaData("mock-app","clickStreamEvents",
-				objectMapper1.readTree(trackingSchema.getBytes()));
+				objectMapper.readTree(trackingSchema.getBytes()));
 		when(metadataStore.getAdaptorMetasegment(anyString(), anyString(), anyString())).thenReturn(metaSegment);
 		when(metadataStore.getAdaptorEntity(anyString(), anyString(), anyString())).thenReturn(metaSegment.getEntity("clickStreamEvents"));
 		metaSegment.setDatabaseLocation(FileUtils.getUserDirectoryPath() +File.separator+"BD_TEST"+"_"+System.currentTimeMillis()+metaSegment.getDatabaseName()+File.separator);
 		//when(metaSegment.getDatabaseLocation()).thenReturn(FileUtils.getTempDirectoryPath()+File.separator+metaSegment.getDatabaseName()+File.separator);
 		ReflectionTestUtils.setField(hiveMetaDataHandler, "metadataStore", metadataStore);
 		ReflectionTestUtils.setField(hiveMetaDataHandler, "props", props);
-
-
 		return hiveMetaDataHandler;
-
-	}	
+	}
 }

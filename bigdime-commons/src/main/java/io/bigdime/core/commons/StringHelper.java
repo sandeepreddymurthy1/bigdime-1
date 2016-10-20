@@ -108,17 +108,18 @@ public final class StringHelper {
 	 * @return byte[][] or throws an {@link IllegalArgumentException} if data is
 	 *         null
 	 */
-	public static byte[][] partitionByNewLine(final byte[] data) {
+
+	public static Segment partitionByNewLine(final byte[] data) {
 		Preconditions.checkNotNull(data);
 		String str = new String(data, Charset.defaultCharset());
 		int lastNewLineCharIndex = str.lastIndexOf("\n");
 		if (lastNewLineCharIndex == -1) {
 			return null;
 		} else {
-			byte[][] lines = new byte[2][];
-			lines[0] = Arrays.copyOf(data, lastNewLineCharIndex + 1);
-			lines[1] = Arrays.copyOfRange(data, lastNewLineCharIndex + 1, str.length());
-			return lines;
+			Segment segment = new Segment();
+			segment.setLines(Arrays.copyOf(data, lastNewLineCharIndex + 1));
+			segment.setLeftoverData(Arrays.copyOfRange(data, lastNewLineCharIndex + 1, str.length()));
+			return segment;
 		}
 	}
 
@@ -136,21 +137,20 @@ public final class StringHelper {
 	 * @param secondPart
 	 * @return
 	 */
-	@Deprecated
-	public static byte[][] appendAndPartitionByNewLine(final byte[] firstPart, final byte[] secondPart) {
-		byte[][] partitionedArray = partitionByNewLine(secondPart);
+
+	public static Segment appendAndPartitionByNewLine(final byte[] firstPart, final byte[] secondPart) {
+		Segment partitionedArray = partitionByNewLine(secondPart);
 
 		if (partitionedArray != null) {
-			partitionedArray[0] = ArrayUtils.addAll(firstPart, partitionedArray[0]);
+			partitionedArray.setLines(ArrayUtils.addAll(firstPart, partitionedArray.getLines()));
 			return partitionedArray;
 		} else {
 			if (new String(firstPart).isEmpty())
 				return null;
-			partitionedArray = new byte[2][];
-			partitionedArray[0] = firstPart;
-			partitionedArray[1] = secondPart;
-			return partitionedArray;// appendAndPartitionByNewLine("".getBytes(),
-									// firstPart);
+			Segment segment = new Segment();
+			segment.setLines(firstPart);
+			segment.setLeftoverData(secondPart);
+			return segment;
 		}
 	}
 
@@ -160,5 +160,18 @@ public final class StringHelper {
 		if (StringUtils.isBlank(basePath))
 			return absolutePath;
 		return absolutePath.substring(basePath.length());
+	}
+
+	public static String formatField(final String inputValue, StringCase stringCase) {
+		if (StringUtils.isBlank(inputValue))
+			return inputValue;
+		switch (stringCase) {
+		case LOWER:
+			return inputValue.toLowerCase();
+		case UPPER:
+			return inputValue.toUpperCase();
+		default:
+			return inputValue;
+		}
 	}
 }

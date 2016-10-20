@@ -51,7 +51,7 @@ public class DataValidationHandler extends AbstractHandler {
 	@Autowired
 	private ValidatorFactory validatorFactory;
 	private List<Validator> validators = new ArrayList<>();
-
+	
 	@Autowired
 	private RuntimeInfoStore<RuntimeInfo> runtimeInfoStore;
 
@@ -88,24 +88,26 @@ public class DataValidationHandler extends AbstractHandler {
 
 	private void process0(ActionEvent actionEvent) throws HandlerException {
 		logger.debug("DataValidationHandler processing event", "actionEvent==null=\"{}\"", actionEvent == null);
-		boolean validationPassed = false;
+		boolean validationPassed = true;
+		ValidationResult validationReady = ValidationResult.NOT_READY;
 		if (actionEvent == null) {
 			logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.VALIDATION_ERROR, ALERT_SEVERITY.BLOCKER,
 					"_message=\"validation failed, null ActionEvent found in HandlerContext\"");
 			throw new ValidationHandlerException("validation failed, null ActionEvent found in HandlerContext");
 		}
-
 		for (final Validator validator : validators) {
+
 			try {
 				ValidationResponse validationResponse = validator.validate(actionEvent);
+				validationReady = validationResponse.getValidationResult();
+				if (validationReady != ValidationResult.NOT_READY) {
+					validationPassed = validationPassed
+							& (validationResponse.getValidationResult() == ValidationResult.PASSED);
 
-				if (validationResponse.getValidationResult() != ValidationResult.NOT_READY) {
-					validationPassed = validationResponse.getValidationResult() == ValidationResult.PASSED;
-					logger.debug("DataValidationHandler processing event", "updating runtime info");
-					updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
-					logger.debug("DataValidationHandler processing event", "updated runtime info");
+					logger.debug("DataValidationHandler processing event", "received validation results", actionEvent);
 				} else {
 					logger.debug("DataValidationHandler processing event", "validation was skipped");
+					break;
 				}
 			} catch (DataValidationException e) {
 				logger.alert(ALERT_TYPE.INGESTION_FAILED, ALERT_CAUSE.VALIDATION_ERROR, ALERT_SEVERITY.BLOCKER,
@@ -117,5 +119,16 @@ public class DataValidationHandler extends AbstractHandler {
 				throw new HandlerException(e.getMessage(), e);
 			}
 		}
+		try {
+			if (validationReady != ValidationResult.NOT_READY) {
+				logger.debug("DataValidationHandler processing event", "updating runtime info actionEvent={}",
+						actionEvent);
+				updateRuntimeInfoToStoreAfterValidation(runtimeInfoStore, validationPassed, actionEvent);
+			}
+		} catch (Exception e) {
+			logger.debug("exception during validation", "src_desc=\"{}\"", actionEvent.getHeaders().get("src-desc"));
+			throw new HandlerException(e.getMessage(), e);
+		}
+		logger.debug("DataValidationHandler processing event", "updated runtime info");
 	}
 }
