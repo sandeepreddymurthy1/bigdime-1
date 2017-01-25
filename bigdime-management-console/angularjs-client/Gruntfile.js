@@ -8,25 +8,36 @@
 
 
 module.exports = function (grunt) {
+	require('jit-grunt')(grunt);
     grunt.initConfig({
     	pkg: grunt.file.readJSON('package.json'),
             copy: {
                 main: {
-                    files: [
-//                        {expand: true, src: ['app/**'], dest: '../src/main/webapp/'}
-                          {expand: true, cwd:'app/' ,src: ['**'], dest: '../src/main/webapp/'}
-                    ]
+                    files: [{expand: true, cwd:'app/' ,src: ['**'], dest: '../src/main/webapp/'}]
                 }
             },
+            less: {
+                development: {
+                    options: {
+                      compress: true,
+                      yuicompress: true,
+                      optimization: 2
+                    },
+                    files: {
+                      "app/css/main.css": "app/css/main.less" // destination file and source file
+                    }
+                  }
+                },
+
             watch: {
                 scripts: {
                     files: ['app/**'],
                     options: {
-                        nospawn: true
-                    }
+                        nospawn: false
+                    },
+                    tasks:['less','copy']
                 }
-            },
-
+            },              
             connect: {
                 test: {
                     options: {
@@ -80,12 +91,13 @@ module.exports = function (grunt) {
         }
     });
   
-    grunt.registerTask('develop', ['copy', 'watch','uglify']);
+    grunt.registerTask('develop', ['copy', 'watch','uglify','less']);
     grunt.registerTask('test', ['connect:test', 'karma:unit', 'karma:e2e']);
-    grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-karma');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-less');
 
 }

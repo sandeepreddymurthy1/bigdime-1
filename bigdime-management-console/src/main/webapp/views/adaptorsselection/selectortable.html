@@ -1,7 +1,5 @@
-<div class="scrollable">
-	<div class="tablecontainer">
+	<div class="scrollable">
 		<div class="boxtopborder">
-			<div>
 				<div class="form-group row">
 					<label class="col-xs-4">Choose an Adaptor</label>
 					<div class="col-xs-4">
@@ -75,17 +73,13 @@
 					</div>
 
 				</form>
-			</div>
 		</div>
 		<div class="boxbottomborder">
-			<div>
 				<div ng-if="adaptor.selected=='Kafka'" class="adptheader"
 					ng-include="'views/adaptorsselection/kafkaadaptorselection.html'"></div>
 				<div ng-if="adaptor.selected=='File'" class="adptheader"
 					ng-include="'views/adaptorsselection/fileadaptorselection.html'"></div>
 				<div ng-if="adaptor.selected=='Sql'" class="adptheader"
 					ng-include="'views/adaptorsselection/sqladaptorselection.html'"></div>
-			</div>
 		</div>
 	</div>
-</div>

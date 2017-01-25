@@ -14,8 +14,9 @@
 	http://www.springframework.org/schema/context/spring-context-4.0.xsd">
    <context:annotation-config />
 	<context:component-scan base-package="io.bigdime" />
+			<!-- location="file:///${ext.properties}/application.properties" -->
     <context:property-placeholder
-		location="file:///${ext.properties}/application.properties"
+		location="file:////Users/samurthy/Documents/software/servers/apache-tomcat-7.0.63/application.properties"
 		ignore-resource-not-found="false" ignore-unresolvable="true" />
 	<mvc:annotation-driven />
 </beans>

@@ -1,0 +1,95 @@
+@import "bootstrap/bootstrap.less";
+/**Application Headers**/
+.head{
+   background-color: @background-color; 
+   height:50px;
+   position:relative;
+   padding-right: @padding-right;
+   padding-top: @padding-top;
+   padding-left: @padding-left;
+   @font-size: 20px; 
+   color: @white;
+   }
+header {
+    .head;
+         & span {              
+                & h {
+                   .make-xs-column(6);
+                    font-size:@font-size; 	
+	                border-bottom: none !important;
+                   }
+               
+               & p {
+                   .make-xs-column(6);
+	               font-size:@font-size*2/3; 	    
+                  }
+               & a {
+                    color:@white;
+                     &:hover {
+                           background-color:#F26516 !important;
+                          }
+                  } 
+              } 
+}
+
+.foot{
+ color: @white;
+ text-align: center;
+ padding-top: 10px;
+ padding-bottom: 20px;
+ background:@background-color;
+ bottom: 0;
+}
+
+footer {
+   & div {
+     .navbar;  
+     .navbar-default;
+     .navbar-fixed-bottom;   
+     .foot;
+   } 
+}
+
+/**Footer**/
+/**
+.f1 {
+	text-align: center;
+	color: white;
+	padding-top: 10px;
+	padding-bottom: 18px;
+	background:@background-color;
+}	
+**/
+/**
+.page-header {
+	color: @white;
+    font-size: 24px;
+    height:10vh;
+	border-bottom: none !important;
+	position:absolute;
+}	
+**/
+.offset{
+    top: 25vh;  	
+}
+
+.invalid {
+	color:#a94442;
+}
+
+/**
+.welcome {
+	color:@white;
+	font-size: 14px !important;
+	margin-top: 1em;
+	margin-right: 1em;
+	float: right;
+	margin-bottom:1em;
+} 
+**/
+/**
+.header-padding {
+    margin-left: 0px; 
+    padding-right: 15px;
+}
+**/

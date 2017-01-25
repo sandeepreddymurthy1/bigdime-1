@@ -17,6 +17,9 @@ angular.module('jsonerApp')
 	 $scope.adaptornames=AdaptorSharedService.getadaptornames();
      $scope.adaptor={};
      $scope.adaptor.selected="";
+     $scope.sqladaptornames=['database','query','table'];
+     $scope.sqladaptor={};
+     $scope.sqladaptor.selected="";
      $scope.isFilled=false;
      $scope.applicationmetaproperties={};
      var mandatoryfields=[];
@@ -48,7 +51,18 @@ angular.module('jsonerApp')
     				 var values=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property].split(':');
     				 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['value']=values[0];
     				 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['value2']=values[1];
-    			 }else{	  
+    			 }else if($scope.adaptor.selected.toLowerCase()=='sql'){    				
+    					 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['inputType']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['inputType'];
+    	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['inputValue']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['inputValue'];
+    	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['incrementedBy']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['incrementedBy'];
+    	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['include']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['include'];    	    			
+    	    			 if($scope.sqladaptor.selected=='table'){
+    	    				 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['targetTableName']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['targetTableName'];
+        	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['partitionedColumns']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['partitionedColumns'];
+        	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['rowDelimeter']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['rowDelimeter'];
+        	    			 $scope.selectedAdaptorObjectArray[$scope.selectedAdaptorObjectArray.length-1]['fieldDelimeter']=jsonBuilderFactory.getBuiltAdaptor().source["src-desc"][property]['fieldDelimeter'];    	    			
+        	    			 
+    	    			 }
     			 }
     		 }    		 
     	  }

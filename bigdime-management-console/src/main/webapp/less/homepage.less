@@ -1,0 +1,87 @@
+@import "bootstrap/bootstrap.less";
+
+@headerfooterht: 155px;
+.row2 {
+    padding-right: @padding-right;
+    padding-top: @padding-top;
+    padding-left: @padding-left;	
+	background-color: @background-color;
+	color: @white;
+	height:55px;	
+}
+
+.row4
+{   padding-right: @padding-right;
+    padding-top: @padding-top;
+    padding-left: @padding-left*2;
+    padding-bottom: @padding-bottom;
+	min-height: calc(~'100vh - @{headerfooterht}');
+	div {
+             height:inherit;
+             background-color:@white;
+         }
+}
+
+.bt-dropdown {
+    color:@white;
+    padding: 0;
+    border: none;
+    background: none;
+    background-color:@background-color;
+    }
+   
+.ul-dropdown {
+    background-color:@background-color;
+    color:@white;
+    li {
+      display:inline-block;
+      a {
+        background-color:@background-color;
+        color:@white;
+        &:hover {
+              background-color:#F26516 !important;
+              }
+       }
+     }
+  }
+  
+.datasource{
+    .text-right;
+	height:inherit;
+    padding: 10px 0px 10px 20px;
+    ol {
+       .breadcrumb;
+       background-color:@background-color;
+       li {
+          a {
+            .breadcrumbtext;
+             &:hover {
+              background-color:@stuborange-color;
+              }
+         }
+       }
+    }
+}
+    
+.breadcrumbtext{
+    height: inherit;
+    margin: 0px;
+    padding: 0.5em;
+    min-height: inherit;
+    color: @white;
+}
+
+.env-dropdown{
+         .pull-right;
+         .form-control;
+          width: auto;
+        
+}
+/**
+.thirdBox {
+       & div {
+             height:inherit;
+             background-color:@white;
+         }
+} 
+**/

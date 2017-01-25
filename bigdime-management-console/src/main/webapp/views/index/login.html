@@ -1,18 +1,9 @@
-<div>
-	<header>
-		<div class="row rowone">
-			<div class="col-xs-6">
-				<h class="page-header">BigDime Management Console</h>
-			</div>
-			<div class="col-xs-6">
-				<p class="text-right welcome">
-					Welcome 
-				</p>
-			</div>
-		</div>
-	</header>
- <div class="row offset">
-	<div class="col-xs-4 col-xs-offset-4">
+<header class="row">
+				<span><h>BigDime Management Console</h></span>
+				<span class="text-right"><p>Welcome</p></span>
+</header>
+ <div class="row offset col-xs-4 col-xs-offset-4">
+	<!-- <div class="col-xs-4 col-xs-offset-4"> -->
 		<form name="form" ng-submit="vm.login()" role="form">
 			<div class="form-group"
 				ng-class="{ 'has-error': form.username.$dirty && form.username.$error.required }">
@@ -40,11 +31,8 @@
 			</div>
 			<p class="help-block invalid" style="display:none;">Invalid Credentials.Please make sure that user name/password are correct</p>
 		</form>
-     </div> 
+<!--      </div>  -->
 	</div>
 <footer>
- 	<nav class="navbar  navbar-default navbar-fixed-bottom">
-	<div class="f1">Powered by BigDime@copyrights-2015</div>
-    </nav>
+	  <div>Powered by BigDime@copyrights-2015</div>
 </footer>
-</div>
